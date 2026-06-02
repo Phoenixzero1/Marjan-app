@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { isRateLimited, getClientIp, limitExceeded } from "@/lib/rateLimit";
 
 const schema = z.object({
   name: z.string().min(2),
@@ -11,6 +12,12 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  // Rate limit: max 5 contact messages per IP per hour
+  const ip = getClientIp(req);
+  if (isRateLimited(`contact:${ip}`, 5, 60 * 60_000)) {
+    return limitExceeded("تعداد پیام‌های ارسالی شما بیش از حد مجاز است. یک ساعت دیگر تلاش کنید.");
+  }
+
   try {
     const body = await req.json();
     const data = schema.parse(body);

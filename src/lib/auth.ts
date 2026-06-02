@@ -4,6 +4,7 @@ import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 import { z } from "zod";
+import { isRateLimited, getClientIp } from "./rateLimit";
 
 const loginSchema = z.object({
   phone: z.string().optional(),
@@ -24,7 +25,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
+        // Rate limit: max 5 login attempts per IP per 15 minutes
+        if (request) {
+          const ip = getClientIp(request);
+          if (isRateLimited(`login:${ip}`, 5, 15 * 60_000)) {
+            throw new Error("RATE_LIMITED");
+          }
+        }
+
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
 

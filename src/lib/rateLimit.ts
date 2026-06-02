@@ -1,14 +1,17 @@
-// Simple in-memory rate limiter (per IP, per route key)
-// For multi-server production: replace with Redis-based solution (e.g. upstash/ratelimit)
+// Simple in-memory rate limiter (per IP / per key)
+// NOTE: resets on server restart and does not share state across multiple instances.
+// For multi-server / serverless production: replace with @upstash/ratelimit + Redis.
 
-interface Record {
+import { NextResponse } from "next/server";
+
+interface RateLimitRecord {
   count: number;
   resetAt: number;
 }
 
-const store = new Map<string, Record>();
+const store = new Map<string, RateLimitRecord>();
 
-// Clean up expired entries every 5 minutes
+// Purge expired entries every 5 minutes to prevent unbounded memory growth
 setInterval(() => {
   const now = Date.now();
   for (const [key, record] of store.entries()) {
@@ -17,10 +20,10 @@ setInterval(() => {
 }, 5 * 60 * 1000);
 
 /**
- * Returns true if the request should be blocked (rate limited).
- * @param key  unique key (e.g. "register:192.168.1.1")
- * @param max  max requests per window
- * @param windowMs  window size in ms (default 60s)
+ * Returns true if this key has exceeded its quota (request should be blocked).
+ * @param key      Unique string, e.g. "login:192.168.1.1" or "otp:09121234567"
+ * @param max      Maximum allowed hits inside the window
+ * @param windowMs Time window in milliseconds (default 60 s)
  */
 export function isRateLimited(key: string, max: number, windowMs = 60_000): boolean {
   const now = Date.now();
@@ -32,12 +35,17 @@ export function isRateLimited(key: string, max: number, windowMs = 60_000): bool
   }
 
   record.count++;
-  if (record.count > max) return true;
-  return false;
+  return record.count > max;
 }
 
+/** Extract the real client IP from x-forwarded-for or fall back to "unknown". */
 export function getClientIp(req: Request): string {
   const forwarded = (req.headers as Headers).get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0].trim();
   return "unknown";
+}
+
+/** Ready-made 429 NextResponse with a Persian error message. */
+export function limitExceeded(message = "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً کمی صبر کنید."): NextResponse {
+  return NextResponse.json({ error: message }, { status: 429 });
 }

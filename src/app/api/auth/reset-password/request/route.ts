@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
+import { isRateLimited, getClientIp, limitExceeded } from "@/lib/rateLimit";
 
 const schema = z.object({
   identifier: z
@@ -13,7 +14,13 @@ const schema = z.object({
     ),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Rate limit: max 3 reset requests per IP per 15 minutes
+  const ip = getClientIp(req);
+  if (isRateLimited(`reset-request:${ip}`, 3, 15 * 60_000)) {
+    return limitExceeded("تعداد درخواست‌های بازیابی رمز بیش از حد است. ۱۵ دقیقه صبر کنید.");
+  }
+
   try {
     const body = await req.json();
     const parsed = schema.safeParse(body);

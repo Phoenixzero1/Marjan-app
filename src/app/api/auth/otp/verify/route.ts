@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { isRateLimited, getClientIp, limitExceeded } from "@/lib/rateLimit";
 
 const schema = z.object({
   phone: z.string().regex(/^09\d{9}$/, "شماره موبایل معتبر نیست"),
@@ -8,7 +9,13 @@ const schema = z.object({
   purpose: z.enum(["register", "login", "reset"]),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Block IPs hammering the endpoint from rotating phones
+  const ip = getClientIp(req);
+  if (isRateLimited(`otp-verify:ip:${ip}`, 10, 10 * 60_000)) {
+    return limitExceeded("تعداد تلاش‌های تأیید OTP بیش از حد مجاز است. ۱۰ دقیقه صبر کنید.");
+  }
+
   try {
     const body = await req.json();
     const parsed = schema.safeParse(body);
@@ -20,6 +27,11 @@ export async function POST(req: Request) {
     }
 
     const { phone, code, purpose } = parsed.data;
+
+    // Per-phone limit: max 5 verify attempts per phone per 10 minutes (brute-force guard)
+    if (isRateLimited(`otp-verify:phone:${phone}`, 5, 10 * 60_000)) {
+      return limitExceeded("تعداد تلاش‌های تأیید برای این شماره بیش از حد است. ۱۰ دقیقه صبر کنید.");
+    }
 
     const otp = await prisma.otpCode.findFirst({
       where: {
