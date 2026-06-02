@@ -51,18 +51,24 @@ export async function GET(req: NextRequest) {
 
 const productSchema = z.object({
   name: z.string().min(2),
-  categoryId: z.string().optional(),
-  brandId: z.string().optional(),
-  sku: z.string().optional(),
+  categoryId: z.string().optional().nullable(),
+  brandId: z.string().optional().nullable(),
+  sku: z.string().optional().nullable(),
   price: z.number().min(0),
-  comparePrice: z.number().optional(),
+  comparePrice: z.number().optional().nullable(),
   stockQty: z.number().default(0),
-  description: z.string().optional(),
-  shortDesc: z.string().optional(),
+  description: z.string().optional().nullable(),
+  shortDesc: z.string().optional().nullable(),
   status: z.union([z.literal("PUBLISHED"), z.literal("DRAFT"), z.literal("ARCHIVED")]).default("DRAFT"),
   isFeatured: z.boolean().default(false),
   isNew: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
+  images: z.array(z.object({
+    url: z.string(),
+    isPrimary: z.boolean().default(false),
+    altText: z.string().optional(),
+    sortOrder: z.number().default(0),
+  })).default([]),
 });
 
 export async function POST(req: NextRequest) {
@@ -71,11 +77,23 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const data = productSchema.parse(body);
+    const { images, ...fields } = productSchema.parse(body);
 
-    const base = data.name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
+    const base = fields.name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
     const slug = (base || "product") + "-" + Date.now();
-    const product = await prisma.product.create({ data: { ...data, slug } });
+
+    const product = await prisma.$transaction(async (tx) => {
+      const p = await tx.product.create({ data: { ...fields, slug } });
+      if (images.length > 0) {
+        await tx.productImage.createMany({
+          data: images.map((img) => ({ ...img, productId: p.id })),
+        });
+      }
+      return tx.product.findUnique({
+        where: { id: p.id },
+        include: { images: { orderBy: { sortOrder: "asc" } } },
+      });
+    });
 
     return NextResponse.json({ success: true, product }, { status: 201 });
   } catch (err) {
@@ -94,7 +112,11 @@ export async function PATCH(req: NextRequest) {
     const { id, ...rest } = body;
     if (!id) return NextResponse.json({ error: "شناسه محصول الزامی است" }, { status: 400 });
 
-    const data = productSchema.partial().parse(rest);
+    const { images: _imgs, ...fields } = productSchema.partial().parse(rest);
+    // Strip null values — PATCH skips fields rather than clearing them
+    const data = Object.fromEntries(
+      Object.entries(fields).filter(([, v]) => v !== null && v !== undefined)
+    );
     const product = await prisma.product.update({ where: { id }, data });
 
     return NextResponse.json({ product });

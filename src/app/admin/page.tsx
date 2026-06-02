@@ -1,9 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
+import ProductForm from "@/components/admin/ProductForm";
+
+interface ProductRow {
+  id: string; name: string; sku: string | null; price: number;
+  stockQty: number; status: string;
+  category: { name: string } | null;
+  brand: { name: string } | null;
+}
 
 type AdminSection =
   | "analytics" | "users" | "products" | "categories"
@@ -69,8 +77,32 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [users, setUsers] = useState<unknown[]>([]);
-  const [products, setProducts] = useState<unknown[]>([]);
+  const [products, setProducts] = useState<ProductRow[]>([]);
   const [orders, setOrders] = useState<unknown[]>([]);
+  const [editProductId, setEditProductId] = useState<string | undefined>(undefined);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [adminToast, setAdminToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
+  const showAdminToast = useCallback((type: "success" | "error", msg: string) => {
+    setAdminToast({ type, msg });
+    setTimeout(() => setAdminToast(null), 4000);
+  }, []);
+
+  const handleDeleteProduct = useCallback(async (id: string, name: string) => {
+    if (!window.confirm(`آیا از حذف "${name}" مطمئن هستید؟\nاین عملیات برگشت‌پذیر نیست.`)) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) { showAdminToast("error", data.error ?? "خطا در حذف محصول"); return; }
+      showAdminToast("success", `"${name}" با موفقیت حذف شد`);
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    } catch {
+      showAdminToast("error", "خطای سرور");
+    } finally {
+      setDeletingId(null);
+    }
+  }, [showAdminToast]);
 
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/"); return; }
@@ -86,6 +118,12 @@ export default function AdminPage() {
     if (section === "products") fetch("/api/admin/products").then((r) => r.json()).then((d) => setProducts(d.products ?? []));
     if (section === "orders-admin") fetch("/api/orders").then((r) => r.json()).then((d) => setOrders(d.orders ?? []));
   }, [section]);
+
+  // Reload products list after returning from product form
+  const handleProductFormSuccess = useCallback(() => {
+    setSection("products");
+    fetch("/api/admin/products").then((r) => r.json()).then((d) => setProducts(d.products ?? []));
+  }, []);
 
   if (status === "loading") return <div style={{ textAlign: "center", padding: "5rem" }}>در حال بارگذاری...</div>;
 
@@ -162,6 +200,21 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
+
+        {/* Admin-level toast (delete, etc.) */}
+        {adminToast && (
+          <div style={{
+            position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)",
+            background: adminToast.type === "success" ? "#1a7a4a" : "#c0392b",
+            color: "#fff", padding: "12px 28px", borderRadius: 10,
+            fontFamily: "Vazirmatn", fontSize: 14, fontWeight: 700,
+            zIndex: 9999, boxShadow: "0 6px 24px rgba(0,0,0,.25)",
+            display: "flex", alignItems: "center", gap: 10, whiteSpace: "nowrap",
+          }}>
+            <i className={`ti ${adminToast.type === "success" ? "ti-circle-check" : "ti-circle-x"}`} style={{ fontSize: 18 }} />
+            {adminToast.msg}
+          </div>
+        )}
 
         <div style={{ padding: "1rem" }}>
 
@@ -304,7 +357,7 @@ export default function AdminPage() {
             <>
               <div style={{ display: "flex", gap: 10, marginBottom: "1.25rem" }}>
                 <input placeholder="جستجو نام محصول..." style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", maxWidth: 300 }} />
-                <button onClick={() => setSection("product-form")} style={{ marginRight: "auto", background: "var(--primary)", color: "#fff", border: "none", padding: "9px 16px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 900, fontFamily: "Vazirmatn", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+                <button onClick={() => { setEditProductId(undefined); setSection("product-form"); }} style={{ marginRight: "auto", background: "var(--primary)", color: "#fff", border: "none", padding: "9px 16px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 900, fontFamily: "Vazirmatn", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
                   <i className="ti ti-plus" /> محصول جدید
                 </button>
                 <button style={{ background: "var(--bg)", color: "var(--text2)", border: "1px solid var(--border)", padding: "9px 16px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 900, fontFamily: "Vazirmatn", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
@@ -321,7 +374,7 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {(products as Array<{id:string;name:string;sku:string|null;price:number;stockQty:number;status:string;category:{name:string}|null;brand:{name:string}|null}>).map((p) => (
+                    {products.map((p) => (
                       <tr key={p.id} style={{ borderBottom: "1px solid var(--border)" }}>
                         <td style={{ padding: "10px 12px" }}><input type="checkbox" /></td>
                         <td style={{ padding: "10px 12px" }}>
@@ -337,9 +390,20 @@ export default function AdminPage() {
                             {p.status === "PUBLISHED" ? "منتشر" : p.status === "DRAFT" ? "پیش‌نویس" : "آرشیو"}
                           </span>
                         </td>
-                        <td style={{ padding: "10px 12px" }}>
-                          <button style={{ background: "var(--bg)", border: "1px solid var(--border)", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer", fontFamily: "Vazirmatn", color: "var(--text2)", marginLeft: 4 }}>ویرایش</button>
-                          <button style={{ background: "#fdecea", border: "1px solid #f5c6cb", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer", fontFamily: "Vazirmatn", color: "#c0392b" }}>حذف</button>
+                        <td style={{ padding: "10px 12px", display: "flex", gap: 4 }}>
+                          <button
+                            onClick={() => { setEditProductId(p.id); setSection("product-form"); }}
+                            style={{ background: "var(--bg)", border: "1px solid var(--border)", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer", fontFamily: "Vazirmatn", color: "var(--text2)" }}
+                          >
+                            <i className="ti ti-edit" /> ویرایش
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(p.id, p.name)}
+                            disabled={deletingId === p.id}
+                            style={{ background: "#fdecea", border: "1px solid #f5c6cb", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: deletingId === p.id ? "not-allowed" : "pointer", fontFamily: "Vazirmatn", color: "#c0392b", opacity: deletingId === p.id ? .6 : 1 }}
+                          >
+                            <i className="ti ti-trash" /> {deletingId === p.id ? "حذف..." : "حذف"}
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -354,65 +418,11 @@ export default function AdminPage() {
 
           {/* PRODUCT FORM */}
           {section === "product-form" && (
-            <>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "1.25rem" }}>
-                <button onClick={() => setSection("products")} style={{ background: "var(--bg)", color: "var(--text2)", border: "1px solid var(--border)", padding: "7px 14px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 900, fontFamily: "Vazirmatn", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
-                  <i className="ti ti-arrow-right" /> بازگشت
-                </button>
-                <h2 style={{ fontSize: 16, fontWeight: 900, color: "var(--primary)" }}>افزودن محصول جدید</h2>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "1.5rem" }}>
-                <div>
-                  <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", marginBottom: "1.5rem" }}>
-                    <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border)", fontSize: 14, fontWeight: 900, color: "var(--primary)" }}>اطلاعات اصلی</div>
-                    <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: 12 }}>
-                      <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>نام محصول</label><input style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", width: "100%" }} placeholder="مثلاً: شیر توپی برنجی ۱ اینچ" /></div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                        <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>برند</label><input style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", width: "100%" }} placeholder="تبریز، لگریس..." /></div>
-                        <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>کد محصول (SKU)</label><input style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", width: "100%" }} placeholder="TB-V100" /></div>
-                      </div>
-                      <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>توضیحات کامل</label><textarea rows={4} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", width: "100%", resize: "vertical" }} placeholder="توضیحات فنی کامل محصول..." /></div>
-                    </div>
-                  </div>
-                  {/* Upload */}
-                  <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)" }}>
-                    <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border)", fontSize: 14, fontWeight: 900, color: "var(--primary)" }}>تصاویر محصول</div>
-                    <div style={{ padding: "1.5rem" }}>
-                      <div style={{ border: "2px dashed var(--border)", borderRadius: "var(--radius-sm)", padding: "2.5rem", textAlign: "center", cursor: "pointer" }}>
-                        <i className="ti ti-cloud-upload" style={{ fontSize: 40, color: "var(--border)", display: "block", marginBottom: ".75rem" }} />
-                        <p style={{ fontSize: 13, fontWeight: 700, color: "var(--text2)" }}>تصاویر را اینجا بکشید یا کلیک کنید</p>
-                        <p style={{ fontSize: 11, color: "var(--text3)" }}>PNG, JPG حداکثر ۵MB</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", marginBottom: "1rem" }}>
-                    <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border)", fontSize: 14, fontWeight: 900, color: "var(--primary)" }}>قیمت‌گذاری</div>
-                    <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: 10 }}>
-                      <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>قیمت (تومان)</label><input type="number" style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", width: "100%" }} placeholder="0" /></div>
-                      <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>قیمت قبل تخفیف</label><input type="number" style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", width: "100%" }} placeholder="0" /></div>
-                    </div>
-                  </div>
-                  <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", marginBottom: "1rem" }}>
-                    <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border)", fontSize: 14, fontWeight: 900, color: "var(--primary)" }}>موجودی</div>
-                    <div style={{ padding: "1.5rem" }}>
-                      <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>تعداد موجودی</label><input type="number" defaultValue={0} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", width: "100%" }} /></div>
-                    </div>
-                  </div>
-                  <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)" }}>
-                    <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border)", fontSize: 14, fontWeight: 900, color: "var(--primary)" }}>دسته‌بندی</div>
-                    <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: 10 }}>
-                      <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>دسته اصلی</label><select style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", width: "100%", background: "#fff" }}><option>شیرآلات</option><option>لوله‌ها</option><option>اتصالات</option><option>پمپ‌ها</option></select></div>
-                      <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>وضعیت</label><select style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", width: "100%", background: "#fff" }}><option>منتشر شده</option><option>پیش‌نویس</option></select></div>
-                    </div>
-                  </div>
-                  <button style={{ background: "var(--primary)", color: "#fff", border: "none", padding: "12px", borderRadius: "var(--radius-sm)", fontSize: 14, fontWeight: 900, fontFamily: "Vazirmatn", width: "100%", marginTop: "1rem", cursor: "pointer" }}>
-                    <i className="ti ti-device-floppy" /> ذخیره محصول
-                  </button>
-                </div>
-              </div>
-            </>
+            <ProductForm
+              productId={editProductId}
+              onSuccess={handleProductFormSuccess}
+              onCancel={() => setSection("products")}
+            />
           )}
 
           {/* Generic placeholder for other sections */}
