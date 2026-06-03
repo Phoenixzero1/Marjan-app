@@ -16,6 +16,10 @@ interface Order {
   shippingAddress?: { city: string; address: string } | null;
 }
 
+interface ReturnReq {
+  id: string; status: string; reason: string; description?: string; createdAt: string;
+}
+
 interface Notification {
   id: string; type: string; title: string; body: string; isRead: boolean; link: string | null; createdAt: string;
 }
@@ -75,6 +79,9 @@ export default function DashboardPage() {
   const [addrMsg, setAddrMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [orderDetails, setOrderDetails] = useState<Record<string, Order>>({});
+  const [returnReqs, setReturnReqs] = useState<Record<string, ReturnReq | null>>({});
+  const [returnForm, setReturnForm] = useState<Record<string, { reason: string; description: string }>>({});
+  const [returnLoading, setReturnLoading] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/");
@@ -240,6 +247,31 @@ export default function DashboardPage() {
       const r = await fetch(`/api/orders/${id}`);
       const d = await r.json();
       if (d.order) setOrderDetails((prev) => ({ ...prev, [id]: d.order }));
+    }
+    // Load return request status
+    if (!(id in returnReqs)) {
+      const r = await fetch(`/api/orders/${id}/return`);
+      const d = await r.json();
+      setReturnReqs((prev) => ({ ...prev, [id]: d.returnRequest ?? null }));
+    }
+  }
+
+  async function submitReturn(orderId: string) {
+    const form = returnForm[orderId];
+    if (!form?.reason) return;
+    setReturnLoading(orderId);
+    const res = await fetch(`/api/orders/${orderId}/return`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    const d = await res.json();
+    setReturnLoading(null);
+    if (res.ok) {
+      setReturnReqs((prev) => ({ ...prev, [orderId]: d.returnRequest }));
+      setReturnForm((prev) => ({ ...prev, [orderId]: { reason: "", description: "" } }));
+    } else {
+      alert(d.error ?? "خطا در ثبت درخواست");
     }
   }
 
@@ -543,6 +575,35 @@ export default function DashboardPage() {
                                         ))}
                                       </tbody>
                                     </table>
+                                    {/* Return request section */}
+                                    {o.status === "DELIVERED" && (() => {
+                                      const rr = returnReqs[o.id];
+                                      const rf = returnForm[o.id] ?? { reason: "", description: "" };
+                                      const REASONS = ["کالا معیوب است", "کالا با توضیحات مطابقت ندارد", "کالا اشتباه ارسال شد", "پشیمان شدم از خرید"];
+                                      return (
+                                        <div style={{ marginTop: 14, borderTop: "1px solid var(--border)", paddingTop: 14 }}>
+                                          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>درخواست مرجوعی</div>
+                                          {rr ? (
+                                            <div style={{ background: rr.status === "APPROVED" ? "#f0fdf4" : rr.status === "REJECTED" ? "#fdf0f0" : "#eff6ff", border: `1px solid ${rr.status === "APPROVED" ? "#bbf7d0" : rr.status === "REJECTED" ? "#f5c6c6" : "#bfdbfe"}`, borderRadius: "var(--radius-sm)", padding: "8px 12px", fontSize: 12 }}>
+                                              <span style={{ fontWeight: 900 }}>وضعیت: </span>
+                                              {rr.status === "PENDING" ? "در حال بررسی" : rr.status === "APPROVED" ? "تأیید شد — مبلغ به کیف پول واریز شد" : "رد شد"}
+                                            </div>
+                                          ) : (
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                              <select value={rf.reason} onChange={(e) => setReturnForm((p) => ({ ...p, [o.id]: { ...rf, reason: e.target.value } }))} style={{ ...inp, maxWidth: 320 }}>
+                                                <option value="">دلیل مرجوعی را انتخاب کنید</option>
+                                                {REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                                              </select>
+                                              <textarea value={rf.description} onChange={(e) => setReturnForm((p) => ({ ...p, [o.id]: { ...rf, description: e.target.value } }))} placeholder="توضیحات اضافی (اختیاری)" rows={2} style={{ ...inp, resize: "vertical", maxWidth: 400 }} />
+                                              <button onClick={() => submitReturn(o.id)} disabled={!rf.reason || returnLoading === o.id}
+                                                style={{ alignSelf: "flex-start", background: "var(--accent)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "8px 18px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: !rf.reason ? "not-allowed" : "pointer", opacity: !rf.reason ? 0.6 : 1 }}>
+                                                {returnLoading === o.id ? "در حال ثبت..." : "ثبت درخواست مرجوعی"}
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })()}
                                   </>
                                 )}
                               </div>

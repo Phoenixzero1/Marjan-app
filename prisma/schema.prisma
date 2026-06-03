@@ -110,6 +110,7 @@ model User {
   logs          SystemLog[]
   wallet        Wallet?
   backups       BackupRecord[]
+  returns       ReturnRequest[]
 
   @@index([email])
   @@index([phone])
@@ -203,6 +204,26 @@ model WalletTx {
   refId       String?
   createdAt   DateTime @default(now())
   wallet      Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+}
+
+model ReturnRequest {
+  id           String   @id @default(cuid())
+  orderId      String
+  userId       String
+  reason       String
+  description  String?  @db.Text
+  status       String   @default("PENDING")
+  adminNote    String?
+  refundAmount Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([status])
 }
 
 // ─── CATALOGUE ───────────────────────────────────────────────────────────────
@@ -387,6 +408,7 @@ model Order {
   address  Address?   @relation(fields: [addressId], references: [id])
   items    OrderItem[]
   payment  Payment?
+  returns  ReturnRequest[]
 
   @@index([userId])
   @@index([status])
