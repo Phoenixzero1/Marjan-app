@@ -65,11 +65,32 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const { id, ...data } = await req.json();
+  const body = await req.json();
+  const { id, ...rest } = body;
   if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
 
-  const coupon = await prisma.coupon.update({ where: { id }, data });
-  return NextResponse.json({ coupon });
+  const partial = schema.partial().safeParse(rest);
+  if (!partial.success) return NextResponse.json({ error: partial.error.issues[0]?.message }, { status: 400 });
+
+  // If code is being changed, check uniqueness
+  if (partial.data.code) {
+    const existing = await prisma.coupon.findUnique({ where: { code: partial.data.code } });
+    if (existing && existing.id !== id) return NextResponse.json({ error: "این کد قبلاً استفاده شده است" }, { status: 409 });
+  }
+
+  try {
+    const coupon = await prisma.coupon.update({
+      where: { id },
+      data: {
+        ...partial.data,
+        ...(partial.data.startsAt !== undefined ? { startsAt: partial.data.startsAt ? new Date(partial.data.startsAt) : null } : {}),
+        ...(partial.data.expiresAt !== undefined ? { expiresAt: partial.data.expiresAt ? new Date(partial.data.expiresAt) : null } : {}),
+      },
+    });
+    return NextResponse.json({ coupon });
+  } catch {
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest) {
