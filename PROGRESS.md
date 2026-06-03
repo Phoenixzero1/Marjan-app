@@ -6,7 +6,7 @@
 - [x] 3. Media Library (رسانه‌ها)
 - [x] 4. Orders + seed data (سفارشات)
 - [x] 5. Finance (مالی)
-- [ ] 6. Coupons (کوپن)
+- [x] 6. Coupons (کوپن)
 - [ ] 7. Notifications (اطلاع‌رسانی)
 - [ ] 8. Comments/Reviews (نظرات)
 - [ ] 9. Newsletter (خبرنامه)
