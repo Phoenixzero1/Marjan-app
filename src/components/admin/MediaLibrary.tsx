@@ -13,7 +13,17 @@ interface MediaItem {
   createdAt: string;
 }
 
+interface CleanupStats {
+  totalCount: number;
+  totalSize: number;
+  unusedCount: number;
+  unusedSize: number;
+  unused: MediaItem[];
+}
+
 interface Toast { msg: string; ok: boolean }
+
+type ActiveTab = "library" | "cleanup";
 
 function formatBytes(n: number) {
   if (n >= 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + " MB";
@@ -26,6 +36,7 @@ function formatDate(s: string) {
 }
 
 export default function MediaLibrary() {
+  const [activeTab, setActiveTab] = useState<ActiveTab>("library");
   const [items, setItems] = useState<MediaItem[]>([]);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
@@ -39,6 +50,9 @@ export default function MediaLibrary() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
+  const [cleanup, setCleanup] = useState<CleanupStats | null>(null);
+  const [cleanupLoading, setCleanupLoading] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const showToast = (msg: string, ok = true) => {
@@ -110,6 +124,38 @@ export default function MediaLibrary() {
 
   const isImage = (mime: string) => mime.startsWith("image/");
 
+  async function loadCleanup() {
+    setCleanupLoading(true);
+    try {
+      const res = await fetch("/api/admin/media/cleanup");
+      const d = await res.json();
+      setCleanup(d);
+    } finally {
+      setCleanupLoading(false);
+    }
+  }
+
+  async function bulkDeleteUnused() {
+    if (!cleanup || cleanup.unusedCount === 0) return;
+    if (!confirm(`آیا از حذف ${cleanup.unusedCount} فایل بلااستفاده (${formatBytes(cleanup.unusedSize)}) مطمئن هستید؟`)) return;
+    setBulkDeleting(true);
+    try {
+      const res = await fetch("/api/admin/media/cleanup", { method: "DELETE" });
+      const d = await res.json();
+      if (res.ok) {
+        showToast(`${d.deleted} فایل حذف شد — ${formatBytes(d.freedBytes)} آزاد شد`);
+        loadCleanup();
+        load(1);
+      } else showToast("خطا در حذف فایل‌ها", false);
+    } finally {
+      setBulkDeleting(false);
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === "cleanup" && !cleanup) loadCleanup();
+  }, [activeTab]);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {toast && (
@@ -125,6 +171,15 @@ export default function MediaLibrary() {
           <p style={{ fontSize: 12, color: "var(--text3)", margin: "4px 0 0" }}>{total.toLocaleString("fa-IR")} فایل ذخیره شده</p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
+          {[
+            { id: "library" as ActiveTab, icon: "ti-photo", label: "کتابخانه" },
+            { id: "cleanup" as ActiveTab, icon: "ti-trash", label: `پاکسازی${cleanup ? ` (${cleanup.unusedCount})` : ""}` },
+          ].map((t) => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)}
+              style={{ display: "flex", alignItems: "center", gap: 6, background: activeTab === t.id ? "var(--primary)" : "#fff", color: activeTab === t.id ? "#fff" : "var(--text2)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 14px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              <i className={`ti ${t.icon}`} /> {t.label}
+            </button>
+          ))}
           <input ref={fileRef} type="file" multiple accept="image/*,application/pdf" style={{ display: "none" }} onChange={e => handleUpload(e.target.files)} />
           <button
             onClick={() => fileRef.current?.click()}
@@ -136,6 +191,96 @@ export default function MediaLibrary() {
           </button>
         </div>
       </div>
+
+      {activeTab === "cleanup" && (
+        <div>
+          {/* Storage stats */}
+          {cleanup && (
+            <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1rem 1.5rem", display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}>
+              {[
+                { icon: "ti-database", bg: "#dbeafe", color: "#2563eb", val: cleanup.totalCount.toLocaleString("fa-IR"), label: "کل فایل", sub: formatBytes(cleanup.totalSize) },
+                { icon: "ti-trash", bg: "#fee2e2", color: "#dc2626", val: cleanup.unusedCount.toLocaleString("fa-IR"), label: "فایل بلااستفاده", sub: formatBytes(cleanup.unusedSize) },
+                { icon: "ti-check", bg: "#dcfce7", color: "#16a34a", val: (cleanup.totalCount - cleanup.unusedCount).toLocaleString("fa-IR"), label: "فایل در استفاده", sub: formatBytes(cleanup.totalSize - cleanup.unusedSize) },
+              ].map((s) => (
+                <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <i className={`ti ${s.icon}`} style={{ fontSize: 20, color: s.color }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 20, fontWeight: 900, color: "var(--primary)" }}>{s.val}</div>
+                    <div style={{ fontSize: 11, color: "var(--text3)" }}>{s.label} — {s.sub}</div>
+                  </div>
+                </div>
+              ))}
+              <div style={{ marginRight: "auto", display: "flex", gap: 8 }}>
+                <button onClick={loadCleanup} disabled={cleanupLoading}
+                  style={{ background: "var(--bg)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 14px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                  <i className="ti ti-refresh" /> بروزرسانی
+                </button>
+                {cleanup.unusedCount > 0 && (
+                  <button onClick={bulkDeleteUnused} disabled={bulkDeleting}
+                    style={{ background: bulkDeleting ? "#aaa" : "#dc2626", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "8px 16px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: bulkDeleting ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                    <i className="ti ti-trash" />
+                    {bulkDeleting ? "در حال حذف..." : `حذف ${cleanup.unusedCount} فایل بلااستفاده`}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Unused files list */}
+          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1.5rem" }}>
+            <h3 style={{ fontSize: 14, fontWeight: 900, color: "var(--primary)", marginBottom: "1rem" }}>
+              فایل‌های بلااستفاده
+              {cleanup && <span style={{ color: "var(--text3)", fontWeight: 400, fontSize: 12, marginRight: 8 }}>(هیچ محصول، مقاله یا دسته‌بندی به این فایل‌ها لینک نداده)</span>}
+            </h3>
+            {cleanupLoading ? (
+              <div style={{ textAlign: "center", padding: "2rem", color: "var(--text3)" }}>در حال بررسی...</div>
+            ) : !cleanup || cleanup.unused.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "2rem", color: "var(--text3)" }}>
+                <i className="ti ti-circle-check" style={{ fontSize: 40, display: "block", marginBottom: 8, color: "#16a34a" }} />
+                فایل بلااستفاده‌ای یافت نشد
+              </div>
+            ) : (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid var(--bg2)" }}>
+                    {["فایل", "نوع", "حجم", "پوشه", "تاریخ"].map((h) => (
+                      <th key={h} style={{ textAlign: "right", padding: "8px 10px", fontWeight: 900, color: "var(--text3)", fontSize: 11 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {cleanup.unused.map((item) => (
+                    <tr key={item.id} style={{ borderBottom: "1px solid var(--bg)" }}>
+                      <td style={{ padding: 10 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          {isImage(item.mimeType) ? (
+                            <img src={item.url} alt="" style={{ width: 32, height: 32, objectFit: "cover", borderRadius: 4 }} />
+                          ) : (
+                            <div style={{ width: 32, height: 32, background: "#fee2e2", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 4 }}>
+                              <i className="ti ti-file-type-pdf" style={{ color: "#ef4444", fontSize: 14 }} />
+                            </div>
+                          )}
+                          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>{item.originalName}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: 10, color: "var(--text3)", fontSize: 11 }}>{item.mimeType.split("/")[1]?.toUpperCase()}</td>
+                      <td style={{ padding: 10, color: "var(--text3)" }}>{formatBytes(item.size)}</td>
+                      <td style={{ padding: 10 }}>
+                        <span style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 4, padding: "2px 8px", fontSize: 11, color: "var(--text2)" }}>{item.folder}</span>
+                      </td>
+                      <td style={{ padding: 10, color: "var(--text3)", fontSize: 12 }}>{formatDate(item.createdAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "library" && <>
 
       {/* Toolbar */}
       <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "14px 20px", display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
@@ -351,6 +496,8 @@ export default function MediaLibrary() {
           </div>
         )}
       </div>
+
+      </> /* end activeTab === "library" */}
     </div>
   );
 }
