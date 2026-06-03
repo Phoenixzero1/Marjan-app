@@ -17,7 +17,7 @@
 - [x] 14. Backup (پشتیبان‌گیری)
 - [x] 15. System Logs (لاگ سیستم)
 - [x] 16. Sessions (نشست‌ها)
-- [ ] 17. Roles & Permissions (نقش‌ها)
+- [x] 17. Roles & Permissions (نقش‌ها)
 
 ## Frontend
 - [ ] 18. Blog frontend fix
