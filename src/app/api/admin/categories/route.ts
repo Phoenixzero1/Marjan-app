@@ -55,11 +55,29 @@ export async function PATCH(req: NextRequest) {
   if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();
-  const { id, ...data } = body;
+  const { id, ...rest } = body;
   if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
 
-  const category = await prisma.category.update({ where: { id }, data });
-  return NextResponse.json({ category });
+  const parsed = schema.partial().safeParse(rest);
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
+
+  // Prevent a category from becoming its own parent
+  if (parsed.data.parentId === id)
+    return NextResponse.json({ error: "دسته‌بندی نمی‌تواند والد خودش باشد" }, { status: 400 });
+
+  // Guard slug uniqueness when it changes
+  if (parsed.data.slug) {
+    const existing = await prisma.category.findUnique({ where: { slug: parsed.data.slug } });
+    if (existing && existing.id !== id)
+      return NextResponse.json({ error: "این اسلاگ قبلاً استفاده شده است" }, { status: 409 });
+  }
+
+  try {
+    const category = await prisma.category.update({ where: { id }, data: parsed.data });
+    return NextResponse.json({ category });
+  } catch {
+    return NextResponse.json({ error: "خطا در ویرایش دسته‌بندی" }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest) {
