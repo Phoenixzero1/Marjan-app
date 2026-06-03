@@ -14,7 +14,7 @@
 - [x] 11. Settings Payment (درگاه پرداخت)
 - [x] 12. Settings SEO (تنظیمات SEO)
 - [x] 13. Settings Security (امنیت)
-- [ ] 14. Backup (پشتیبان‌گیری)
+- [x] 14. Backup (پشتیبان‌گیری)
 - [ ] 15. System Logs (لاگ سیستم)
 - [ ] 16. Sessions (نشست‌ها)
 - [ ] 17. Roles & Permissions (نقش‌ها)
