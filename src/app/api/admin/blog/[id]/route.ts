@@ -1,0 +1,96 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
+
+async function requireAdmin() {
+  const session = await auth();
+  return session?.user?.id && ADMIN_ROLES.includes(session.user.role ?? "") ? session : null;
+}
+
+const updateSchema = z.object({
+  title: z.string().min(2).optional(),
+  slug: z.string().min(2).regex(/^[a-z0-9-]+$/).optional(),
+  excerpt: z.string().optional().nullable(),
+  content: z.string().optional(),
+  categoryId: z.string().optional().nullable(),
+  imageUrl: z.string().optional().nullable(),
+  isPublished: z.boolean().optional(),
+  metaTitle: z.string().optional().nullable(),
+  metaDesc: z.string().optional().nullable(),
+  tags: z.array(z.string()).optional(),
+});
+
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+
+  const { id } = await params;
+
+  const post = await prisma.blogPost.findUnique({
+    where: { id },
+    include: { category: { select: { id: true, name: true } } },
+  });
+
+  if (!post) return NextResponse.json({ error: "مقاله یافت نشد" }, { status: 404 });
+  return NextResponse.json({ post });
+}
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+
+  const { id } = await params;
+
+  try {
+    const body = await req.json();
+    const parsed = updateSchema.safeParse(body);
+    if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
+
+    const { slug, isPublished, ...rest } = parsed.data;
+
+    if (slug) {
+      const existing = await prisma.blogPost.findUnique({ where: { slug } });
+      if (existing && existing.id !== id) return NextResponse.json({ error: "این اسلاگ قبلاً استفاده شده است" }, { status: 409 });
+    }
+
+    // Set publishedAt when first publishing
+    const current = await prisma.blogPost.findUnique({ where: { id }, select: { isPublished: true, publishedAt: true } });
+    const setPublishedAt = isPublished && !current?.isPublished && !current?.publishedAt
+      ? { publishedAt: new Date() }
+      : {};
+
+    const post = await prisma.blogPost.update({
+      where: { id },
+      data: { ...rest, ...(slug ? { slug } : {}), ...(isPublished !== undefined ? { isPublished } : {}), ...setPublishedAt },
+      include: { category: { select: { id: true, name: true } } },
+    });
+
+    return NextResponse.json({ post });
+  } catch (err) {
+    if (err instanceof z.ZodError) return NextResponse.json({ error: err.issues[0]?.message }, { status: 400 });
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+
+  const { id } = await params;
+
+  try {
+    await prisma.blogPost.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "خطا در حذف مقاله" }, { status: 500 });
+  }
+}
