@@ -7,7 +7,7 @@
 - [x] 4. Orders + seed data (سفارشات)
 - [x] 5. Finance (مالی)
 - [x] 6. Coupons (کوپن)
-- [ ] 7. Notifications (اطلاع‌رسانی)
+- [x] 7. Notifications (اطلاع‌رسانی)
 - [ ] 8. Comments/Reviews (نظرات)
 - [ ] 9. Newsletter (خبرنامه)
 - [ ] 10. Settings General (تنظیمات عمومی)
