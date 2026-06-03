@@ -4,7 +4,7 @@
 - [x] 1. Categories (دسته‌بندی‌ها)
 - [x] 2. Blog Management (بلاگ)
 - [x] 3. Media Library (رسانه‌ها)
-- [ ] 4. Orders + seed data (سفارشات)
+- [x] 4. Orders + seed data (سفارشات)
 - [ ] 5. Finance (مالی)
 - [ ] 6. Coupons (کوپن)
 - [ ] 7. Notifications (اطلاع‌رسانی)
