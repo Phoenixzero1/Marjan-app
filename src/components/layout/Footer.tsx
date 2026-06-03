@@ -1,6 +1,25 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
-export default function Footer() {
+const fallbackCategories = [
+  { id: "1", name: "شیرآلات", slug: "valves" },
+  { id: "2", name: "لوله‌ها", slug: "pipes" },
+  { id: "3", name: "اتصالات", slug: "fittings" },
+  { id: "4", name: "پمپ‌ها", slug: "pumps" },
+  { id: "5", name: "بهداشتی", slug: "sanitary" },
+];
+
+export default async function Footer() {
+  let categories = fallbackCategories;
+  try {
+    const dbCats = await prisma.category.findMany({
+      where: { parentId: null, isActive: true },
+      orderBy: { sortOrder: "asc" },
+      take: 6,
+      select: { id: true, name: true, slug: true },
+    });
+    if (dbCats.length > 0) categories = dbCats;
+  } catch { /* use fallback */ }
   return (
     <footer style={{ background: "var(--primary-dark)", color: "rgba(255,255,255,.75)", marginTop: "4rem" }}>
       <div
@@ -78,16 +97,10 @@ export default function Footer() {
             دسته‌بندی‌ها
           </h4>
           <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
-            {[
-              { label: "شیرآلات", href: "/category/valves" },
-              { label: "لوله‌ها", href: "/category/pipes" },
-              { label: "اتصالات", href: "/category/fittings" },
-              { label: "پمپ‌ها", href: "/category/pumps" },
-              { label: "بهداشتی", href: "/category/sanitary" },
-            ].map((l) => (
-              <li key={l.href}>
-                <Link href={l.href} style={{ fontSize: 13, color: "rgba(255,255,255,.6)" }}>
-                  {l.label}
+            {categories.map((cat) => (
+              <li key={cat.id}>
+                <Link href={`/category/${cat.slug}`} style={{ fontSize: 13, color: "rgba(255,255,255,.6)" }}>
+                  {cat.name}
                 </Link>
               </li>
             ))}
