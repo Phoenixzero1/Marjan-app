@@ -109,6 +109,7 @@ model User {
   addresses     Address[]
   logs          SystemLog[]
   wallet        Wallet?
+  backups       BackupRecord[]
 
   @@index([email])
   @@index([phone])
@@ -609,4 +610,20 @@ model Newsletter {
   email     String   @unique
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+}
+
+model BackupRecord {
+  id          String   @id @default(cuid())
+  filename    String
+  filePath    String
+  format      String   @default("json")
+  sizeByte    Int      @default(0)
+  tableCount  Int      @default(0)
+  status      String   @default("completed")
+  createdBy   String?
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [createdBy], references: [id])
+
+  @@index([createdAt])
 }
