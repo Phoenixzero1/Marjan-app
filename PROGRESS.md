@@ -16,7 +16,7 @@
 - [x] 13. Settings Security (امنیت)
 - [x] 14. Backup (پشتیبان‌گیری)
 - [x] 15. System Logs (لاگ سیستم)
-- [ ] 16. Sessions (نشست‌ها)
+- [x] 16. Sessions (نشست‌ها)
 - [ ] 17. Roles & Permissions (نقش‌ها)
 
 ## Frontend
