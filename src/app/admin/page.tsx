@@ -10,6 +10,7 @@ import OrderManager from "@/components/admin/OrderManager";
 import UserManager from "@/components/admin/UserManager";
 import BlogManager from "@/components/admin/BlogManager";
 import MediaLibrary from "@/components/admin/MediaLibrary";
+import FinanceManager from "@/components/admin/FinanceManager";
 
 interface ProductRow {
   id: string; name: string; sku: string | null; price: number;
@@ -388,8 +389,10 @@ export default function AdminPage() {
 
           {section === "media" && <MediaLibrary />}
 
+          {section === "finance" && <FinanceManager />}
+
           {/* Generic placeholder for other sections */}
-          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media"].includes(section) && (
+          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance"].includes(section) && (
             <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "3rem", textAlign: "center", color: "var(--text3)" }}>
               <i className="ti ti-tool" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
               <h3 style={{ fontSize: 18, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>بخش {titleMap[section]}</h3>
