@@ -15,6 +15,7 @@ import CouponManager from "@/components/admin/CouponManager";
 import NotificationManager from "@/components/admin/NotificationManager";
 import CommentManager from "@/components/admin/CommentManager";
 import NewsletterManager from "@/components/admin/NewsletterManager";
+import SettingsManager from "@/components/admin/SettingsManager";
 
 interface ProductRow {
   id: string; name: string; sku: string | null; price: number;
@@ -403,8 +404,13 @@ export default function AdminPage() {
 
           {section === "newsletter" && <NewsletterManager />}
 
+          {section === "settings-general" && <SettingsManager tab="general" />}
+          {section === "settings-payment" && <SettingsManager tab="payment" />}
+          {section === "settings-seo" && <SettingsManager tab="seo" />}
+          {section === "settings-security" && <SettingsManager tab="security" />}
+
           {/* Generic placeholder for other sections */}
-          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter"].includes(section) && (
+          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security"].includes(section) && (
             <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "3rem", textAlign: "center", color: "var(--text3)" }}>
               <i className="ti ti-tool" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
               <h3 style={{ fontSize: 18, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>بخش {titleMap[section]}</h3>
