@@ -2,7 +2,7 @@
 
 ## Admin Sections
 - [x] 1. Categories (دسته‌بندی‌ها)
-- [ ] 2. Blog Management (بلاگ)
+- [x] 2. Blog Management (بلاگ)
 - [ ] 3. Media Library (رسانه‌ها)
 - [ ] 4. Orders + seed data (سفارشات)
 - [ ] 5. Finance (مالی)
