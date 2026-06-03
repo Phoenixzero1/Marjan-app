@@ -263,7 +263,7 @@ export default function Megamenu() {
                 </div>
                 <div>
                   <strong style={{ display: "block", fontSize: 13, fontWeight: 900 }}>
-                    فاکتور رسمی فروش
+                    فاکتور فروش
                   </strong>
                   <span style={{ fontSize: 11, color: "var(--text3)", lineHeight: 1.5 }}>
                     فاکتور کامل با اطلاعات خریدار، مالیات، تخفیف و چاپ رسمی

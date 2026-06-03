@@ -135,7 +135,7 @@ function InvoiceContent() {
             >
               <i className={`ti ${t === "official" ? "ti-file-certificate" : "ti-helmet"}`} style={{ fontSize: 24, color: "var(--primary)", display: "block", marginBottom: 6 }} />
               <strong style={{ display: "block", fontSize: 13, fontWeight: 900, color: "var(--text)", marginBottom: 3 }}>
-                {t === "official" ? "فاکتور رسمی فروش" : "فاکتور مجریان و تأسیساتکاران"}
+                {t === "official" ? "فاکتور فروش" : "فاکتور مجریان و تأسیساتکاران"}
               </strong>
               <span style={{ fontSize: 11, color: "var(--text3)" }}>
                 {t === "official" ? "با مالیات، تخفیف و چاپ رسمی" : "لیست سریع لوله، اتصالات و شیرآلات"}
@@ -243,7 +243,7 @@ function InvoiceContent() {
               </div>
               <div style={{ background: "var(--primary)", color: "#fff", padding: "1.25rem", borderRadius: "var(--radius-sm)", marginBottom: "1rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div><h4 style={{ fontSize: 18, fontWeight: 900, marginBottom: 2 }}>فاکتور رسمی فروش</h4><p style={{ fontSize: 12, color: "rgba(255,255,255,.65)" }}>شماره: {invNum}</p></div>
+                  <div><h4 style={{ fontSize: 18, fontWeight: 900, marginBottom: 2 }}>فاکتور فروش</h4><p style={{ fontSize: 12, color: "rgba(255,255,255,.65)" }}>شماره: {invNum}</p></div>
                   <div style={{ fontSize: 14, fontWeight: 900, color: "var(--accent)" }}>Marjan</div>
                 </div>
                 <div style={{ marginTop: ".75rem", fontSize: 12, color: "rgba(255,255,255,.75)" }}>تاریخ: {invDate}</div>
