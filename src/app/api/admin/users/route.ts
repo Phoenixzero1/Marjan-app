@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { audit } from "@/lib/audit";
+import { getClientIp } from "@/lib/rateLimit";
 
 async function requireAdmin() {
   const session = await auth();
@@ -62,8 +64,8 @@ const createSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  if (!(await requireAdmin()))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   try {
     const body = await req.json();
@@ -92,6 +94,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    audit({ userId: session.user.id, action: "USER_CREATE", entity: "User", entityId: user.id, newValue: { firstName: user.firstName, lastName: user.lastName, role: user.role }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ success: true, user }, { status: 201 });
   } catch (err) {
     if (err instanceof z.ZodError)
@@ -140,12 +143,17 @@ export async function PATCH(req: NextRequest) {
     if (role) data.role = role;
     if (password) data.passwordHash = await bcrypt.hash(password, 12);
 
+    const before = await prisma.user.findUnique({ where: { id }, select: { role: true, status: true, firstName: true, lastName: true } });
     const user = await prisma.user.update({
       where: { id },
       data,
       select: { id: true, firstName: true, lastName: true, email: true, phone: true, role: true, status: true },
     });
 
+    const action = role && role !== before?.role ? "USER_ROLE_CHANGE"
+      : data.status && data.status !== before?.status ? "USER_STATUS_CHANGE"
+      : "USER_UPDATE";
+    audit({ userId: session.user.id, action, entity: "User", entityId: id, oldValue: before, newValue: { role: user.role, status: user.status }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ success: true, user });
   } catch (err) {
     if (err instanceof z.ZodError)
@@ -162,13 +170,16 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
   if (id === session.user.id) return NextResponse.json({ error: "نمی‌توانید حساب خودتان را حذف کنید" }, { status: 400 });
 
+  const before = await prisma.user.findUnique({ where: { id }, select: { firstName: true, lastName: true, email: true, role: true } });
   // Users with orders can't be hard-deleted (FK); suspend them instead
   const orderCount = await prisma.order.count({ where: { userId: id } });
   if (orderCount > 0) {
     await prisma.user.update({ where: { id }, data: { status: "DELETED" as never } });
+    audit({ userId: session.user.id, action: "USER_DELETE", entity: "User", entityId: id, oldValue: before, newValue: { softDeleted: true }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ success: true, softDeleted: true });
   }
 
   await prisma.user.delete({ where: { id } });
+  audit({ userId: session.user.id, action: "USER_DELETE", entity: "User", entityId: id, oldValue: before, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ success: true });
 }

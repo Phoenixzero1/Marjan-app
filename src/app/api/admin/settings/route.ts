@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { audit } from "@/lib/audit";
+import { getClientIp } from "@/lib/rateLimit";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
 
@@ -25,7 +27,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();
   const parsed = z.record(z.string(), z.string()).safeParse(body.settings);
@@ -33,7 +36,11 @@ export async function POST(req: NextRequest) {
 
   const group = body.group ?? "general";
 
-  // Upsert each key
+  // Capture old values for audit
+  const keys = Object.keys(parsed.data);
+  const oldSettings = await prisma.siteSettings.findMany({ where: { key: { in: keys } } });
+  const oldMap = Object.fromEntries(oldSettings.map((s) => [s.key, s.value]));
+
   const updates = Object.entries(parsed.data).map(([key, value]) =>
     prisma.siteSettings.upsert({
       where: { key },
@@ -43,5 +50,6 @@ export async function POST(req: NextRequest) {
   );
 
   await Promise.all(updates);
+  audit({ userId: session.user.id, action: "SETTINGS_UPDATE", entity: "SiteSettings", newValue: parsed.data, oldValue: oldMap, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ success: true });
 }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { audit } from "@/lib/audit";
+import { getClientIp } from "@/lib/rateLimit";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
 
@@ -60,9 +62,8 @@ const updateSchema = z.object({
 });
 
 export async function PATCH(req: NextRequest) {
-  if (!(await requireAdmin())) {
-    return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
-  }
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
@@ -72,6 +73,7 @@ export async function PATCH(req: NextRequest) {
 
   const { orderId, status, trackingCode } = parsed.data;
 
+  const before = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true, trackingCode: true } });
   const order = await prisma.order.update({
     where: { id: orderId },
     data: {
@@ -81,5 +83,7 @@ export async function PATCH(req: NextRequest) {
     },
   });
 
+  const action = trackingCode && !before?.trackingCode ? "ORDER_TRACKING_UPDATE" : "ORDER_STATUS_CHANGE";
+  audit({ userId: session.user.id, action, entity: "Order", entityId: orderId, oldValue: before, newValue: { status, trackingCode }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ order });
 }

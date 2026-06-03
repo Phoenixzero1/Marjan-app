@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { audit } from "@/lib/audit";
+import { getClientIp } from "@/lib/rateLimit";
 
 async function requireAdmin() {
   const session = await auth();
@@ -61,8 +63,8 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await requireAdmin()))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   const { id } = await params;
 
@@ -74,6 +76,7 @@ export async function PUT(
   const { images, ...fields } = parsed.data;
 
   try {
+    const before = await prisma.product.findUnique({ where: { id }, select: { name: true, price: true, status: true } });
     const product = await prisma.$transaction(async (tx) => {
       if (images !== undefined) {
         await tx.productImage.deleteMany({ where: { productId: id } });
@@ -95,6 +98,8 @@ export async function PUT(
       });
     });
 
+    const action = fields.price !== undefined && fields.price !== before?.price ? "PRODUCT_PRICE_CHANGE" : "PRODUCT_UPDATE";
+    audit({ userId: session.user.id, action, entity: "Product", entityId: id, oldValue: before, newValue: fields, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ product });
   } catch (err) {
     if (err instanceof z.ZodError)
@@ -104,16 +109,18 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await requireAdmin()))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   const { id } = await params;
 
   try {
+    const before = await prisma.product.findUnique({ where: { id }, select: { name: true, price: true } });
     await prisma.product.delete({ where: { id } });
+    audit({ userId: session.user.id, action: "PRODUCT_DELETE", entity: "Product", entityId: id, oldValue: before, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "خطا در حذف محصول" }, { status: 500 });

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { audit } from "@/lib/audit";
+import { getClientIp } from "@/lib/rateLimit";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
 
@@ -44,7 +46,8 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { id } = await params;
 
@@ -60,8 +63,7 @@ export async function PUT(
       if (existing && existing.id !== id) return NextResponse.json({ error: "این اسلاگ قبلاً استفاده شده است" }, { status: 409 });
     }
 
-    // Set publishedAt when first publishing
-    const current = await prisma.blogPost.findUnique({ where: { id }, select: { isPublished: true, publishedAt: true } });
+    const current = await prisma.blogPost.findUnique({ where: { id }, select: { isPublished: true, publishedAt: true, title: true } });
     const setPublishedAt = isPublished && !current?.isPublished && !current?.publishedAt
       ? { publishedAt: new Date() }
       : {};
@@ -72,6 +74,8 @@ export async function PUT(
       include: { category: { select: { id: true, name: true } } },
     });
 
+    const action = isPublished && !current?.isPublished ? "BLOG_POST_PUBLISH" : "BLOG_POST_UPDATE";
+    audit({ userId: session.user.id, action, entity: "BlogPost", entityId: id, oldValue: { title: current?.title, isPublished: current?.isPublished }, newValue: { title: post.title, isPublished: post.isPublished }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ post });
   } catch (err) {
     if (err instanceof z.ZodError) return NextResponse.json({ error: err.issues[0]?.message }, { status: 400 });
@@ -80,15 +84,18 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { id } = await params;
 
   try {
+    const before = await prisma.blogPost.findUnique({ where: { id }, select: { title: true, slug: true, isPublished: true } });
     await prisma.blogPost.delete({ where: { id } });
+    audit({ userId: session.user.id, action: "BLOG_POST_DELETE", entity: "BlogPost", entityId: id, oldValue: before, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "خطا در حذف مقاله" }, { status: 500 });

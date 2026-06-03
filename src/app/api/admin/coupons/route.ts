@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { audit } from "@/lib/audit";
+import { getClientIp } from "@/lib/rateLimit";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
 
@@ -42,7 +44,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
@@ -59,11 +62,13 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  audit({ userId: session.user.id, action: "COUPON_CREATE", entity: "Coupon", entityId: coupon.id, newValue: { code: coupon.code, discountType: coupon.discountType, discountValue: coupon.discountValue }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ coupon }, { status: 201 });
 }
 
 export async function PATCH(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();
   const { id, ...rest } = body;
@@ -72,13 +77,13 @@ export async function PATCH(req: NextRequest) {
   const partial = schema.partial().safeParse(rest);
   if (!partial.success) return NextResponse.json({ error: partial.error.issues[0]?.message }, { status: 400 });
 
-  // If code is being changed, check uniqueness
   if (partial.data.code) {
     const existing = await prisma.coupon.findUnique({ where: { code: partial.data.code } });
     if (existing && existing.id !== id) return NextResponse.json({ error: "این کد قبلاً استفاده شده است" }, { status: 409 });
   }
 
   try {
+    const before = await prisma.coupon.findUnique({ where: { id }, select: { code: true, discountValue: true, isActive: true } });
     const coupon = await prisma.coupon.update({
       where: { id },
       data: {
@@ -87,6 +92,7 @@ export async function PATCH(req: NextRequest) {
         ...(partial.data.expiresAt !== undefined ? { expiresAt: partial.data.expiresAt ? new Date(partial.data.expiresAt) : null } : {}),
       },
     });
+    audit({ userId: session.user.id, action: "COUPON_UPDATE", entity: "Coupon", entityId: id, oldValue: before, newValue: partial.data, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ coupon });
   } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
@@ -94,11 +100,14 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
 
+  const before = await prisma.coupon.findUnique({ where: { id }, select: { code: true, discountType: true, discountValue: true } });
   await prisma.coupon.delete({ where: { id } });
+  audit({ userId: session.user.id, action: "COUPON_DELETE", entity: "Coupon", entityId: id, oldValue: before, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ success: true });
 }

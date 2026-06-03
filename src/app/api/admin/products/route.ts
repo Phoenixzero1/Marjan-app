@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { audit } from "@/lib/audit";
+import { getClientIp } from "@/lib/rateLimit";
 
 async function requireAdmin() {
   const session = await auth();
@@ -72,8 +74,8 @@ const productSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  if (!(await requireAdmin()))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   try {
     const body = await req.json();
@@ -95,6 +97,7 @@ export async function POST(req: NextRequest) {
       });
     });
 
+    audit({ userId: session.user.id, action: "PRODUCT_CREATE", entity: "Product", entityId: product?.id, newValue: { name: fields.name, price: fields.price }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ success: true, product }, { status: 201 });
   } catch (err) {
     if (err instanceof z.ZodError)
@@ -104,8 +107,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  if (!(await requireAdmin()))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   try {
     const body = await req.json();
@@ -113,12 +116,15 @@ export async function PATCH(req: NextRequest) {
     if (!id) return NextResponse.json({ error: "شناسه محصول الزامی است" }, { status: 400 });
 
     const { images: _imgs, ...fields } = productSchema.partial().parse(rest);
-    // Strip null values — PATCH skips fields rather than clearing them
     const data = Object.fromEntries(
       Object.entries(fields).filter(([, v]) => v !== null && v !== undefined)
     );
+
+    const before = await prisma.product.findUnique({ where: { id }, select: { name: true, price: true, status: true } });
     const product = await prisma.product.update({ where: { id }, data });
 
+    const action = "price" in data ? "PRODUCT_PRICE_CHANGE" : "PRODUCT_UPDATE";
+    audit({ userId: session.user.id, action, entity: "Product", entityId: id, oldValue: before, newValue: data, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ product });
   } catch (err) {
     if (err instanceof z.ZodError)
@@ -128,12 +134,14 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await requireAdmin()))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
 
+  const before = await prisma.product.findUnique({ where: { id }, select: { name: true, price: true } });
   await prisma.product.delete({ where: { id } });
+  audit({ userId: session.user.id, action: "PRODUCT_DELETE", entity: "Product", entityId: id, oldValue: before, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ success: true });
 }

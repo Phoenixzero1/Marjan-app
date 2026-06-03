@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { audit } from "@/lib/audit";
+import { getClientIp } from "@/lib/rateLimit";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
 
@@ -76,6 +78,7 @@ export async function POST(req: NextRequest) {
       include: { category: { select: { id: true, name: true } } },
     });
 
+    audit({ userId: session.user.id, action: data.isPublished ? "BLOG_POST_PUBLISH" : "BLOG_POST_CREATE", entity: "BlogPost", entityId: post.id, newValue: { title: post.title, slug: post.slug, isPublished: post.isPublished }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ success: true, post }, { status: 201 });
   } catch (err) {
     if (err instanceof z.ZodError) return NextResponse.json({ error: err.issues[0]?.message }, { status: 400 });

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { audit } from "@/lib/audit";
+import { getClientIp } from "@/lib/rateLimit";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
 
@@ -27,7 +29,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
@@ -37,11 +40,13 @@ export async function POST(req: NextRequest) {
   if (existing) return NextResponse.json({ error: "این اسلاگ قبلاً استفاده شده است" }, { status: 409 });
 
   const category = await prisma.blogCategory.create({ data: parsed.data });
+  audit({ userId: session.user.id, action: "BLOG_CATEGORY_CREATE", entity: "BlogCategory", entityId: category.id, newValue: { name: category.name, slug: category.slug }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ category }, { status: 201 });
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
@@ -49,6 +54,8 @@ export async function DELETE(req: NextRequest) {
   const count = await prisma.blogPost.count({ where: { categoryId: id } });
   if (count > 0) return NextResponse.json({ error: `این دسته دارای ${count} مقاله است. ابتدا مقالات را منتقل کنید.` }, { status: 409 });
 
+  const before = await prisma.blogCategory.findUnique({ where: { id }, select: { name: true, slug: true } });
   await prisma.blogCategory.delete({ where: { id } });
+  audit({ userId: session.user.id, action: "BLOG_CATEGORY_DELETE", entity: "BlogCategory", entityId: id, oldValue: before, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ success: true });
 }

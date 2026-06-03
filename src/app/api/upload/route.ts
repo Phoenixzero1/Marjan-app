@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { audit } from "@/lib/audit";
+import { getClientIp } from "@/lib/rateLimit";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
 const MAX_SIZE = parseInt(process.env.MAX_FILE_SIZE ?? "5242880"); // 5 MB default
@@ -59,6 +61,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    audit({ userId: session.user.id, action: "MEDIA_UPLOAD", entity: "Media", entityId: media.id, newValue: { filename: media.filename, url: media.url, size: media.size, folder }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ url, media }, { status: 201 });
   } catch (err) {
     console.error("[Upload Error]", err);

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { audit } from "@/lib/audit";
+import { getClientIp } from "@/lib/rateLimit";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
 
@@ -38,7 +40,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
@@ -48,11 +51,13 @@ export async function POST(req: NextRequest) {
   if (existing) return NextResponse.json({ error: "این اسلاگ قبلاً استفاده شده است" }, { status: 409 });
 
   const category = await prisma.category.create({ data: parsed.data });
+  audit({ userId: session.user.id, action: "CATEGORY_CREATE", entity: "Category", entityId: category.id, newValue: { name: category.name, slug: category.slug }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ category }, { status: 201 });
 }
 
 export async function PATCH(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();
   const { id, ...rest } = body;
@@ -61,11 +66,9 @@ export async function PATCH(req: NextRequest) {
   const parsed = schema.partial().safeParse(rest);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
 
-  // Prevent a category from becoming its own parent
   if (parsed.data.parentId === id)
     return NextResponse.json({ error: "دسته‌بندی نمی‌تواند والد خودش باشد" }, { status: 400 });
 
-  // Guard slug uniqueness when it changes
   if (parsed.data.slug) {
     const existing = await prisma.category.findUnique({ where: { slug: parsed.data.slug } });
     if (existing && existing.id !== id)
@@ -73,7 +76,9 @@ export async function PATCH(req: NextRequest) {
   }
 
   try {
+    const before = await prisma.category.findUnique({ where: { id }, select: { name: true, slug: true, isActive: true } });
     const category = await prisma.category.update({ where: { id }, data: parsed.data });
+    audit({ userId: session.user.id, action: "CATEGORY_UPDATE", entity: "Category", entityId: id, oldValue: before, newValue: parsed.data, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ category });
   } catch {
     return NextResponse.json({ error: "خطا در ویرایش دسته‌بندی" }, { status: 500 });
@@ -81,7 +86,8 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
@@ -91,6 +97,8 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: `این دسته‌بندی دارای ${productCount} محصول است. ابتدا محصولات را منتقل کنید.` }, { status: 409 });
   }
 
+  const before = await prisma.category.findUnique({ where: { id }, select: { name: true, slug: true } });
   await prisma.category.delete({ where: { id } });
+  audit({ userId: session.user.id, action: "CATEGORY_DELETE", entity: "Category", entityId: id, oldValue: before, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ success: true });
 }

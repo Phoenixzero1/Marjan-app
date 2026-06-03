@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { unlink } from "fs/promises";
 import path from "path";
+import { audit } from "@/lib/audit";
+import { getClientIp } from "@/lib/rateLimit";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
 
@@ -41,7 +43,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  const session = await requireAdmin();
+  if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
@@ -49,14 +52,12 @@ export async function DELETE(req: NextRequest) {
   const media = await prisma.media.findUnique({ where: { id } });
   if (!media) return NextResponse.json({ error: "فایل یافت نشد" }, { status: 404 });
 
-  // Delete physical file
   try {
     const filePath = path.join(process.cwd(), "public", media.url);
     await unlink(filePath);
-  } catch {
-    // File may already be gone — continue with DB deletion
-  }
+  } catch { /* already gone */ }
 
   await prisma.media.delete({ where: { id } });
+  audit({ userId: session.user.id, action: "MEDIA_DELETE", entity: "Media", entityId: id, oldValue: { filename: media.filename, url: media.url, size: media.size }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ success: true });
 }
