@@ -6,16 +6,21 @@ import { useRouter } from "next/navigation";
 import { formatPrice, getStatusLabel } from "@/lib/utils";
 import Link from "next/link";
 
-type DashTab = "overview" | "profile" | "orders" | "addresses" | "wishlist" | "settings";
+type DashTab = "overview" | "profile" | "orders" | "addresses" | "wishlist" | "notifications" | "settings";
 
 interface Order {
   id: string; orderNumber: string; status: string; totalAmount: number;
-  createdAt: string; items: { id: string; quantity: number; price: number; product?: { name: string } }[];
+  createdAt: string; trackingCode?: string | null;
+  items: { id: string; quantity: number; price: number; product?: { name: string } }[];
   payment?: { status: string } | null;
   shippingAddress?: { city: string; address: string } | null;
 }
 
-interface Stats { totalOrders: number; pendingOrders: number; totalSpent: number; wishlistCount: number; }
+interface Notification {
+  id: string; type: string; title: string; body: string; isRead: boolean; link: string | null; createdAt: string;
+}
+
+interface Stats { totalOrders: number; pendingOrders: number; totalSpent: number; wishlistCount: number; unreadNotifs: number; }
 
 interface Profile {
   id: string; firstName: string; lastName: string; email: string | null;
@@ -48,7 +53,9 @@ export default function DashboardPage() {
 
   // Data
   const [orders, setOrders] = useState<Order[]>([]);
-  const [stats, setStats] = useState<Stats>({ totalOrders: 0, pendingOrders: 0, totalSpent: 0, wishlistCount: 0 });
+  const [stats, setStats] = useState<Stats>({ totalOrders: 0, pendingOrders: 0, totalSpent: 0, wishlistCount: 0, unreadNotifs: 0 });
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifLoaded, setNotifLoaded] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileForm, setProfileForm] = useState<Partial<Profile>>({});
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -102,7 +109,22 @@ export default function DashboardPage() {
       .then((d) => {
         setStats((prev) => ({ ...prev, wishlistCount: (d.items ?? []).length }));
       });
+
+    fetch("/api/user/notifications")
+      .then((r) => r.json())
+      .then((d) => {
+        setStats((prev) => ({ ...prev, unreadNotifs: d.unreadCount ?? 0 }));
+      });
   }, [session]);
+
+  const loadNotifications = useCallback(() => {
+    if (notifLoaded) return;
+    fetch("/api/user/notifications").then((r) => r.json()).then((d) => {
+      setNotifications(d.notifications ?? []);
+      setNotifLoaded(true);
+      setStats((prev) => ({ ...prev, unreadNotifs: d.unreadCount ?? 0 }));
+    });
+  }, [notifLoaded]);
 
   const loadAddresses = useCallback(() => {
     if (addrLoaded) return;
@@ -123,7 +145,20 @@ export default function DashboardPage() {
   useEffect(() => {
     if (tab === "addresses") loadAddresses();
     if (tab === "wishlist") loadWishlist();
-  }, [tab, loadAddresses, loadWishlist]);
+    if (tab === "notifications") loadNotifications();
+  }, [tab, loadAddresses, loadWishlist, loadNotifications]);
+
+  async function markAllRead() {
+    await fetch("/api/user/notifications", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ all: true }) });
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setStats((prev) => ({ ...prev, unreadNotifs: 0 }));
+  }
+
+  async function markRead(id: string) {
+    await fetch("/api/user/notifications", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, isRead: true } : n));
+    setStats((prev) => ({ ...prev, unreadNotifs: Math.max(0, prev.unreadNotifs - 1) }));
+  }
 
   // Profile save
   async function saveProfile() {
@@ -213,12 +248,13 @@ export default function DashboardPage() {
 
   const cardStyle: React.CSSProperties = { background: "#fff", borderRadius: 14, padding: "1.5rem", boxShadow: "0 4px 24px rgba(10,42,94,.10)" };
 
-  const TABS: { id: DashTab; icon: string; label: string }[] = [
+  const TABS: { id: DashTab; icon: string; label: string; badge?: number }[] = [
     { id: "overview", icon: "ti-layout-dashboard", label: "داشبورد" },
     { id: "profile", icon: "ti-user-edit", label: "پروفایل" },
     { id: "orders", icon: "ti-package", label: "سفارش‌ها" },
     { id: "addresses", icon: "ti-map-pin", label: "آدرس‌ها" },
     { id: "wishlist", icon: "ti-heart", label: "علاقه‌مندی‌ها" },
+    { id: "notifications", icon: "ti-bell", label: "اعلان‌ها", badge: stats.unreadNotifs || undefined },
     { id: "settings", icon: "ti-settings", label: "تنظیمات" },
   ];
 
@@ -256,10 +292,15 @@ export default function DashboardPage() {
                   color: tab === t.id ? "#fff" : "rgba(255,255,255,.6)",
                   padding: "10px 16px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, cursor: "pointer",
                   borderBottom: tab === t.id ? "3px solid var(--accent)" : "3px solid transparent",
-                  display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
+                  display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", position: "relative",
                 }}
               >
                 <i className={`ti ${t.icon}`} /> {t.label}
+                {t.badge ? (
+                  <span style={{ background: "var(--accent)", color: "#fff", borderRadius: 10, fontSize: 10, fontWeight: 900, padding: "1px 6px", minWidth: 18, textAlign: "center" }}>
+                    {t.badge}
+                  </span>
+                ) : null}
               </button>
             ))}
           </div>
@@ -276,7 +317,7 @@ export default function DashboardPage() {
                 { label: "سفارش‌های کل", val: stats.totalOrders, icon: "ti-package", color: "#0a2a5e", sub: "سفارش ثبت شده" },
                 { label: "در حال پردازش", val: stats.pendingOrders, icon: "ti-loader", color: "#e8920a", sub: "در حال پیگیری" },
                 { label: "مجموع خرید", val: formatPrice(stats.totalSpent), icon: "ti-coin", color: "#1a7a4a", sub: "مبلغ پرداخت‌شده" },
-                { label: "علاقه‌مندی‌ها", val: stats.wishlistCount, icon: "ti-heart", color: "#c0392b", sub: "محصول ذخیره شده" },
+                { label: "اعلان‌های خوانده‌نشده", val: stats.unreadNotifs, icon: "ti-bell", color: "#7c3aed", sub: "پیام جدید" },
               ].map((s) => (
                 <div key={s.label} style={{ ...cardStyle, borderRight: `4px solid ${s.color}` }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: ".75rem" }}>
@@ -435,6 +476,48 @@ export default function DashboardPage() {
                                   <div style={{ color: "var(--text3)", fontSize: 13 }}>در حال بارگذاری...</div>
                                 ) : (
                                   <>
+                                    {/* Status timeline */}
+                                    {(() => {
+                                      const steps = [
+                                        { key: "PENDING", label: "ثبت سفارش", icon: "ti-shopping-cart" },
+                                        { key: "CONFIRMED", label: "تأیید شده", icon: "ti-check" },
+                                        { key: "PROCESSING", label: "در حال پردازش", icon: "ti-tool" },
+                                        { key: "SHIPPED", label: "ارسال شده", icon: "ti-truck" },
+                                        { key: "DELIVERED", label: "تحویل داده شده", icon: "ti-package" },
+                                      ];
+                                      const currentIdx = steps.findIndex((s) => s.key === o.status);
+                                      return (
+                                        <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 14, overflowX: "auto" }}>
+                                          {steps.map((step, idx) => {
+                                            const done = currentIdx >= idx;
+                                            const active = currentIdx === idx;
+                                            return (
+                                              <div key={step.key} style={{ display: "flex", alignItems: "center", flex: idx < steps.length - 1 ? "1" : "none" }}>
+                                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                                                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: done ? "var(--primary)" : "var(--bg2)", border: `2px solid ${done ? "var(--primary)" : "var(--border)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: active ? "0 0 0 3px rgba(26,61,124,.2)" : "none" }}>
+                                                    <i className={`ti ${step.icon}`} style={{ fontSize: 14, color: done ? "#fff" : "var(--text3)" }} />
+                                                  </div>
+                                                  <span style={{ fontSize: 9, fontWeight: 700, color: done ? "var(--primary)" : "var(--text3)", whiteSpace: "nowrap", textAlign: "center" }}>{step.label}</span>
+                                                </div>
+                                                {idx < steps.length - 1 && (
+                                                  <div style={{ flex: 1, height: 2, background: currentIdx > idx ? "var(--primary)" : "var(--border)", margin: "0 4px", marginBottom: 20 }} />
+                                                )}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      );
+                                    })()}
+
+                                    {/* Tracking code */}
+                                    {(detail.trackingCode || o.trackingCode) && (
+                                      <div style={{ background: "var(--accent-light)", border: "1px solid var(--accent)", borderRadius: "var(--radius-sm)", padding: "8px 12px", marginBottom: 10, fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                                        <i className="ti ti-truck" style={{ color: "var(--accent)" }} />
+                                        <span style={{ fontWeight: 700, color: "var(--text2)" }}>کد رهگیری:</span>
+                                        <span style={{ fontFamily: "monospace", fontWeight: 900, color: "var(--accent)", letterSpacing: 1 }}>{detail.trackingCode ?? o.trackingCode}</span>
+                                      </div>
+                                    )}
+
                                     {detail.shippingAddress && (
                                       <div style={{ fontSize: 12, color: "var(--text2)", marginBottom: 10 }}>
                                         <i className="ti ti-map-pin" style={{ marginLeft: 4, color: "var(--primary)" }} />
@@ -622,6 +705,59 @@ export default function DashboardPage() {
                         <i className="ti ti-heart-broken" /> حذف از علاقه‌مندی‌ها
                       </button>
                     </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── NOTIFICATIONS ── */}
+        {tab === "notifications" && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+              <h3 style={{ fontSize: 15, fontWeight: 900, color: "var(--primary)" }}>
+                اعلان‌ها {stats.unreadNotifs > 0 && <span style={{ background: "var(--accent)", color: "#fff", borderRadius: 10, fontSize: 11, padding: "1px 8px", marginRight: 6 }}>{stats.unreadNotifs} جدید</span>}
+              </h3>
+              {stats.unreadNotifs > 0 && (
+                <button onClick={markAllRead} style={{ background: "var(--bg)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 14px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                  <i className="ti ti-checks" /> علامت‌گذاری همه به‌عنوان خوانده‌شده
+                </button>
+              )}
+            </div>
+            {notifications.length === 0 ? (
+              <div style={{ ...cardStyle, textAlign: "center", color: "var(--text3)", padding: "3rem" }}>
+                <i className="ti ti-bell-off" style={{ fontSize: 40, display: "block", marginBottom: 10 }} />
+                <div style={{ fontSize: 14, fontWeight: 700 }}>اعلانی ندارید</div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {notifications.map((n) => (
+                  <div
+                    key={n.id}
+                    style={{
+                      ...cardStyle,
+                      padding: "1rem 1.25rem",
+                      display: "flex", alignItems: "flex-start", gap: 12,
+                      background: n.isRead ? "#fff" : "#eff6ff",
+                      border: n.isRead ? "1.5px solid transparent" : "1.5px solid #bfdbfe",
+                    }}
+                  >
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: n.isRead ? "var(--bg2)" : "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <i className={`ti ${n.type === "ORDER_UPDATE" ? "ti-package" : n.type === "PAYMENT" ? "ti-coin" : "ti-bell"}`} style={{ fontSize: 16, color: n.isRead ? "var(--text3)" : "#fff" }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text)", marginBottom: 3 }}>{n.title}</div>
+                      <div style={{ fontSize: 12, color: "var(--text2)", lineHeight: 1.6 }}>{n.body}</div>
+                      <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 4 }}>
+                        {new Date(n.createdAt).toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </div>
+                    </div>
+                    {!n.isRead && (
+                      <button onClick={() => markRead(n.id)} style={{ background: "transparent", border: "none", color: "var(--primary)", fontSize: 11, fontWeight: 700, fontFamily: "Vazirmatn", cursor: "pointer", flexShrink: 0, padding: "4px 8px" }}>
+                        خواندم
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
