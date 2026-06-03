@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   const categoryId = searchParams.get("categoryId");
   const published = searchParams.get("published");
 
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = { deletedAt: null };
   if (q) where.OR = [
     { title: { contains: q, mode: "insensitive" } },
     { excerpt: { contains: q, mode: "insensitive" } },

@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   const categoryId = searchParams.get("categoryId");
   const status = searchParams.get("status");
 
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = { deletedAt: null };
   if (q) {
     where.OR = [
       { name: { contains: q, mode: "insensitive" } },
@@ -141,7 +141,7 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
 
   const before = await prisma.product.findUnique({ where: { id }, select: { name: true, price: true } });
-  await prisma.product.delete({ where: { id } });
+  await prisma.product.update({ where: { id }, data: { deletedAt: new Date() } });
   audit({ userId: session.user.id, action: "PRODUCT_DELETE", entity: "Product", entityId: id, oldValue: before, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ success: true });
 }

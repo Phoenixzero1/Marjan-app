@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     // All top-level categories (for megamenu, sidebar, etc.)
     const categories = await prisma.category.findMany({
-      where: { isActive: true, parentId: null },
+      where: { isActive: true, parentId: null, deletedAt: null },
       orderBy: { sortOrder: "asc" },
       include: {
         children: {

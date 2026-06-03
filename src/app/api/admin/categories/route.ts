@@ -29,6 +29,7 @@ export async function GET() {
   if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const categories = await prisma.category.findMany({
+    where: { deletedAt: null },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     include: {
       _count: { select: { products: true, children: true } },
@@ -98,7 +99,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   const before = await prisma.category.findUnique({ where: { id }, select: { name: true, slug: true } });
-  await prisma.category.delete({ where: { id } });
+  await prisma.category.update({ where: { id }, data: { deletedAt: new Date() } });
   audit({ userId: session.user.id, action: "CATEGORY_DELETE", entity: "Category", entityId: id, oldValue: before, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ success: true });
 }

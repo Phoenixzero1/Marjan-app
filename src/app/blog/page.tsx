@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 async function getData(q?: string, category?: string) {
   try {
-    const where: Record<string, unknown> = { isPublished: true };
+    const where: Record<string, unknown> = { isPublished: true, deletedAt: null };
     if (q) {
       where.OR = [
         { title: { contains: q, mode: "insensitive" } },

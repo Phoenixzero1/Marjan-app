@@ -119,7 +119,7 @@ export async function DELETE(
 
   try {
     const before = await prisma.product.findUnique({ where: { id }, select: { name: true, price: true } });
-    await prisma.product.delete({ where: { id } });
+    await prisma.product.update({ where: { id }, data: { deletedAt: new Date() } });
     audit({ userId: session.user.id, action: "PRODUCT_DELETE", entity: "Product", entityId: id, oldValue: before, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ success: true });
   } catch {

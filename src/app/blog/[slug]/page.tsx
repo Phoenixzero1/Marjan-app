@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 async function getPost(slug: string) {
   try {
     return await prisma.blogPost.findUnique({
-      where: { slug, isPublished: true },
+      where: { slug, isPublished: true, deletedAt: null },
       include: {
         category: { select: { name: true, slug: true } },
         comments: {

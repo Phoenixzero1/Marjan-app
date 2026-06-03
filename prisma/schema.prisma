@@ -221,6 +221,7 @@ model Category {
   metaDesc    String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
 
   parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
   children Category[] @relation("CategoryTree")
@@ -267,6 +268,7 @@ model Product {
   tags          String[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
 
   brand      Brand?        @relation(fields: [brandId], references: [id])
   category   Category?     @relation(fields: [categoryId], references: [id])
@@ -379,6 +381,7 @@ model Order {
   deliveredAt     DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  deletedAt       DateTime?
 
   user     User       @relation(fields: [userId], references: [id])
   address  Address?   @relation(fields: [addressId], references: [id])
@@ -497,6 +500,7 @@ model BlogPost {
   publishedAt DateTime?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
 
   category BlogCategory? @relation(fields: [categoryId], references: [id])
   comments BlogComment[]
@@ -505,6 +509,7 @@ model BlogPost {
   @@index([isPublished])
   @@index([publishedAt])
   @@index([categoryId])
+  @@index([deletedAt])
 }
 
 model BlogComment {

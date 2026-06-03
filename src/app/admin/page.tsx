@@ -20,6 +20,7 @@ import BackupManager from "@/components/admin/BackupManager";
 import LogsManager from "@/components/admin/LogsManager";
 import SessionsManager from "@/components/admin/SessionsManager";
 import RolesManager from "@/components/admin/RolesManager";
+import TrashManager from "@/components/admin/TrashManager";
 
 interface ProductRow {
   id: string; name: string; sku: string | null; price: number;
@@ -35,7 +36,7 @@ type AdminSection =
   | "settings-general" | "settings-payment" | "settings-seo"
   | "settings-security" | "backup" | "logs" | "sessions"
   | "shipping" | "invoices" | "tax" | "roles" | "api-docs"
-  | "product-form";
+  | "trash" | "product-form";
 
 interface Stats {
   totalOrders: number; monthOrders: number; totalUsers: number; todayUsers: number;
@@ -81,6 +82,11 @@ const navGroups = [
   {
     label: "دسترسی", items: [
       { id: "roles", icon: "ti-shield-half-filled", label: "نقش‌ها و دسترسی" },
+    ],
+  },
+  {
+    label: "سطل زباله", items: [
+      { id: "trash", icon: "ti-trash", label: "آیتم‌های حذف‌شده" },
     ],
   },
 ];
@@ -421,8 +427,10 @@ export default function AdminPage() {
 
           {section === "roles" && <RolesManager />}
 
+          {section === "trash" && <TrashManager />}
+
           {/* Generic placeholder for other sections */}
-          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security", "backup", "logs", "sessions", "roles"].includes(section) && (
+          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security", "backup", "logs", "sessions", "roles", "trash"].includes(section) && (
             <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "3rem", textAlign: "center", color: "var(--text3)" }}>
               <i className="ti ti-tool" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
               <h3 style={{ fontSize: 18, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>بخش {titleMap[section]}</h3>

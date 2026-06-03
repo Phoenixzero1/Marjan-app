@@ -94,7 +94,7 @@ export async function DELETE(
 
   try {
     const before = await prisma.blogPost.findUnique({ where: { id }, select: { title: true, slug: true, isPublished: true } });
-    await prisma.blogPost.delete({ where: { id } });
+    await prisma.blogPost.update({ where: { id }, data: { deletedAt: new Date(), isPublished: false } });
     audit({ userId: session.user.id, action: "BLOG_POST_DELETE", entity: "BlogPost", entityId: id, oldValue: before, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ success: true });
   } catch {

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     const maxPrice = searchParams.get("maxPrice");
     const status = searchParams.get("status") ?? "PUBLISHED";
 
-    const where: Record<string, unknown> = { status };
+    const where: Record<string, unknown> = { status, deletedAt: null };
     if (categoryId) where.categoryId = categoryId;
     if (brandId) where.brandId = brandId;
     if (search) {
