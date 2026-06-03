@@ -22,7 +22,7 @@
 ## Frontend
 - [x] 18. Blog frontend fix
 - [x] 19. Footer categories fix
-- [ ] 20. User dashboard complete
+- [x] 20. User dashboard complete
 - [x] 21. Rename فاکتور رسمی to فاکتور فروش
 
 ## Rules for every session:
