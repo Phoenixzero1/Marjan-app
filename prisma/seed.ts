@@ -280,6 +280,196 @@ async function main() {
   }
   console.log("✅ Site settings created");
 
+  // Sample orders
+  const existingOrders = await prisma.order.count();
+  if (existingOrders === 0) {
+    const customer = await prisma.user.findUnique({ where: { email: "user@example.com" } });
+    const seedProds = await prisma.product.findMany({
+      where: { slug: { in: ["ball-valve-brass-1inch", "pvc-pipe-110mm", "elbow-90-polymer-half-inch", "needle-valve-steel-1inch", "tee-brass-1inch", "shower-mixer-steel"] } },
+    });
+    const pm = Object.fromEntries(seedProds.map((p) => [p.slug, p]));
+
+    if (customer) {
+      const addr = await prisma.address.create({
+        data: {
+          userId: customer.id,
+          label: "خانه",
+          fullName: "علی رضایی",
+          phone: "09129876543",
+          province: "تهران",
+          city: "تهران",
+          address: "خیابان ولیعصر، کوچه گلستان، پلاک ۱۲",
+          postalCode: "1234567890",
+          isDefault: true,
+        },
+      });
+
+      const now = Date.now();
+      const day = 24 * 60 * 60 * 1000;
+
+      // Order 1: DELIVERED + PAID
+      const o1 = await prisma.order.create({
+        data: {
+          orderNumber: "ORD-1001",
+          userId: customer.id,
+          addressId: addr.id,
+          status: "DELIVERED",
+          subtotal: 2788000,
+          shippingCost: 50000,
+          taxAmount: 278800,
+          totalAmount: 3116800,
+          trackingCode: "1234567890",
+          shippingMethod: "پست پیشتاز",
+          deliveredAt: new Date(now - 3 * day),
+          createdAt: new Date(now - 12 * day),
+          updatedAt: new Date(now - 3 * day),
+        },
+      });
+      await prisma.orderItem.createMany({
+        data: [
+          { orderId: o1.id, productId: pm["ball-valve-brass-1inch"].id, sizeLabel: "۱\"", quantity: 2, unitPrice: 1394000, totalPrice: 2788000 },
+        ],
+      });
+      await prisma.payment.create({
+        data: { orderId: o1.id, amount: 3116800, status: "PAID", refId: "REF-87654321", paidAt: new Date(now - 12 * day) },
+      });
+
+      // Order 2: SHIPPED + PAID
+      const o2 = await prisma.order.create({
+        data: {
+          orderNumber: "ORD-1002",
+          userId: customer.id,
+          addressId: addr.id,
+          status: "SHIPPED",
+          subtotal: 4975000,
+          shippingCost: 0,
+          taxAmount: 497500,
+          totalAmount: 5472500,
+          trackingCode: "9988776655",
+          shippingMethod: "پیک موتوری",
+          createdAt: new Date(now - 5 * day),
+          updatedAt: new Date(now - 2 * day),
+        },
+      });
+      await prisma.orderItem.createMany({
+        data: [
+          { orderId: o2.id, productId: pm["needle-valve-steel-1inch"].id, sizeLabel: "۱\"", quantity: 1, unitPrice: 2150000, totalPrice: 2150000 },
+          { orderId: o2.id, productId: pm["tee-brass-1inch"].id, sizeLabel: "۱\"", quantity: 2, unitPrice: 680000, totalPrice: 1360000 },
+          { orderId: o2.id, productId: pm["elbow-90-polymer-half-inch"].id, sizeLabel: "۱/۲\"", quantity: 10, unitPrice: 45000, totalPrice: 450000 },
+          { orderId: o2.id, productId: pm["pvc-pipe-110mm"].id, quantity: 1, unitPrice: 850000, totalPrice: 850000 },
+        ],
+      });
+      await prisma.payment.create({
+        data: { orderId: o2.id, amount: 5472500, status: "PAID", refId: "REF-11223344", paidAt: new Date(now - 5 * day) },
+      });
+
+      // Order 3: CONFIRMED + PAID
+      const o3 = await prisma.order.create({
+        data: {
+          orderNumber: "ORD-1003",
+          userId: customer.id,
+          addressId: addr.id,
+          status: "CONFIRMED",
+          subtotal: 4500000,
+          shippingCost: 80000,
+          taxAmount: 450000,
+          totalAmount: 5030000,
+          shippingMethod: "تیپاکس",
+          createdAt: new Date(now - 2 * day),
+          updatedAt: new Date(now - 1 * day),
+        },
+      });
+      await prisma.orderItem.createMany({
+        data: [
+          { orderId: o3.id, productId: pm["shower-mixer-steel"].id, quantity: 1, unitPrice: 4500000, totalPrice: 4500000 },
+        ],
+      });
+      await prisma.payment.create({
+        data: { orderId: o3.id, amount: 5030000, status: "PAID", refId: "REF-55667788", paidAt: new Date(now - 2 * day) },
+      });
+
+      // Order 4: PENDING + PENDING payment
+      const o4 = await prisma.order.create({
+        data: {
+          orderNumber: "ORD-1004",
+          userId: customer.id,
+          addressId: addr.id,
+          status: "PENDING",
+          subtotal: 1275000,
+          shippingCost: 50000,
+          taxAmount: 127500,
+          totalAmount: 1452500,
+          createdAt: new Date(now - 3 * 60 * 60 * 1000),
+          updatedAt: new Date(now - 3 * 60 * 60 * 1000),
+        },
+      });
+      await prisma.orderItem.createMany({
+        data: [
+          { orderId: o4.id, productId: pm["pvc-pipe-110mm"].id, quantity: 1, unitPrice: 850000, totalPrice: 850000 },
+          { orderId: o4.id, productId: pm["elbow-90-polymer-half-inch"].id, sizeLabel: "۳/۴\"", quantity: 5, unitPrice: 45000, totalPrice: 225000 },
+          { orderId: o4.id, productId: pm["ball-valve-brass-1inch"].id, sizeLabel: "۱/۲\"", quantity: 1, unitPrice: 680000, totalPrice: 680000 },
+        ],
+      });
+      await prisma.payment.create({
+        data: { orderId: o4.id, amount: 1452500, status: "PENDING" },
+      });
+
+      // Order 5: CANCELLED + FAILED payment
+      const o5 = await prisma.order.create({
+        data: {
+          orderNumber: "ORD-1005",
+          userId: admin.id,
+          addressId: addr.id,
+          status: "CANCELLED",
+          subtotal: 2150000,
+          shippingCost: 50000,
+          taxAmount: 215000,
+          totalAmount: 2415000,
+          notes: "مشتری انصراف داد",
+          createdAt: new Date(now - 8 * day),
+          updatedAt: new Date(now - 7 * day),
+        },
+      });
+      await prisma.orderItem.createMany({
+        data: [
+          { orderId: o5.id, productId: pm["needle-valve-steel-1inch"].id, sizeLabel: "۱\"", quantity: 1, unitPrice: 2150000, totalPrice: 2150000 },
+        ],
+      });
+      await prisma.payment.create({
+        data: { orderId: o5.id, amount: 2415000, status: "FAILED" },
+      });
+
+      // Order 6: RETURNED + REFUNDED payment
+      const o6 = await prisma.order.create({
+        data: {
+          orderNumber: "ORD-1006",
+          userId: customer.id,
+          addressId: addr.id,
+          status: "RETURNED",
+          subtotal: 1394000,
+          shippingCost: 50000,
+          taxAmount: 139400,
+          totalAmount: 1583400,
+          notes: "محصول معیوب بود",
+          createdAt: new Date(now - 20 * day),
+          updatedAt: new Date(now - 15 * day),
+        },
+      });
+      await prisma.orderItem.createMany({
+        data: [
+          { orderId: o6.id, productId: pm["ball-valve-brass-1inch"].id, sizeLabel: "۱\"", quantity: 1, unitPrice: 1394000, totalPrice: 1394000 },
+        ],
+      });
+      await prisma.payment.create({
+        data: { orderId: o6.id, amount: 1583400, status: "REFUNDED", refId: "REF-99001122", paidAt: new Date(now - 20 * day) },
+      });
+
+      console.log("✅ Sample orders created: 6");
+    }
+  } else {
+    console.log(`⏭️  Orders already exist (${existingOrders}), skipping`);
+  }
+
   console.log("\n✨ Database seeded successfully!");
   console.log("\n📋 Login credentials:");
   console.log("   Admin: admin@marjan.ir / admin123456");
