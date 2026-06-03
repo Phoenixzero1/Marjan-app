@@ -23,7 +23,7 @@
 - [ ] 18. Blog frontend fix
 - [ ] 19. Footer categories fix
 - [ ] 20. User dashboard complete
-- [ ] 21. Rename فاکتور رسمی to فاکتور فروش
+- [x] 21. Rename فاکتور رسمی to فاکتور فروش
 
 ## Rules for every session:
 1. Read PROGRESS.md at the start
