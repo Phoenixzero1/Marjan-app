@@ -5,6 +5,9 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
 import ProductForm from "@/components/admin/ProductForm";
+import CategoryManager from "@/components/admin/CategoryManager";
+import OrderManager from "@/components/admin/OrderManager";
+import UserManager from "@/components/admin/UserManager";
 
 interface ProductRow {
   id: string; name: string; sku: string | null; price: number;
@@ -76,9 +79,7 @@ export default function AdminPage() {
   const [section, setSection] = useState<AdminSection>("analytics");
   const [stats, setStats] = useState<Stats | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [users, setUsers] = useState<unknown[]>([]);
   const [products, setProducts] = useState<ProductRow[]>([]);
-  const [orders, setOrders] = useState<unknown[]>([]);
   const [editProductId, setEditProductId] = useState<string | undefined>(undefined);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [adminToast, setAdminToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
@@ -114,9 +115,7 @@ export default function AdminPage() {
   }, [status, session, router]);
 
   useEffect(() => {
-    if (section === "users") fetch("/api/admin/users").then((r) => r.json()).then((d) => setUsers(d.users ?? []));
     if (section === "products") fetch("/api/admin/products").then((r) => r.json()).then((d) => setProducts(d.products ?? []));
-    if (section === "orders-admin") fetch("/api/orders").then((r) => r.json()).then((d) => setOrders(d.orders ?? []));
   }, [section]);
 
   // Reload products list after returning from product form
@@ -301,56 +300,7 @@ export default function AdminPage() {
           )}
 
           {/* USERS */}
-          {section === "users" && (
-            <>
-              <div style={{ display: "flex", gap: 10, marginBottom: "1.25rem" }}>
-                <input placeholder="جستجو نام، ایمیل، موبایل..." style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", maxWidth: 320 }} />
-                <select style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", width: "auto" }}>
-                  <option>همه نقش‌ها</option><option>مدیر</option><option>کاربر عادی</option>
-                </select>
-                <button onClick={() => fetch("/api/admin/users?page=1").then(r=>r.json()).then(d=>setUsers(d.users??[]))} style={{ marginRight: "auto", background: "var(--primary)", color: "#fff", border: "none", padding: "9px 16px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 900, fontFamily: "Vazirmatn", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
-                  <i className="ti ti-user-plus" /> افزودن کاربر
-                </button>
-              </div>
-              <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                  <thead>
-                    <tr>
-                      {["", "کاربر", "موبایل", "نقش", "تاریخ عضویت", "سفارشات", "وضعیت", "عملیات"].map((h) => (
-                        <th key={h} style={{ background: "var(--bg)", padding: "10px 12px", fontSize: 11, fontWeight: 900, color: "var(--text2)", textAlign: "right", borderBottom: "2px solid var(--border)" }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(users as Array<{id:string;firstName:string;lastName:string;email:string|null;phone:string|null;role:string;status:string;createdAt:string;_count:{orders:number}}> ).map((u) => (
-                      <tr key={u.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                        <td style={{ padding: "10px 12px" }}><input type="checkbox" /></td>
-                        <td style={{ padding: "10px 12px" }}>
-                          <div style={{ fontWeight: 900 }}>{u.firstName} {u.lastName}</div>
-                          <div style={{ fontSize: 11, color: "var(--text3)" }}>{u.email}</div>
-                        </td>
-                        <td style={{ padding: "10px 12px" }}>{u.phone ?? "—"}</td>
-                        <td style={{ padding: "10px 12px" }}>{u.role}</td>
-                        <td style={{ padding: "10px 12px", color: "var(--text3)" }}>{new Date(u.createdAt).toLocaleDateString("fa-IR")}</td>
-                        <td style={{ padding: "10px 12px" }}>{u._count?.orders ?? 0}</td>
-                        <td style={{ padding: "10px 12px" }}>
-                          <span className={u.status === "ACTIVE" ? "pill-green" : "pill-red"} style={{ fontSize: 11, fontWeight: 900, padding: "3px 10px", borderRadius: 20, display: "inline-block" }}>
-                            {u.status === "ACTIVE" ? "فعال" : "معلق"}
-                          </span>
-                        </td>
-                        <td style={{ padding: "10px 12px", display: "flex", gap: 4 }}>
-                          <button style={{ background: "var(--bg)", border: "1px solid var(--border)", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer", fontFamily: "Vazirmatn", color: "var(--text2)" }}>ویرایش</button>
-                        </td>
-                      </tr>
-                    ))}
-                    {users.length === 0 && (
-                      <tr><td colSpan={8} style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>کاربری یافت نشد</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
+          {section === "users" && <UserManager />}
 
           {/* PRODUCTS ADMIN */}
           {section === "products" && (
@@ -425,8 +375,14 @@ export default function AdminPage() {
             />
           )}
 
+          {/* CATEGORIES ADMIN */}
+          {section === "categories" && <CategoryManager />}
+
+          {/* ORDERS ADMIN */}
+          {section === "orders-admin" && <OrderManager />}
+
           {/* Generic placeholder for other sections */}
-          {!["analytics", "users", "products", "product-form", "orders-admin"].includes(section) && (
+          {!["analytics", "users", "products", "product-form", "orders-admin", "categories"].includes(section) && (
             <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "3rem", textAlign: "center", color: "var(--text3)" }}>
               <i className="ti ti-tool" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
               <h3 style={{ fontSize: 18, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>بخش {titleMap[section]}</h3>
