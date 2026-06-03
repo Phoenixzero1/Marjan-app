@@ -15,7 +15,7 @@ function generateOtp(): string {
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
-  if (isRateLimited(`otp:${ip}`, 10, 10 * 60_000)) {
+  if (isRateLimited(`otp:${ip}`, 3, 10 * 60_000)) {
     return NextResponse.json({ error: "تعداد درخواست‌های OTP بیش از حد است. ۱۰ دقیقه صبر کنید." }, { status: 429 });
   }
 

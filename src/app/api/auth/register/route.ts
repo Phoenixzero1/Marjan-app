@@ -15,7 +15,7 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
   // Rate limit: max 5 registrations per IP per 10 minutes
   const ip = getClientIp(req);
-  if (isRateLimited(`register:${ip}`, 5, 10 * 60_000)) {
+  if (isRateLimited(`register:${ip}`, 5, 15 * 60_000)) {
     return NextResponse.json(
       { error: "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً ۱۰ دقیقه صبر کنید." },
       { status: 429 }

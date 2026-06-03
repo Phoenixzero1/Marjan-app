@@ -14,7 +14,7 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
   // Rate limit: max 5 contact messages per IP per hour
   const ip = getClientIp(req);
-  if (isRateLimited(`contact:${ip}`, 5, 60 * 60_000)) {
+  if (isRateLimited(`contact:${ip}`, 10, 60 * 60_000)) {
     return limitExceeded("تعداد پیام‌های ارسالی شما بیش از حد مجاز است. یک ساعت دیگر تلاش کنید.");
   }
 

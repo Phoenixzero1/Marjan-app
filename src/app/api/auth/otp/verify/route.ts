@@ -12,7 +12,7 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
   // Block IPs hammering the endpoint from rotating phones
   const ip = getClientIp(req);
-  if (isRateLimited(`otp-verify:ip:${ip}`, 10, 10 * 60_000)) {
+  if (isRateLimited(`otp-verify:ip:${ip}`, 3, 10 * 60_000)) {
     return limitExceeded("تعداد تلاش‌های تأیید OTP بیش از حد مجاز است. ۱۰ دقیقه صبر کنید.");
   }
 
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     const { phone, code, purpose } = parsed.data;
 
     // Per-phone limit: max 5 verify attempts per phone per 10 minutes (brute-force guard)
-    if (isRateLimited(`otp-verify:phone:${phone}`, 5, 10 * 60_000)) {
+    if (isRateLimited(`otp-verify:phone:${phone}`, 3, 10 * 60_000)) {
       return limitExceeded("تعداد تلاش‌های تأیید برای این شماره بیش از حد است. ۱۰ دقیقه صبر کنید.");
     }
 
