@@ -8,7 +8,7 @@
 - [x] 5. Finance (مالی)
 - [x] 6. Coupons (کوپن)
 - [x] 7. Notifications (اطلاع‌رسانی)
-- [ ] 8. Comments/Reviews (نظرات)
+- [x] 8. Comments/Reviews (نظرات)
 - [ ] 9. Newsletter (خبرنامه)
 - [ ] 10. Settings General (تنظیمات عمومی)
 - [ ] 11. Settings Payment (درگاه پرداخت)
