@@ -12,7 +12,7 @@ export async function GET() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  const [totalOrders, monthOrders, totalUsers, todayUsers, totalRevenue, monthRevenue, pendingOrders, todayVisits] =
+  const [totalOrders, monthOrders, totalUsers, todayUsers, totalRevenue, monthRevenue, pendingOrders, todayVisits, pendingReviews, publishedBlogPosts] =
     await prisma.$transaction([
       prisma.order.count(),
       prisma.order.count({ where: { createdAt: { gte: startOfMonth } } }),
@@ -22,12 +22,14 @@ export async function GET() {
       prisma.payment.aggregate({ where: { status: "PAID", paidAt: { gte: startOfMonth } }, _sum: { amount: true } }),
       prisma.order.count({ where: { status: "PENDING" } }),
       prisma.systemLog.count({ where: { createdAt: { gte: startOfDay } } }),
+      prisma.review.count({ where: { isApproved: false } }),
+      prisma.blogPost.count({ where: { isPublished: true, deletedAt: null } }),
     ]);
 
   return NextResponse.json({
     totalOrders, monthOrders, totalUsers, todayUsers,
     totalRevenue: totalRevenue._sum.amount ?? 0,
     monthRevenue: monthRevenue._sum.amount ?? 0,
-    pendingOrders, todayVisits,
+    pendingOrders, todayVisits, pendingReviews, publishedBlogPosts,
   });
 }

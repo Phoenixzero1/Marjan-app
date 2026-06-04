@@ -42,56 +42,60 @@ type AdminSection =
 interface Stats {
   totalOrders: number; monthOrders: number; totalUsers: number; todayUsers: number;
   totalRevenue: number; monthRevenue: number; pendingOrders: number; todayVisits: number;
+  pendingReviews: number; publishedBlogPosts: number;
 }
 
-const navGroups = [
-  { label: "داشبورد", items: [{ id: "analytics", icon: "ti-chart-bar", label: "آمار و گزارشات" }] },
-  { label: "کاربران", items: [{ id: "users", icon: "ti-users", label: "مدیریت کاربران", badge: "۲۴۸" }] },
-  {
-    label: "محتوا", items: [
-      { id: "products", icon: "ti-package", label: "محصولات" },
-      { id: "categories", icon: "ti-category", label: "دسته‌بندی‌ها" },
-      { id: "blog-admin", icon: "ti-news", label: "بلاگ", badge: "۳" },
-      { id: "media", icon: "ti-photo", label: "رسانه‌ها" },
-    ],
-  },
-  {
-    label: "فروش", items: [
-      { id: "orders-admin", icon: "ti-truck-delivery", label: "سفارشات", badge: "۷" },
-      { id: "returns", icon: "ti-arrow-back-up", label: "مرجوعی‌ها" },
-      { id: "finance", icon: "ti-report-money", label: "مالی" },
-      { id: "coupons", icon: "ti-ticket", label: "تخفیف و کوپن" },
-    ],
-  },
-  {
-    label: "سیستم‌های جانبی", items: [
-      { id: "notifications-admin", icon: "ti-bell", label: "اطلاع‌رسانی" },
-      { id: "comments", icon: "ti-message-circle", label: "نظرات", badge: "۱۲" },
-      { id: "newsletter", icon: "ti-mail", label: "خبرنامه" },
-    ],
-  },
-  {
-    label: "تنظیمات", items: [
-      { id: "settings-general", icon: "ti-settings", label: "عمومی" },
-      { id: "settings-payment", icon: "ti-credit-card", label: "درگاه پرداخت" },
-      { id: "settings-seo", icon: "ti-search", label: "سئو" },
-      { id: "settings-security", icon: "ti-lock", label: "امنیت" },
-      { id: "backup", icon: "ti-database", label: "پشتیبان‌گیری" },
-      { id: "logs", icon: "ti-terminal-2", label: "لاگ سیستم" },
-      { id: "sessions", icon: "ti-device-laptop", label: "نشست‌ها" },
-    ],
-  },
-  {
-    label: "دسترسی", items: [
-      { id: "roles", icon: "ti-shield-half-filled", label: "نقش‌ها و دسترسی" },
-    ],
-  },
-  {
-    label: "سطل زباله", items: [
-      { id: "trash", icon: "ti-trash", label: "آیتم‌های حذف‌شده" },
-    ],
-  },
-];
+function buildNavGroups(stats: Stats | null) {
+  const n = (v: number) => v > 0 ? String(v) : undefined;
+  return [
+    { label: "داشبورد", items: [{ id: "analytics", icon: "ti-chart-bar", label: "آمار و گزارشات" }] },
+    { label: "کاربران", items: [{ id: "users", icon: "ti-users", label: "مدیریت کاربران", badge: n(stats?.totalUsers ?? 0) }] },
+    {
+      label: "محتوا", items: [
+        { id: "products", icon: "ti-package", label: "محصولات" },
+        { id: "categories", icon: "ti-category", label: "دسته‌بندی‌ها" },
+        { id: "blog-admin", icon: "ti-news", label: "بلاگ", badge: n(stats?.publishedBlogPosts ?? 0) },
+        { id: "media", icon: "ti-photo", label: "رسانه‌ها" },
+      ],
+    },
+    {
+      label: "فروش", items: [
+        { id: "orders-admin", icon: "ti-truck-delivery", label: "سفارشات", badge: n(stats?.pendingOrders ?? 0) },
+        { id: "returns", icon: "ti-arrow-back-up", label: "مرجوعی‌ها" },
+        { id: "finance", icon: "ti-report-money", label: "مالی" },
+        { id: "coupons", icon: "ti-ticket", label: "تخفیف و کوپن" },
+      ],
+    },
+    {
+      label: "سیستم‌های جانبی", items: [
+        { id: "notifications-admin", icon: "ti-bell", label: "اطلاع‌رسانی" },
+        { id: "comments", icon: "ti-message-circle", label: "نظرات", badge: n(stats?.pendingReviews ?? 0) },
+        { id: "newsletter", icon: "ti-mail", label: "خبرنامه" },
+      ],
+    },
+    {
+      label: "تنظیمات", items: [
+        { id: "settings-general", icon: "ti-settings", label: "عمومی" },
+        { id: "settings-payment", icon: "ti-credit-card", label: "درگاه پرداخت" },
+        { id: "settings-seo", icon: "ti-search", label: "سئو" },
+        { id: "settings-security", icon: "ti-lock", label: "امنیت" },
+        { id: "backup", icon: "ti-database", label: "پشتیبان‌گیری" },
+        { id: "logs", icon: "ti-terminal-2", label: "لاگ سیستم" },
+        { id: "sessions", icon: "ti-device-laptop", label: "نشست‌ها" },
+      ],
+    },
+    {
+      label: "دسترسی", items: [
+        { id: "roles", icon: "ti-shield-half-filled", label: "نقش‌ها و دسترسی" },
+      ],
+    },
+    {
+      label: "سطل زباله", items: [
+        { id: "trash", icon: "ti-trash", label: "آیتم‌های حذف‌شده" },
+      ],
+    },
+  ];
+}
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
@@ -145,6 +149,8 @@ export default function AdminPage() {
   }, []);
 
   if (status === "loading") return <div style={{ textAlign: "center", padding: "5rem" }}>در حال بارگذاری...</div>;
+
+  const navGroups = buildNavGroups(stats);
 
   const titleMap: Record<string, string> = {
     analytics: "آمار و گزارشات", users: "مدیریت کاربران", products: "محصولات",
