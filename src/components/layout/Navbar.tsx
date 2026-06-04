@@ -13,8 +13,8 @@ interface SearchResult {
   name: string;
   slug: string;
   price: number;
-  category?: { name: string };
-  images: { url: string }[];
+  category?: string | null;
+  images?: { url: string }[];
 }
 
 const mobileCategories = [
@@ -47,11 +47,15 @@ export default function Navbar() {
   useEffect(() => {
     if (query.length < 2) { setResults([]); setDropOpen(false); return; }
     const t = setTimeout(async () => {
-      const res = await fetch(`/api/products?q=${encodeURIComponent(query)}&limit=6`);
-      const data = await res.json();
-      setResults(data.products ?? []);
-      setDropOpen(true);
-    }, 300);
+      try {
+        const res = await fetch(`/api/search/suggestions?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        setResults(data.suggestions ?? []);
+        setDropOpen(true);
+      } catch {
+        setDropOpen(false);
+      }
+    }, 250);
     return () => clearTimeout(t);
   }, [query]);
 
@@ -127,7 +131,7 @@ export default function Navbar() {
                     className="search-result-item"
                   >
                     <div style={{ width: 36, height: 36, background: "var(--bg2)", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      {r.images[0] ? (
+                      {r.images?.[0] ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={r.images[0].url} alt={r.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       ) : (
@@ -136,7 +140,7 @@ export default function Navbar() {
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text)" }}>{r.name}</div>
-                      <div style={{ fontSize: 11, color: "var(--text3)" }}>{r.category?.name}</div>
+                      <div style={{ fontSize: 11, color: "var(--text3)" }}>{r.category}</div>
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 900, color: "var(--primary)", whiteSpace: "nowrap" }}>{formatPrice(r.price)}</div>
                   </div>

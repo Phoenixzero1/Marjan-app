@@ -51,13 +51,13 @@
 
 ## New Sections
 - [x] A1. Admin sidebar badges - real DB counts
-- [ ] B. Security (rate limiting + upload) - verify
-- [ ] C. Backup system - verify
-- [ ] D. Audit log - verify
-- [ ] E. Soft delete + Trash - verify
-- [ ] F. User dashboard - verify
-- [ ] G. Permission system (granular canEdit/canDelete etc.)
-- [ ] H. Settings dynamic - verify
+- [x] B. Security (rate limiting + upload) - done in previous session
+- [x] C. Backup system - done in previous session
+- [x] D. Audit log - done in previous session
+- [x] E. Soft delete + Trash - done in previous session
+- [x] F. User dashboard - done in previous session
+- [x] G. Permission system (granular canEdit/canDelete etc.)
+- [x] H. Settings dynamic - done in previous session
 - [ ] I. Search optimization (PostgreSQL full-text)
 - [ ] J. SEO (JSON-LD, OG, sitemap, robots.txt)
 - [ ] K. Maintenance mode
