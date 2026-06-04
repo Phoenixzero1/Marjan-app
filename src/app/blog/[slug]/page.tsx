@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Script from "next/script";
 import { prisma } from "@/lib/prisma";
+
+const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://marjan.ir";
 
 async function getPost(slug: string) {
   try {
@@ -38,15 +41,26 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = await getPost(slug);
   if (!post) return { title: "مطلب یافت نشد | مارجان" };
+  const url = `${BASE}/blog/${post.slug}`;
   return {
     title: post.metaTitle ?? `${post.title} | وبلاگ مارجان`,
     description: post.metaDesc ?? post.excerpt ?? undefined,
+    alternates: { canonical: url },
     openGraph: {
       title: post.title,
       description: post.metaDesc ?? post.excerpt ?? undefined,
-      images: post.imageUrl ? [post.imageUrl] : [],
+      images: post.imageUrl ? [{ url: post.imageUrl, alt: post.title }] : [],
       locale: "fa_IR",
       type: "article",
+      url,
+      siteName: "مارجان",
+      publishedTime: post.publishedAt?.toISOString(),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.metaDesc ?? post.excerpt ?? undefined,
+      images: post.imageUrl ? [post.imageUrl] : [],
     },
   };
 }
@@ -71,8 +85,34 @@ export default async function BlogPostPage({
     ? post.publishedAt.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" })
     : "";
 
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt ?? post.metaDesc ?? undefined,
+    image: post.imageUrl ? [post.imageUrl] : undefined,
+    datePublished: post.publishedAt?.toISOString(),
+    dateModified: post.updatedAt?.toISOString(),
+    url: `${BASE}/blog/${post.slug}`,
+    author: { "@type": "Organization", name: "مارجان" },
+    publisher: { "@type": "Organization", name: "مارجان", url: BASE },
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "خانه", item: BASE },
+      { "@type": "ListItem", position: 2, name: "وبلاگ", item: `${BASE}/blog` },
+      ...(post.category ? [{ "@type": "ListItem", position: 3, name: post.category.name, item: `${BASE}/blog?category=${post.category.slug}` }] : []),
+      { "@type": "ListItem", position: post.category ? 4 : 3, name: post.title, item: `${BASE}/blog/${post.slug}` },
+    ],
+  };
+
   return (
     <>
+      <Script id="blog-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <Script id="blog-breadcrumb-jsonld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {/* Breadcrumb */}
       <div style={{ background: "#fff", borderBottom: "1px solid var(--border)" }}>
         <div

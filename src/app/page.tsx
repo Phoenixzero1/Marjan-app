@@ -1,6 +1,23 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import ProductCard from "@/components/shop/ProductCard";
+
+const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://marjan.ir";
+
+export const metadata: Metadata = {
+  title: "مارجان | فروشگاه لوازم ساختمانی و تأسیساتی",
+  description: "بیش از ۱۵ سال تجربه در تأمین لوازم ساختمانی، شیرآلات، لوله، اتصالات و پمپ. هزاران قطعه اصل با ضمانت کیفیت و تحویل سریع.",
+  alternates: { canonical: BASE },
+  openGraph: {
+    title: "مارجان | فروشگاه لوازم ساختمانی و تأسیساتی",
+    description: "بیش از ۱۵ سال تجربه در تأمین لوازم ساختمانی و تأسیساتی",
+    url: BASE,
+    siteName: "مارجان",
+    locale: "fa_IR",
+    type: "website",
+  },
+};
 
 async function getFeaturedProducts() {
   try {

@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
+const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://marjan.ir";
+
 export const metadata: Metadata = {
   title: "وبلاگ | مارجان",
   description: "آخرین مقالات، راهنماها و اخبار دنیای لوله، شیرآلات و تأسیسات ساختمانی در وبلاگ مارجان.",
+  alternates: { canonical: `${BASE}/blog` },
   openGraph: {
     title: "وبلاگ مارجان — راهنمای تأسیسات ساختمانی",
+    url: `${BASE}/blog`,
+    siteName: "مارجان",
     locale: "fa_IR",
     type: "website",
   },
