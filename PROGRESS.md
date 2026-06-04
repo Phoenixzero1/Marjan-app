@@ -58,9 +58,9 @@
 - [x] F. User dashboard - done in previous session
 - [x] G. Permission system (granular canEdit/canDelete etc.)
 - [x] H. Settings dynamic - done in previous session
-- [ ] I. Search optimization (PostgreSQL full-text)
-- [ ] J. SEO (JSON-LD, OG, sitemap, robots.txt)
-- [ ] K. Maintenance mode
+- [x] I. Search optimization (PostgreSQL full-text + trigram)
+- [x] J. SEO (JSON-LD, OG, sitemap, robots.txt, canonical)
+- [x] K. Maintenance mode
 - [ ] L. Migration package (WordPress Duplicator-style)
 - [ ] M. E2E test script
 
