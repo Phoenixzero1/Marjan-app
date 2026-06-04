@@ -47,7 +47,7 @@ export default function SettingsManager({ tab }: Props) {
 
   // Map tab to the groups we load
   const groups: Record<SettingsTab, string[]> = {
-    general:  ["general", "shipping"],
+    general:  ["general", "shipping", "contact"],
     payment:  ["payment"],
     seo:      ["seo"],
     security: ["security"],
@@ -147,6 +147,64 @@ export default function SettingsManager({ tab }: Props) {
               <textarea value={get("site_about", "")} onChange={e => set("site_about", e.target.value)} rows={3} style={{ ...inp, resize: "vertical", lineHeight: 1.7 }} />
             </div>
             <SaveBtn groupName="general" keys={["site_name", "site_email", "site_phone", "site_city", "site_address", "site_about"]} />
+          </Section>
+
+          <Section title="اطلاعات تماس و فوتر" icon="ti-phone">
+            <Row>
+              <div>
+                <label style={lbl}>تلفن (نمایش در هدر)</label>
+                <input value={get("site_phone", "۰۲۱-۴۴۵۵۶۶۷۷")} onChange={e => set("site_phone", e.target.value)} style={inp} />
+              </div>
+              <div>
+                <label style={lbl}>واتساپ</label>
+                <input value={get("site_whatsapp", "")} onChange={e => set("site_whatsapp", e.target.value)} style={inp} />
+              </div>
+            </Row>
+            <Row>
+              <div>
+                <label style={lbl}>ایمیل</label>
+                <input value={get("site_email", "")} onChange={e => set("site_email", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
+              </div>
+              <div>
+                <label style={lbl}>آدرس</label>
+                <input value={get("site_address", "")} onChange={e => set("site_address", e.target.value)} style={inp} />
+              </div>
+            </Row>
+            <Row>
+              <div>
+                <label style={lbl}>ساعات کاری (هدر)</label>
+                <input value={get("site_hours", "شنبه تا پنجشنبه ۸ تا ۱۷")} onChange={e => set("site_hours", e.target.value)} style={inp} />
+              </div>
+              <div>
+                <label style={lbl}>متن ارسال رایگان (هدر)</label>
+                <input value={get("site_free_shipping_text", "")} onChange={e => set("site_free_shipping_text", e.target.value)} style={inp} />
+              </div>
+            </Row>
+            <div>
+              <label style={lbl}>متن فوتر (کپی‌رایت)</label>
+              <input value={get("site_footer_text", "© ۱۴۰۴ Marjan")} onChange={e => set("site_footer_text", e.target.value)} style={inp} />
+            </div>
+            <Row>
+              <div>
+                <label style={lbl}>اینستاگرام (لینک)</label>
+                <input value={get("social_instagram", "#")} onChange={e => set("social_instagram", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
+              </div>
+              <div>
+                <label style={lbl}>تلگرام (لینک)</label>
+                <input value={get("social_telegram", "#")} onChange={e => set("social_telegram", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
+              </div>
+            </Row>
+            <Row>
+              <div>
+                <label style={lbl}>لینکدین (لینک)</label>
+                <input value={get("social_linkedin", "#")} onChange={e => set("social_linkedin", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
+              </div>
+              <div>
+                <label style={lbl}>واتساپ (لینک)</label>
+                <input value={get("social_whatsapp", "#")} onChange={e => set("social_whatsapp", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
+              </div>
+            </Row>
+            <SaveBtn groupName="contact" keys={["site_phone", "site_whatsapp", "site_email", "site_address", "site_hours", "site_free_shipping_text", "site_footer_text", "social_instagram", "social_telegram", "social_linkedin", "social_whatsapp"]} />
           </Section>
 
           <Section title="تنظیمات ارسال" icon="ti-truck-delivery">

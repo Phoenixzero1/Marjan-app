@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { getClientIp } from "@/lib/rateLimit";
+import { revalidateTag } from "next/cache";
+import { SETTINGS_TAG } from "@/lib/settings";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
 
@@ -50,6 +52,7 @@ export async function POST(req: NextRequest) {
   );
 
   await Promise.all(updates);
+  revalidateTag(SETTINGS_TAG, "max");
   audit({ userId: session.user.id, action: "SETTINGS_UPDATE", entity: "SiteSettings", newValue: parsed.data, oldValue: oldMap, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ success: true });
 }

@@ -1,6 +1,8 @@
-"use client";
+import { getSiteSettings } from "@/lib/settings";
 
-export default function Topbar() {
+export default async function Topbar() {
+  const s = await getSiteSettings();
+
   return (
     <div
       className="topbar"
@@ -16,15 +18,15 @@ export default function Topbar() {
     >
       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <i className="ti ti-phone" />
-        {process.env.NEXT_PUBLIC_APP_PHONE ?? "۰۲۱-۴۴۵۵۶۶۷۷"}
+        {s.site_phone}
       </span>
       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <i className="ti ti-clock" />
-        شنبه تا پنجشنبه ۸ تا ۱۷
+        {s.site_hours}
       </span>
       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <i className="ti ti-truck-delivery" />
-        ارسال رایگان بالای ۵ میلیون تومان
+        {s.site_free_shipping_text}
       </span>
     </div>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { getSiteSettings } from "@/lib/settings";
 
 const fallbackCategories = [
   { id: "1", name: "شیرآلات", slug: "valves" },
@@ -13,13 +14,15 @@ export default async function Footer() {
   let categories = fallbackCategories;
   try {
     const dbCats = await prisma.category.findMany({
-      where: { parentId: null, isActive: true },
+      where: { parentId: null, isActive: true, deletedAt: null },
       orderBy: { sortOrder: "asc" },
       take: 6,
       select: { id: true, name: true, slug: true },
     });
     if (dbCats.length > 0) categories = dbCats;
   } catch { /* use fallback */ }
+
+  const s = await getSiteSettings();
   return (
     <footer style={{ background: "var(--primary-dark)", color: "rgba(255,255,255,.75)", marginTop: "4rem" }}>
       <div
@@ -35,21 +38,23 @@ export default async function Footer() {
         {/* Brand */}
         <div>
           <h3 style={{ fontSize: 20, fontWeight: 900, color: "#fff", marginBottom: ".75rem" }}>
-            Marjan<span style={{ color: "var(--accent)" }}>.</span>
+            {s.site_name || "Marjan"}<span style={{ color: "var(--accent)" }}>.</span>
           </h3>
           <p style={{ fontSize: 13, lineHeight: 1.8, marginBottom: "1.25rem" }}>
             بیش از ۱۵ سال تجربه در تامین لوازم ساختمانی و تأسیساتی. هزاران قطعه اصل از بهترین برندها با ضمانت کیفیت و تحویل سریع.
           </p>
           <div style={{ display: "flex", gap: 10 }}>
             {[
-              { icon: "ti-brand-instagram", color: "#e1306c" },
-              { icon: "ti-brand-telegram", color: "#229ed9" },
-              { icon: "ti-brand-linkedin", color: "#0077b5" },
-              { icon: "ti-brand-whatsapp", color: "#25d366" },
-            ].map((s) => (
+              { icon: "ti-brand-instagram", color: "#e1306c", href: s.social_instagram || "#" },
+              { icon: "ti-brand-telegram", color: "#229ed9", href: s.social_telegram || "#" },
+              { icon: "ti-brand-linkedin", color: "#0077b5", href: s.social_linkedin || "#" },
+              { icon: "ti-brand-whatsapp", color: "#25d366", href: s.social_whatsapp || "#" },
+            ].map((social) => (
               <a
-                key={s.icon}
-                href="#"
+                key={social.icon}
+                href={social.href || "#"}
+                target={social.href && social.href !== "#" ? "_blank" : undefined}
+                rel="noreferrer"
                 style={{
                   width: 36,
                   height: 36,
@@ -63,7 +68,7 @@ export default async function Footer() {
                   transition: "all .2s",
                 }}
               >
-                <i className={`ti ${s.icon}`} />
+                <i className={`ti ${social.icon}`} />
               </a>
             ))}
           </div>
@@ -115,19 +120,19 @@ export default async function Footer() {
           <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 12 }}>
             <li style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
               <i className="ti ti-phone" style={{ color: "var(--accent)", fontSize: 16 }} />
-              ۰۲۱-۴۴۵۵۶۶۷۷
+              {s.site_phone}
             </li>
             <li style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
               <i className="ti ti-brand-whatsapp" style={{ color: "var(--accent)", fontSize: 16 }} />
-              ۰۹۱۲-۳۴۵-۶۷۸۹
+              {s.site_whatsapp}
             </li>
             <li style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
               <i className="ti ti-mail" style={{ color: "var(--accent)", fontSize: 16 }} />
-              info@marjan.ir
+              {s.site_email}
             </li>
             <li style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
               <i className="ti ti-map-pin" style={{ color: "var(--accent)", fontSize: 16 }} />
-              تهران، ولیعصر، پلاک ۱۲۳
+              {s.site_address}
             </li>
           </ul>
         </div>
@@ -146,7 +151,7 @@ export default async function Footer() {
             fontSize: 12,
           }}
         >
-          <span>© ۱۴۰۴ Marjan — تمام حقوق محفوظ است</span>
+          <span>{s.site_footer_text}</span>
           <div style={{ display: "flex", gap: "1.5rem" }}>
             <Link href="/terms" style={{ color: "rgba(255,255,255,.5)" }}>
               قوانین و مقررات
