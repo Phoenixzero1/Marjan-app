@@ -1,16 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
+
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
-
-const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
-
-async function requireAdmin() {
-  const session = await auth();
-  return session?.user?.id && ADMIN_ROLES.includes(session.user.role ?? "") ? session : null;
-}
-
-const sendSchema = z.object({
+import { z } from "zod";const sendSchema = z.object({
   title: z.string().min(2, "عنوان الزامی است"),
   body: z.string().min(2, "متن اطلاعیه الزامی است"),
   type: z.enum(["ORDER_UPDATE", "PAYMENT", "SYSTEM", "PROMOTION", "STOCK_ALERT"]).default("SYSTEM"),
@@ -20,7 +12,7 @@ const sendSchema = z.object({
 });
 
 export async function GET(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  if (!(await requirePermission("SEND_NOTIFICATIONS"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
@@ -62,7 +54,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  if (!(await requirePermission("SEND_NOTIFICATIONS"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();
   const parsed = sendSchema.safeParse(body);
@@ -104,7 +96,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  if (!(await requirePermission("SEND_NOTIFICATIONS"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { id, deleteAll } = await req.json();
 

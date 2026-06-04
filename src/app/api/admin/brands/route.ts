@@ -1,16 +1,9 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+﻿import { NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.role || !["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"].includes(session.user.role))
-    return null;
-  return session;
-}
-
 export async function GET() {
-  if (!(await requireAdmin()))
+  if (!(await requirePermission("EDIT_PRODUCTS")))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   const brands = await prisma.brand.findMany({

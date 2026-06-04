@@ -1,18 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
+
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { audit } from "@/lib/audit";
-import { getClientIp } from "@/lib/rateLimit";
-
-const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
-
-async function requireAdmin() {
-  const session = await auth();
-  return session?.user?.id && ADMIN_ROLES.includes(session.user.role ?? "") ? session : null;
-}
-
-const schema = z.object({
+import { getClientIp } from "@/lib/rateLimit";const schema = z.object({
   code: z.string().min(3, "کد تخفیف باید حداقل ۳ کاراکتر باشد").toUpperCase(),
   description: z.string().optional(),
   discountType: z.enum(["percent", "fixed"]).default("percent"),
@@ -26,7 +18,7 @@ const schema = z.object({
 });
 
 export async function GET(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  if (!(await requirePermission("MANAGE_COUPONS"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const page = parseInt(req.nextUrl.searchParams.get("page") ?? "1");
   const limit = 20;
@@ -44,7 +36,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await requireAdmin();
+  const session = await requirePermission("MANAGE_COUPONS");
   if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();
@@ -67,7 +59,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const session = await requireAdmin();
+  const session = await requirePermission("MANAGE_COUPONS");
   if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();
@@ -100,7 +92,7 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await requireAdmin();
+  const session = await requirePermission("MANAGE_COUPONS");
   if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { id } = await req.json();

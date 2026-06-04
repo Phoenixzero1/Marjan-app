@@ -1,22 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
+
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { getClientIp } from "@/lib/rateLimit";
 
-const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.id || !ADMIN_ROLES.includes(session.user.role ?? "")) {
-    return null;
-  }
-  return session;
-}
-
 export async function GET(req: NextRequest) {
-  if (!(await requireAdmin())) {
+  if (!(await requirePermission("VIEW_ORDERS"))) {
     return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
   }
 
@@ -62,7 +53,7 @@ const updateSchema = z.object({
 });
 
 export async function PATCH(req: NextRequest) {
-  const session = await requireAdmin();
+  const session = await requirePermission("EDIT_ORDERS");
   if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();

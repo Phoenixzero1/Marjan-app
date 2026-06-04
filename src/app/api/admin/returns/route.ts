@@ -1,16 +1,7 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-
-const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
-
-async function requireAdmin() {
-  const session = await auth();
-  return session?.user?.id && ADMIN_ROLES.includes(session.user.role ?? "") ? session : null;
-}
-
-export async function GET() {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+﻿import { NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
+import { prisma } from "@/lib/prisma";export async function GET() {
+  if (!(await requirePermission("MANAGE_RETURNS"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const returns = await prisma.returnRequest.findMany({
     orderBy: { createdAt: "desc" },

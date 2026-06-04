@@ -1,20 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
+
 import { prisma } from "@/lib/prisma";
 import { unlink } from "fs/promises";
 import path from "path";
 import { audit } from "@/lib/audit";
-import { getClientIp } from "@/lib/rateLimit";
-
-const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
-
-async function requireAdmin() {
-  const session = await auth();
-  return session?.user?.id && ADMIN_ROLES.includes(session.user.role ?? "") ? session : null;
-}
-
-export async function GET(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+import { getClientIp } from "@/lib/rateLimit";export async function GET(req: NextRequest) {
+  if (!(await requirePermission("MANAGE_MEDIA"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
@@ -43,7 +35,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await requireAdmin();
+  const session = await requirePermission("MANAGE_MEDIA");
   if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { id } = await req.json();

@@ -1,19 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
+
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { getClientIp } from "@/lib/rateLimit";
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.role || !["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"].includes(session.user.role))
-    return null;
-  return session;
-}
-
 export async function GET(req: NextRequest) {
-  if (!(await requireAdmin()))
+  if (!(await requirePermission("EDIT_PRODUCTS")))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   const { searchParams } = req.nextUrl;
@@ -74,7 +68,7 @@ const productSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const session = await requireAdmin();
+  const session = await requirePermission("EDIT_PRODUCTS");
   if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   try {
@@ -107,7 +101,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const session = await requireAdmin();
+  const session = await requirePermission("EDIT_PRODUCTS");
   if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   try {
@@ -134,7 +128,7 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await requireAdmin();
+  const session = await requirePermission("EDIT_PRODUCTS");
   if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   const { id } = await req.json();

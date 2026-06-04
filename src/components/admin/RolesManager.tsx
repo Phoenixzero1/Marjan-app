@@ -35,22 +35,30 @@ const STATUS_META: Record<UserStatus, { label: string; color: string; bg: string
   DELETED:        { label: "حذف‌شده",       color: "#9ca3af", bg: "#f3f4f6" },
 };
 
+import type { Permission } from "@/lib/permissions";
+
 const PERMISSIONS: { label: string; keys: UserRole[] }[] = [
-  { label: "مشاهده پنل ادمین",        keys: ["ADMIN", "SUPER_ADMIN"] },
+  { label: "مشاهده پنل ادمین",        keys: ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"] },
+  { label: "ویرایش محصولات",          keys: ["CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"] },
+  { label: "حذف محصولات",             keys: ["ADMIN", "SUPER_ADMIN"] },
+  { label: "مدیریت دسته‌بندی‌ها",     keys: ["CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"] },
+  { label: "مدیریت بلاگ",             keys: ["CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"] },
+  { label: "مدیریت رسانه‌ها",          keys: ["CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"] },
+  { label: "مشاهده سفارشات",          keys: ["ADMIN", "SUPER_ADMIN"] },
+  { label: "ویرایش سفارشات",          keys: ["ADMIN", "SUPER_ADMIN"] },
   { label: "مدیریت کاربران",          keys: ["ADMIN", "SUPER_ADMIN"] },
-  { label: "مدیریت سفارشات",         keys: ["ADMIN", "SUPER_ADMIN"] },
-  { label: "مدیریت محصولات",         keys: ["CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"] },
-  { label: "مدیریت دسته‌بندی‌ها",    keys: ["CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"] },
-  { label: "مدیریت بلاگ",            keys: ["CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"] },
-  { label: "مدیریت رسانه‌ها",         keys: ["CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"] },
-  { label: "مدیریت مالی",             keys: ["ADMIN", "SUPER_ADMIN"] },
-  { label: "مدیریت کوپن‌ها",          keys: ["ADMIN", "SUPER_ADMIN"] },
-  { label: "تنظیمات سیستم",          keys: ["SUPER_ADMIN"] },
-  { label: "پشتیبان‌گیری",            keys: ["SUPER_ADMIN"] },
   { label: "مدیریت نقش‌ها",           keys: ["SUPER_ADMIN"] },
-  { label: "ثبت سفارش (مشتری)",      keys: ["CUSTOMER", "CONTRACTOR", "CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"] },
-  { label: "داشبورد کاربری",          keys: ["CUSTOMER", "CONTRACTOR", "CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"] },
+  { label: "مدیریت کوپن‌ها",           keys: ["ADMIN", "SUPER_ADMIN"] },
+  { label: "مشاهده مالی",             keys: ["ADMIN", "SUPER_ADMIN"] },
+  { label: "تنظیمات سایت",            keys: ["SUPER_ADMIN"] },
+  { label: "پشتیبان‌گیری",             keys: ["SUPER_ADMIN"] },
+  { label: "مشاهده لاگ‌ها",           keys: ["ADMIN", "SUPER_ADMIN"] },
+  { label: "ارسال اعلان",              keys: ["ADMIN", "SUPER_ADMIN"] },
+  { label: "مدیریت مرجوعی‌ها",        keys: ["ADMIN", "SUPER_ADMIN"] },
 ];
+
+type PermissionRow = { permission: Permission; granted: boolean; isDefault: boolean };
+type PermUser = { id: string; firstName: string; lastName: string; role: UserRole };
 
 const ALL_ROLES: UserRole[] = ["CUSTOMER", "CONTRACTOR", "CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"];
 const ALL_STATUSES: UserStatus[] = ["ACTIVE", "SUSPENDED", "PENDING_VERIFY", "DELETED"];
@@ -67,7 +75,11 @@ export default function RolesManager() {
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [q, setQ] = useState("");
-  const [activeTab, setActiveTab] = useState<"users" | "matrix">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "matrix" | "perms">("users");
+  const [permUser, setPermUser] = useState<PermUser | null>(null);
+  const [permRows, setPermRows] = useState<PermissionRow[]>([]);
+  const [permLoading, setPermLoading] = useState(false);
+  const [permSaving, setPermSaving] = useState<string | null>(null);
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [drawerRole, setDrawerRole] = useState<UserRole>("CUSTOMER");
   const [drawerStatus, setDrawerStatus] = useState<UserStatus>("ACTIVE");
@@ -135,6 +147,60 @@ export default function RolesManager() {
     }
   }
 
+  async function openPerms(user: UserRow) {
+    setPermUser({ id: user.id, firstName: user.firstName, lastName: user.lastName, role: user.role });
+    setPermRows([]);
+    setPermLoading(true);
+    setActiveTab("perms");
+    try {
+      const res = await fetch(`/api/admin/permissions?userId=${user.id}`);
+      const data = await res.json();
+      setPermRows(data.permissions ?? []);
+    } finally {
+      setPermLoading(false);
+    }
+  }
+
+  async function togglePerm(permission: Permission, currentGranted: boolean, isDefault: boolean) {
+    if (!permUser) return;
+    setPermSaving(permission);
+    try {
+      // If it's a default and we're "granting" (same as default), remove override; else set override
+      const newGranted = !currentGranted;
+      const body = { userId: permUser.id, permission, granted: newGranted };
+      await fetch("/api/admin/permissions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      setPermRows((prev) => prev.map((r) =>
+        r.permission === permission ? { ...r, granted: newGranted, isDefault: false } : r
+      ));
+      showToast("دسترسی به‌روز شد");
+    } catch {
+      showToast("خطا در ذخیره", false);
+    } finally {
+      setPermSaving(null);
+    }
+  }
+
+  async function resetPerms() {
+    if (!permUser) return;
+    if (!window.confirm(`آیا می‌خواهید تمام تنظیمات دسترسی ${permUser.firstName} ${permUser.lastName} را به حالت پیش‌فرض نقش بازگردانید؟`)) return;
+    setPermSaving("__all__");
+    try {
+      await fetch(`/api/admin/permissions?userId=${permUser.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/permissions?userId=${permUser.id}`);
+      const data = await res.json();
+      setPermRows(data.permissions ?? []);
+      showToast("تنظیمات دسترسی به پیش‌فرض بازگشت");
+    } catch {
+      showToast("خطا", false);
+    } finally {
+      setPermSaving(null);
+    }
+  }
+
   const fmtDate = (s: string | null) => s
     ? new Date(s).toLocaleDateString("fa-IR", { year: "numeric", month: "short", day: "numeric" })
     : "—";
@@ -182,7 +248,7 @@ export default function RolesManager() {
 
       {/* Tabs */}
       <div style={{ display: "flex", borderBottom: "2px solid var(--border)", gap: 0 }}>
-        {([["users", "مدیریت کاربران"], ["matrix", "ماتریس دسترسی"]] as const).map(([tab, label]) => (
+        {([["users", "مدیریت کاربران"], ["matrix", "ماتریس دسترسی"], ["perms", `دسترسی${permUser ? `: ${permUser.firstName}` : " اختصاصی"}`]] as const).map(([tab, label]) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -290,14 +356,25 @@ export default function RolesManager() {
 
                         {/* Actions */}
                         <td style={{ padding: "12px 14px" }}>
-                          <button
-                            onClick={() => openEdit(user)}
-                            disabled={isMe}
-                            title={isMe ? "نمی‌توانید نقش خودتان را تغییر دهید" : "ویرایش نقش و وضعیت"}
-                            style={{ background: isMe ? "var(--bg)" : "var(--primary)", color: isMe ? "var(--text3)" : "#fff", border: isMe ? "1.5px solid var(--border)" : "none", borderRadius: "var(--radius-sm)", padding: "6px 14px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: isMe ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 5, opacity: isMe ? .5 : 1 }}
-                          >
-                            <i className="ti ti-shield-half-filled" style={{ fontSize: 13 }} /> ویرایش نقش
-                          </button>
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <button
+                              onClick={() => openEdit(user)}
+                              disabled={isMe}
+                              title={isMe ? "نمی‌توانید نقش خودتان را تغییر دهید" : "ویرایش نقش و وضعیت"}
+                              style={{ background: isMe ? "var(--bg)" : "var(--primary)", color: isMe ? "var(--text3)" : "#fff", border: isMe ? "1.5px solid var(--border)" : "none", borderRadius: "var(--radius-sm)", padding: "6px 12px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: isMe ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 5, opacity: isMe ? .5 : 1 }}
+                            >
+                              <i className="ti ti-shield-half-filled" style={{ fontSize: 13 }} /> نقش
+                            </button>
+                            {!isMe && (
+                              <button
+                                onClick={() => openPerms(user)}
+                                title="تنظیم دسترسی‌های اختصاصی"
+                                style={{ background: "var(--bg)", color: "var(--text2)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "6px 12px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
+                              >
+                                <i className="ti ti-key" style={{ fontSize: 13 }} /> دسترسی
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -361,6 +438,92 @@ export default function RolesManager() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Tab: Per-User Permissions */}
+      {activeTab === "perms" && (
+        <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1.5rem" }}>
+          {!permUser ? (
+            <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
+              <i className="ti ti-key" style={{ fontSize: 40, display: "block", marginBottom: 8 }} />
+              برای تنظیم دسترسی اختصاصی، از تب «مدیریت کاربران» روی دکمه «دسترسی» کلیک کنید
+            </div>
+          ) : (
+            <>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "var(--primary)" }}>
+                    دسترسی‌های اختصاصی: {permUser.firstName} {permUser.lastName}
+                  </h3>
+                  <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--text3)" }}>
+                    نقش: {ROLE_META[permUser.role].label} — تغییرات اختصاصی بر دسترسی‌های پیش‌فرض نقش اعمال می‌شوند
+                  </p>
+                </div>
+                <button
+                  onClick={resetPerms}
+                  disabled={permSaving === "__all__"}
+                  style={{ background: "#fef3c7", color: "#d97706", border: "1.5px solid #fcd34d", borderRadius: "var(--radius-sm)", padding: "7px 14px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                >
+                  <i className="ti ti-refresh" /> بازگشت به پیش‌فرض
+                </button>
+              </div>
+              {permLoading ? (
+                <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
+                  <i className="ti ti-loader-2" style={{ fontSize: 28, display: "block", marginBottom: 8 }} />در حال بارگذاری...
+                </div>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <thead>
+                    <tr>
+                      {["دسترسی", "پیش‌فرض نقش", "وضعیت فعلی", "تغییر"].map(h => (
+                        <th key={h} style={{ background: "var(--bg)", padding: "10px 14px", fontSize: 11, fontWeight: 900, color: "var(--text2)", textAlign: "right", borderBottom: "2px solid var(--border)" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {permRows.map((row, i) => (
+                      <tr key={row.permission} style={{ borderBottom: "1px solid var(--border)", background: row.isDefault ? "#fff" : "#fffbeb" }}>
+                        <td style={{ padding: "10px 14px", fontWeight: 700 }}>{PERMISSIONS[i]?.label ?? row.permission}</td>
+                        <td style={{ padding: "10px 14px" }}>
+                          {row.isDefault && row.granted
+                            ? <span style={{ color: "#16a34a", fontSize: 11, fontWeight: 900 }}><i className="ti ti-check" /> مجاز</span>
+                            : row.isDefault
+                            ? <span style={{ color: "#9ca3af", fontSize: 11 }}><i className="ti ti-x" /> غیرمجاز</span>
+                            : <span style={{ color: "#d97706", fontSize: 11 }}>تنظیم‌شده</span>
+                          }
+                        </td>
+                        <td style={{ padding: "10px 14px" }}>
+                          <span style={{
+                            background: row.granted ? "#dcfce7" : "#fee2e2",
+                            color: row.granted ? "#16a34a" : "#dc2626",
+                            padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 900,
+                          }}>
+                            {row.granted ? "مجاز" : "مسدود"}
+                          </span>
+                        </td>
+                        <td style={{ padding: "10px 14px" }}>
+                          <button
+                            onClick={() => togglePerm(row.permission, row.granted, row.isDefault)}
+                            disabled={permSaving === row.permission || permUser.role === "SUPER_ADMIN"}
+                            style={{
+                              background: row.granted ? "#fee2e2" : "#dcfce7",
+                              color: row.granted ? "#dc2626" : "#16a34a",
+                              border: "none", borderRadius: "var(--radius-sm)", padding: "5px 12px",
+                              fontFamily: "Vazirmatn", fontSize: 11, fontWeight: 700, cursor: "pointer",
+                              opacity: permUser.role === "SUPER_ADMIN" ? .4 : 1,
+                            }}
+                          >
+                            {permSaving === row.permission ? "..." : row.granted ? "مسدود کردن" : "اعطا کردن"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </>
+          )}
         </div>
       )}
 

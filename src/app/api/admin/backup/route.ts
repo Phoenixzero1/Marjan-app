@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
+
 import { prisma } from "@/lib/prisma";
 import { spawn } from "child_process";
 import { mkdir, writeFile, readFile, stat } from "fs/promises";
@@ -7,14 +8,7 @@ import path from "path";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
 const PG_DUMP_PATH = "C:\\Program Files\\PostgreSQL\\18\\bin\\pg_dump.exe";
-const BACKUP_DIR = path.join(process.cwd(), "backups");
-
-async function requireAdmin() {
-  const session = await auth();
-  return session?.user?.id && ADMIN_ROLES.includes(session.user.role ?? "") ? session : null;
-}
-
-function parseDatabaseUrl(url: string) {
+const BACKUP_DIR = path.join(process.cwd(), "backups");function parseDatabaseUrl(url: string) {
   // postgresql://user:password@host:port/database
   const match = url.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
   if (!match) throw new Error("Invalid DATABASE_URL");
@@ -81,7 +75,7 @@ async function generateJsonBackup(tables: string[]): Promise<Record<string, unkn
 
 // GET — return counts + backup history
 export async function GET() {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  if (!(await requirePermission("MANAGE_BACKUP"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const [
     users, products, categories, orders, payments,
@@ -113,7 +107,7 @@ export async function GET() {
 
 // POST — create a new backup
 export async function POST(req: NextRequest) {
-  const session = await requireAdmin();
+  const session = await requirePermission("MANAGE_BACKUP");
   if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json() as { format?: string; tables?: string[] };

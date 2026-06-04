@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { getClientIp } from "@/lib/rateLimit";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.role || !["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"].includes(session.user.role))
-    return null;
-  return session;
-}
 
 const imageSchema = z.object({
   url: z.string(),
@@ -40,7 +33,7 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await requireAdmin()))
+  if (!(await requirePermission("EDIT_PRODUCTS")))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   const { id } = await params;
@@ -63,7 +56,7 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireAdmin();
+  const session = await requirePermission("EDIT_PRODUCTS");
   if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   const { id } = await params;
@@ -112,7 +105,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireAdmin();
+  const session = await requirePermission("DELETE_PRODUCTS");
   if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   const { id } = await params;

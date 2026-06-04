@@ -1,17 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
 
-const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
-
-async function requireAdmin() {
-  const session = await auth();
-  return session?.user?.id && ADMIN_ROLES.includes(session.user.role ?? "") ? session : null;
-}
-
-// GET — list all soft-deleted items across entities
+import { prisma } from "@/lib/prisma";// GET — list all soft-deleted items across entities
 export async function GET() {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  if (!(await requirePermission("VIEW_ADMIN"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const [products, categories, blogPosts, orders] = await Promise.all([
     prisma.product.findMany({
@@ -41,7 +33,7 @@ export async function GET() {
 
 // PATCH — restore a soft-deleted item
 export async function PATCH(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  if (!(await requirePermission("VIEW_ADMIN"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { entity, id } = await req.json() as { entity: string; id: string };
 
@@ -69,7 +61,7 @@ export async function PATCH(req: NextRequest) {
 
 // DELETE — permanently delete an item (cannot be undone)
 export async function DELETE(req: NextRequest) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  if (!(await requirePermission("VIEW_ADMIN"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { entity, id } = await req.json() as { entity: string; id: string };
 

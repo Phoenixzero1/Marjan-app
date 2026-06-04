@@ -1,18 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
 
-const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
-
-async function requireAdmin() {
-  const session = await auth();
-  return session?.user?.id && ADMIN_ROLES.includes(session.user.role ?? "") ? session : null;
-}
-
-// POST — restore from a JSON backup file
+import { prisma } from "@/lib/prisma";// POST — restore from a JSON backup file
 // Accepts multipart/form-data with a "file" field
 export async function POST(req: NextRequest) {
-  const session = await requireAdmin();
+  const session = await requirePermission("MANAGE_BACKUP");
   if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   let body: Record<string, unknown>;

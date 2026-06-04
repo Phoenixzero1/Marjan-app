@@ -1,16 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
 
-const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
-
-async function requireAdmin() {
-  const session = await auth();
-  return session?.user?.id && ADMIN_ROLES.includes(session.user.role ?? "") ? session : null;
-}
-
-export async function GET(req: NextRequest) {
-  const adminSession = await requireAdmin();
+import { prisma } from "@/lib/prisma";export async function GET(req: NextRequest) {
+  const adminSession = await requirePermission("VIEW_LOGS");
   if (!adminSession) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
@@ -59,7 +51,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const adminSession = await requireAdmin();
+  const adminSession = await requirePermission("VIEW_LOGS");
   if (!adminSession) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { id, userId, deleteExpired } = await req.json();

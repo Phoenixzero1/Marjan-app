@@ -1,18 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { readFile, unlink } from "fs/promises";
 
-const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
-
-async function requireAdmin() {
-  const session = await auth();
-  return session?.user?.id && ADMIN_ROLES.includes(session.user.role ?? "") ? session : null;
-}
-
 // GET — download a backup file
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  if (!(await requirePermission("MANAGE_BACKUP"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { id } = await params;
   const record = await prisma.backupRecord.findUnique({ where: { id } });
@@ -36,7 +29,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
 // DELETE — remove a backup record and its file
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  if (!(await requirePermission("MANAGE_BACKUP"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { id } = await params;
   const record = await prisma.backupRecord.findUnique({ where: { id } });

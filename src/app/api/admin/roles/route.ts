@@ -1,19 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
+
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
 const ALL_ROLES = ["CUSTOMER", "CONTRACTOR", "CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"];
-const ALL_STATUSES = ["ACTIVE", "SUSPENDED", "PENDING_VERIFY", "DELETED"];
-
-async function requireAdmin() {
-  const session = await auth();
-  return session?.user?.id && ADMIN_ROLES.includes(session.user.role ?? "") ? session : null;
-}
-
-export async function GET(req: NextRequest) {
-  const adminSession = await requireAdmin();
+const ALL_STATUSES = ["ACTIVE", "SUSPENDED", "PENDING_VERIFY", "DELETED"];export async function GET(req: NextRequest) {
+  const adminSession = await requirePermission("MANAGE_ROLES");
   if (!adminSession) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
@@ -79,7 +73,7 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(req: NextRequest) {
-  const adminSession = await requireAdmin();
+  const adminSession = await requirePermission("MANAGE_ROLES");
   if (!adminSession) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const body = await req.json();

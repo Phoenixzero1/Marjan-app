@@ -111,6 +111,7 @@ model User {
   wallet        Wallet?
   backups       BackupRecord[]
   returns       ReturnRequest[]
+  permissions   UserPermission[]
 
   @@index([email])
   @@index([phone])
@@ -653,4 +654,17 @@ model BackupRecord {
   user User? @relation(fields: [createdBy], references: [id])
 
   @@index([createdAt])
+}
+
+model UserPermission {
+  id         String   @id @default(cuid())
+  userId     String
+  permission String
+  granted    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permission])
+  @@index([userId])
 }

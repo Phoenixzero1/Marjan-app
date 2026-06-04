@@ -1,17 +1,8 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+﻿import { NextResponse } from "next/server";
+import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { unlink } from "fs/promises";
-import path from "path";
-
-const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
-
-async function requireAdmin() {
-  const session = await auth();
-  return session?.user?.id && ADMIN_ROLES.includes(session.user.role ?? "") ? session : null;
-}
-
-/** Gather every URL currently referenced by any model. */
+import path from "path";/** Gather every URL currently referenced by any model. */
 async function getReferencedUrls(): Promise<Set<string>> {
   const [productImages, blogPosts, categories, brands, users] = await Promise.all([
     prisma.productImage.findMany({ select: { url: true } }),
@@ -32,7 +23,7 @@ async function getReferencedUrls(): Promise<Set<string>> {
 
 // GET — return unused files + storage stats
 export async function GET() {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  if (!(await requirePermission("MANAGE_MEDIA"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const [allMedia, referenced] = await Promise.all([
     prisma.media.findMany({ orderBy: { createdAt: "desc" } }),
@@ -55,7 +46,7 @@ export async function GET() {
 
 // DELETE — bulk delete all unused files from disk + DB
 export async function DELETE() {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
+  if (!(await requirePermission("MANAGE_MEDIA"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const [allMedia, referenced] = await Promise.all([
     prisma.media.findMany(),
