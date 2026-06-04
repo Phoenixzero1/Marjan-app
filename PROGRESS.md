@@ -61,8 +61,8 @@
 - [x] I. Search optimization (PostgreSQL full-text + trigram)
 - [x] J. SEO (JSON-LD, OG, sitemap, robots.txt, canonical)
 - [x] K. Maintenance mode
-- [ ] L. Migration package (WordPress Duplicator-style)
-- [ ] M. E2E test script
+- [x] L. Migration package (ZIP + installer.html + live log)
+- [x] M. E2E test script (31/31 passing)
 
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
