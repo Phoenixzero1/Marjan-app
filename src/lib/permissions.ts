@@ -60,6 +60,7 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "MANAGE_BLOG", "MANAGE_MEDIA", "VIEW_ORDERS", "EDIT_ORDERS",
     "MANAGE_USERS", "MANAGE_COUPONS", "VIEW_FINANCE",
     "MANAGE_RETURNS", "SEND_NOTIFICATIONS", "VIEW_LOGS",
+    "MANAGE_BACKUP", "MANAGE_SETTINGS",
   ],
   SUPER_ADMIN: [...ALL_PERMISSIONS],
 };
@@ -87,18 +88,37 @@ export function sessionHasPermission(
  */
 export async function requirePermission(permission: Permission) {
   const session = await auth();
-  if (!session?.user?.id) return null;
+  if (!session?.user) return null;
 
-  const role = (session.user as { role?: string }).role ?? "";
+  const role = (session.user as { role?: string; id?: string }).role ?? "";
+
+  // Super admin always passes — no DB query needed
   if (role === "SUPER_ADMIN") return session;
 
-  const overrides = await prisma.userPermission.findMany({
-    where: { userId: session.user.id },
-    select: { permission: true, granted: true },
+  // Fast path: check role defaults first (no DB hit)
+  const rolePerms = ROLE_PERMISSIONS[role] ?? [];
+  if (!rolePerms.includes(permission)) {
+    // Role doesn't have this permission by default — check for per-user grant override
+    const userId = (session.user as { id?: string }).id;
+    if (!userId) return null;
+
+    const override = await prisma.userPermission.findUnique({
+      where: { userId_permission: { userId, permission } },
+      select: { granted: true },
+    });
+    return override?.granted === true ? session : null;
+  }
+
+  // Role has this permission by default — check for explicit revocation
+  const userId = (session.user as { id?: string }).id;
+  if (!userId) return session; // no id means can't have overrides, allow by role
+
+  const override = await prisma.userPermission.findUnique({
+    where: { userId_permission: { userId, permission } },
+    select: { granted: true },
   });
 
-  if (sessionHasPermission(session as { user: { role?: string } }, permission, overrides)) {
-    return session;
-  }
-  return null;
+  // If no override or override grants it, allow; if override explicitly revokes it, deny
+  if (override !== null && override?.granted === false) return null;
+  return session;
 }

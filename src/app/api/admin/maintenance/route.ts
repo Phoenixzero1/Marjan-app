@@ -45,11 +45,6 @@ export async function POST(req: NextRequest) {
     ...(estimated !== undefined ? [prisma.siteSettings.upsert({ where: { key: "maintenance_estimated" }, update: { value: estimated }, create: { key: "maintenance_estimated", value: estimated, group: "maintenance" } })] : []),
   ]);
 
-  // Clear maintenance status cache + settings cache
-  try {
-    await fetch(`${process.env.AUTH_URL ?? "http://localhost:3000"}/api/maintenance-status`, { method: "DELETE" });
-  } catch { /* ignore */ }
-
   revalidateTag(SETTINGS_TAG, "max");
 
   audit({
@@ -61,5 +56,13 @@ export async function POST(req: NextRequest) {
     ua: req.headers.get("user-agent"),
   });
 
-  return NextResponse.json({ success: true, enabled });
+  // Set a cookie the proxy reads to enforce maintenance mode — no DB hit on every request
+  const res = NextResponse.json({ success: true, enabled });
+  res.cookies.set("maintenance_mode", String(enabled), {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: enabled ? 365 * 24 * 60 * 60 : 0, // clear immediately when disabling
+  });
+  return res;
 }
