@@ -37,6 +37,33 @@
    You can close VS Code now — next session will continue automatically from PROGRESS.md."
 8. Wait for user confirmation before starting next section
 
+## Senior Engineer Review Items (all complete)
+- [x] 1. Real backup system
+- [x] 2. Complete audit log
+- [x] 3. Rate limiting fixes
+- [x] 4. File upload security
+- [x] 5. Media cleanup
+- [x] 6. Soft delete + Trash
+- [x] 7+8. User dashboard + order tracking
+- [x] 9. Return & refund system
+- [x] 10. Settings dynamic from DB
+- [x] 11. End-to-end verification
+
+## New Sections
+- [x] A1. Admin sidebar badges - real DB counts
+- [ ] B. Security (rate limiting + upload) - verify
+- [ ] C. Backup system - verify
+- [ ] D. Audit log - verify
+- [ ] E. Soft delete + Trash - verify
+- [ ] F. User dashboard - verify
+- [ ] G. Permission system (granular canEdit/canDelete etc.)
+- [ ] H. Settings dynamic - verify
+- [ ] I. Search optimization (PostgreSQL full-text)
+- [ ] J. SEO (JSON-LD, OG, sitemap, robots.txt)
+- [ ] K. Maintenance mode
+- [ ] L. Migration package (WordPress Duplicator-style)
+- [ ] M. E2E test script
+
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
 commit to GitHub, then ask me before continuing.
