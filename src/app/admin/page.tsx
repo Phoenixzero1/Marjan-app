@@ -22,6 +22,7 @@ import SessionsManager from "@/components/admin/SessionsManager";
 import RolesManager from "@/components/admin/RolesManager";
 import TrashManager from "@/components/admin/TrashManager";
 import ReturnsManager from "@/components/admin/ReturnsManager";
+import MaintenanceManager from "@/components/admin/MaintenanceManager";
 
 interface ProductRow {
   id: string; name: string; sku: string | null; price: number;
@@ -37,7 +38,7 @@ type AdminSection =
   | "settings-general" | "settings-payment" | "settings-seo"
   | "settings-security" | "backup" | "logs" | "sessions"
   | "shipping" | "invoices" | "tax" | "roles" | "api-docs"
-  | "trash" | "returns" | "product-form";
+  | "trash" | "returns" | "maintenance" | "product-form";
 
 interface Stats {
   totalOrders: number; monthOrders: number; totalUsers: number; todayUsers: number;
@@ -92,6 +93,11 @@ function buildNavGroups(stats: Stats | null) {
     {
       label: "سطل زباله", items: [
         { id: "trash", icon: "ti-trash", label: "آیتم‌های حذف‌شده" },
+      ],
+    },
+    {
+      label: "ابزار مدیر ارشد", items: [
+        { id: "maintenance", icon: "ti-tools", label: "حالت تعمیرات" },
       ],
     },
   ];
@@ -159,6 +165,7 @@ export default function AdminPage() {
     logs: "لاگ سیستم", sessions: "نشست‌ها", "settings-general": "تنظیمات عمومی",
     "settings-payment": "درگاه پرداخت", "settings-seo": "سئو", "settings-security": "امنیت",
     roles: "نقش‌ها و دسترسی", "product-form": "افزودن محصول جدید",
+    maintenance: "حالت تعمیرات",
   };
 
   return (
@@ -439,8 +446,10 @@ export default function AdminPage() {
 
           {section === "returns" && <ReturnsManager />}
 
+          {section === "maintenance" && <MaintenanceManager />}
+
           {/* Generic placeholder for other sections */}
-          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security", "backup", "logs", "sessions", "roles", "trash", "returns"].includes(section) && (
+          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security", "backup", "logs", "sessions", "roles", "trash", "returns", "maintenance"].includes(section) && (
             <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "3rem", textAlign: "center", color: "var(--text3)" }}>
               <i className="ti ti-tool" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
               <h3 style={{ fontSize: 18, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>بخش {titleMap[section]}</h3>
