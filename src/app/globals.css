@@ -286,6 +286,19 @@ html, body {
 }
 .filter-drawer.open { right: 0; }
 
+/* ─── ADMIN MODE — hide site chrome ─────────────────────────────────────── */
+body.admin-mode .topbar,
+body.admin-mode .megabar,
+body.admin-mode footer {
+  display: none !important;
+}
+
+/* Admin sidebar scrollbar — subtle on webkit */
+.admin-sidebar::-webkit-scrollbar { width: 4px; }
+.admin-sidebar::-webkit-scrollbar-track { background: transparent; }
+.admin-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); border-radius: 2px; }
+.admin-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.35); }
+
 /* ─── ADMIN SIDEBAR MOBILE ───────────────────────────────────────────────── */
 .admin-sidebar-overlay {
   display: none;
@@ -299,10 +312,10 @@ html, body {
 @media (max-width: 767px) {
   .admin-sidebar {
     position: fixed !important;
-    top: 0 !important;
+    top: 64px !important;
     right: -100% !important;
     bottom: 0 !important;
-    height: 100vh !important;
+    height: calc(100vh - 64px) !important;
     z-index: 91;
     transition: right 0.3s ease;
   }

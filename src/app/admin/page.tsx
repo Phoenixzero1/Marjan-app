@@ -111,6 +111,12 @@ export default function AdminPage() {
   const [section, setSection] = useState<AdminSection>("analytics");
   const [stats, setStats] = useState<Stats | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Hide site Topbar, Megamenu, and Footer while on admin page
+  useEffect(() => {
+    document.body.classList.add("admin-mode");
+    return () => document.body.classList.remove("admin-mode");
+  }, []);
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [editProductId, setEditProductId] = useState<string | undefined>(undefined);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -173,10 +179,10 @@ export default function AdminPage() {
 
   return (
     <div style={{ display: "flex", minHeight: "calc(100vh - 64px)" }}>
-      {/* Admin Sidebar — fixed on desktop, drawer on mobile */}
+      {/* Admin Sidebar — fixed, scrolls independently */}
       <aside
         className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}
-        style={{ width: 240, background: "var(--primary-dark)", flexShrink: 0, display: "flex", flexDirection: "column", position: "fixed", top: 64, right: 0, height: "calc(100vh - 64px)", overflowY: "auto", overflowX: "hidden", zIndex: 50 }}
+        style={{ width: 240, background: "var(--primary-dark)", flexShrink: 0, display: "flex", flexDirection: "column", position: "fixed", top: 64, right: 0, height: "calc(100vh - 64px)", overflowY: "auto", overflowX: "hidden", zIndex: 50, scrollbarWidth: "thin" }}
       >
         <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(255,255,255,.1)", display: "flex", alignItems: "center", gap: 10 }}>
           <i className="ti ti-shield-lock" style={{ fontSize: 22, color: "var(--accent)" }} />
