@@ -553,19 +553,21 @@ model BlogComment {
 // ─── REVIEWS ─────────────────────────────────────────────────────────────────
 
 model Review {
-  id          String   @id @default(cuid())
-  productId   String
-  userId      String
-  rating      Int
-  title       String?
-  content     String?
-  isApproved  Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id           String   @id @default(cuid())
+  productId    String
+  userId       String?  // nullable so reviews survive user deletion (anonymized)
+  reviewerName String?  // snapshot of user's name at review time
+  rating       Int
+  title        String?
+  content      String?
+  isApproved   Boolean  @default(false)
+  createdAt    DateTime @default(now())
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  @@unique([productId, userId])
+  @@index([productId])
+  @@index([userId])
 }
 
 // ─── NOTIFICATIONS ───────────────────────────────────────────────────────────

@@ -86,12 +86,14 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
 
   const productCount = await prisma.product.count({ where: { categoryId: id } });
+  const before = await prisma.category.findUnique({ where: { id }, select: { name: true, slug: true } });
+
+  // Set products in this category to uncategorized before soft-deleting
   if (productCount > 0) {
-    return NextResponse.json({ error: `این دسته‌بندی دارای ${productCount} محصول است. ابتدا محصولات را منتقل کنید.` }, { status: 409 });
+    await prisma.product.updateMany({ where: { categoryId: id }, data: { categoryId: null } });
   }
 
-  const before = await prisma.category.findUnique({ where: { id }, select: { name: true, slug: true } });
   await prisma.category.update({ where: { id }, data: { deletedAt: new Date() } });
-  audit({ userId: session.user.id, action: "CATEGORY_DELETE", entity: "Category", entityId: id, oldValue: before, ip: getClientIp(req), ua: req.headers.get("user-agent") });
-  return NextResponse.json({ success: true });
+  audit({ userId: session.user.id, action: "CATEGORY_DELETE", entity: "Category", entityId: id, oldValue: before, newValue: { uncategorizedProducts: productCount }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
+  return NextResponse.json({ success: true, uncategorizedProducts: productCount });
 }

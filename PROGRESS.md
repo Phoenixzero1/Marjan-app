@@ -90,6 +90,13 @@
 - [x] Rename proxy.ts → src/middleware.ts with correct default export (was never running!)
 - [x] E2E tests: 49/49 PASS (real output verified)
 
+## Senior Review - Issue 2: Data Integrity
+- [x] Review model: userId nullable + reviewerName + SetNull on user delete
+- [x] Category DELETE: set products.categoryId=null instead of blocking
+- [x] Brand DELETE: new endpoint, set products.brandId=null, soft-delete
+- [x] User DELETE: anonymize reviews before deletion
+- [x] E2E cascade tests: 53/53 PASS
+
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
 commit to GitHub, then ask me before continuing.

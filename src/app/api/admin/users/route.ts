@@ -166,7 +166,15 @@ export async function DELETE(req: NextRequest) {
   if (id === session.user.id) return NextResponse.json({ error: "نمی‌توانید حساب خودتان را حذف کنید" }, { status: 400 });
 
   const before = await prisma.user.findUnique({ where: { id }, select: { firstName: true, lastName: true, email: true, role: true } });
-  // Users with orders can't be hard-deleted (FK); suspend them instead
+  const reviewerName = `${before?.firstName ?? ""} ${before?.lastName ?? ""}`.trim() + " (حذف‌شده)";
+
+  // Anonymize all reviews by this user (preserve review content, remove user link)
+  await prisma.review.updateMany({
+    where: { userId: id },
+    data: { userId: null, reviewerName },
+  });
+
+  // Users with orders must be soft-deleted (keep order history)
   const orderCount = await prisma.order.count({ where: { userId: id } });
   if (orderCount > 0) {
     await prisma.user.update({ where: { id }, data: { status: "DELETED" as never } });

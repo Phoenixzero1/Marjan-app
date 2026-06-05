@@ -556,6 +556,78 @@ async function testCms() {
   await prisma.page.delete({ where: { slug } }).catch(() => {});
 }
 
+// ─── Test 13: Cascade / data integrity ────────────────────────────────────
+async function testCascadeIntegrity() {
+  console.log("\n🔗 Test 13: Data integrity (cascades on delete)");
+
+  // ── Category delete → products set to null ────────────────────────────────
+  let catId = "";
+  let productId = "";
+
+  await run("Category delete: product categoryId set to null", async () => {
+    const cat = await prisma.category.create({ data: { name: "E2E Del Cat " + Date.now(), slug: "e2e-del-cat-" + Date.now() } });
+    catId = cat.id;
+    const p = await prisma.product.create({ data: { name: "E2E Cat Product", slug: "e2e-cat-p-" + Date.now(), price: 1000, status: "DRAFT", categoryId: catId } });
+    productId = p.id;
+
+    // Soft-delete category (mimic API: set products to null first)
+    await prisma.product.updateMany({ where: { categoryId: catId }, data: { categoryId: null } });
+    await prisma.category.update({ where: { id: catId }, data: { deletedAt: new Date() } });
+
+    const updated = await prisma.product.findUnique({ where: { id: productId } });
+    if (updated?.categoryId !== null) throw new Error("categoryId should be null after category delete");
+  });
+
+  await prisma.product.delete({ where: { id: productId } }).catch(() => {});
+  await prisma.category.delete({ where: { id: catId } }).catch(() => {});
+
+  // ── Brand delete → products brandId set to null ───────────────────────────
+  await run("Brand delete: product brandId set to null", async () => {
+    const brand = await prisma.brand.create({ data: { name: "E2E Del Brand " + Date.now(), slug: "e2e-del-brand-" + Date.now() } });
+    const p = await prisma.product.create({ data: { name: "E2E Brand Prod", slug: "e2e-brand-p-" + Date.now(), price: 1000, status: "DRAFT", brandId: brand.id } });
+
+    await prisma.product.updateMany({ where: { brandId: brand.id }, data: { brandId: null } });
+    await prisma.brand.update({ where: { id: brand.id }, data: { isActive: false } });
+
+    const updated = await prisma.product.findUnique({ where: { id: p.id } });
+    if (updated?.brandId !== null) throw new Error("brandId should be null after brand delete");
+    await prisma.product.delete({ where: { id: p.id } }).catch(() => {});
+  });
+
+  // ── User delete → reviews anonymized ─────────────────────────────────────
+  await run("User delete: reviews anonymized (userId=null, reviewerName preserved)", async () => {
+    const u = await prisma.user.create({ data: { firstName: "E2E", lastName: "Anon", email: "e2e-anon@marjan.ir", role: "CUSTOMER", status: "ACTIVE" } });
+    const p = await prisma.product.create({ data: { name: "E2E Review Prod", slug: "e2e-rev-p-" + Date.now(), price: 1000, status: "PUBLISHED" } });
+    await prisma.review.create({ data: { productId: p.id, userId: u.id, rating: 5, reviewerName: "E2E Anon" } });
+
+    // Anonymize reviews then delete user
+    await prisma.review.updateMany({ where: { userId: u.id }, data: { userId: null, reviewerName: "E2E Anon (حذف‌شده)" } });
+    await prisma.user.delete({ where: { id: u.id } });
+
+    const reviews = await prisma.review.findMany({ where: { productId: p.id } });
+    if (reviews.length !== 1) throw new Error("Review was deleted instead of anonymized");
+    if (reviews[0].userId !== null) throw new Error("userId should be null after user delete");
+    if (!reviews[0].reviewerName?.includes("حذف‌شده")) throw new Error("reviewerName not updated");
+
+    await prisma.review.deleteMany({ where: { productId: p.id } }).catch(() => {});
+    await prisma.product.delete({ where: { id: p.id } }).catch(() => {});
+  });
+
+  // ── Order soft-delete only ────────────────────────────────────────────────
+  await run("Order: only soft-delete allowed (no hard delete in normal flow)", async () => {
+    const u = await prisma.user.create({ data: { firstName: "E2E", lastName: "Ord", email: "e2e-ord-int@marjan.ir", role: "CUSTOMER", status: "ACTIVE" } });
+    const order = await prisma.order.create({ data: { userId: u.id, status: "PENDING", subtotal: 100000, totalAmount: 100000 } });
+
+    // Soft delete
+    await prisma.order.update({ where: { id: order.id }, data: { deletedAt: new Date() } });
+    const hidden = await prisma.order.count({ where: { id: order.id, deletedAt: null } });
+    if (hidden !== 0) throw new Error("Soft-deleted order still visible in normal list");
+
+    await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
+    await prisma.user.delete({ where: { id: u.id } }).catch(() => {});
+  });
+}
+
 // ─── Main ──────────────────────────────────────────────────────────────────
 async function main() {
   console.log("\n╔═══════════════════════════════════════╗");
@@ -575,6 +647,7 @@ async function main() {
     await testProductQA();
     await testReturnFlow();
     await testCms();
+    await testCascadeIntegrity();
   } finally {
     await prisma.$disconnect();
   }
