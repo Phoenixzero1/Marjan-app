@@ -5,6 +5,7 @@ import Topbar from "@/components/layout/Topbar";
 import Navbar from "@/components/layout/Navbar";
 import Megamenu from "@/components/layout/Megamenu";
 import Footer from "@/components/layout/Footer";
+import EmergencyBanner from "@/components/layout/EmergencyBanner";
 
 export const metadata: Metadata = {
   title: {
@@ -36,6 +37,7 @@ export default function RootLayout({
       </head>
       <body style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
         <SessionProvider>
+          <EmergencyBanner />
           <Topbar />
           <Navbar />
           <Megamenu />
