@@ -40,8 +40,7 @@ type AdminSection =
   | "media" | "notifications-admin" | "comments" | "newsletter"
   | "settings-general" | "settings-payment" | "settings-seo"
   | "settings-security" | "backup" | "logs" | "sessions"
-  | "shipping" | "invoices" | "tax" | "roles" | "api-docs"
-  | "trash" | "returns" | "maintenance" | "migration" | "cms" | "brands" | "product-form";
+  | "roles" | "trash" | "returns" | "maintenance" | "migration" | "cms" | "brands" | "product-form";
 
 interface Stats {
   totalOrders: number; monthOrders: number; totalUsers: number; todayUsers: number;

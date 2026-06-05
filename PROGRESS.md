@@ -120,6 +120,25 @@
 - [x] /brand/[slug] public page: shows brand info + all brand products
 - [x] Admin sidebar: "برندها" entry under محتوا group
 
+## Senior Review - V7 Audit (Tasks 1–5)
+- [x] Task 1: Audit scan — confirmed all 22 components ARE mounted, placeholder only for unreachable dead sections
+- [x] Task 2: All sections connected (was already complete from previous session)
+- [x] Task 3: Dashboard mock data replaced:
+  - [x] /api/admin/analytics: 7-day chart from Payment table, real activity feed, month-over-month % changes
+  - [x] Dashboard chart: live DB data with normalized bar heights
+  - [x] Activity table: real recent orders + user registrations, formatted in fa-IR locale
+  - [x] Stats cards: revenue/orders % changes vs previous month (calculated, not hardcoded)
+  - [x] Product search: now functional (value + onChange + filter by name/SKU)
+- [x] Task 4: All 22 admin sections verified — every sidebar item calls real API endpoints
+- [x] Task 5: Final cleanup:
+  - [x] No console.log in admin components (error.tsx console.error is correct)
+  - [x] No phantom "something" dependency in package.json
+  - [x] middleware.ts exists at correct path with default export
+  - [x] Dead AdminSection type variants removed (shipping/invoices/tax/api-docs)
+  - [x] TypeScript: 0 errors
+  - [x] Fixed review upsert (@@unique removed, now findFirst+update/create)
+  - [x] Fixed layout.tsx review author using reviewerName fallback
+
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
 commit to GitHub, then ask me before continuing.
