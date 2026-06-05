@@ -311,6 +311,7 @@ html, body {
   }
   .admin-main {
     width: 100% !important;
+    margin-right: 0 !important;
   }
 }
 

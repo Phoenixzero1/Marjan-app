@@ -172,11 +172,11 @@ export default function AdminPage() {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "calc(100vh - 64px)", overflow: "hidden" }}>
-      {/* Admin Sidebar — sticky on desktop, drawer on mobile */}
+    <div style={{ display: "flex", minHeight: "calc(100vh - 64px)" }}>
+      {/* Admin Sidebar — fixed on desktop, drawer on mobile */}
       <aside
         className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}
-        style={{ width: 240, background: "var(--primary-dark)", flexShrink: 0, display: "flex", flexDirection: "column", position: "sticky", top: 64, height: "calc(100vh - 64px)", overflowY: "auto" }}
+        style={{ width: 240, background: "var(--primary-dark)", flexShrink: 0, display: "flex", flexDirection: "column", position: "fixed", top: 64, right: 0, height: "calc(100vh - 64px)", overflowY: "auto", overflowX: "hidden", zIndex: 50 }}
       >
         <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(255,255,255,.1)", display: "flex", alignItems: "center", gap: 10 }}>
           <i className="ti ti-shield-lock" style={{ fontSize: 22, color: "var(--accent)" }} />
@@ -204,15 +204,15 @@ export default function AdminPage() {
             ))}
           </div>
         ))}
-        <div style={{ marginTop: "auto", padding: "1rem 1.5rem", borderTop: "1px solid rgba(255,255,255,.1)" }}>
+        <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(255,255,255,.1)", marginTop: "1rem" }}>
           <div onClick={() => router.push("/")} style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,.65)", fontSize: 13, fontWeight: 700, cursor: "pointer", padding: ".5rem 0" }}>
             <i className="ti ti-arrow-right" /> بازگشت به سایت
           </div>
         </div>
       </aside>
 
-      {/* Admin Main */}
-      <main className="admin-main" style={{ flex: 1, background: "var(--bg)", overflowY: "auto", minWidth: 0 }}>
+      {/* Admin Main — offset by sidebar width on desktop */}
+      <main className="admin-main" style={{ flex: 1, background: "var(--bg)", overflowY: "auto", minWidth: 0, marginRight: 240 }}>
         {/* Topbar */}
         <div style={{ background: "#fff", padding: ".75rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)", position: "sticky", top: 0, zIndex: 10, gap: 8 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
