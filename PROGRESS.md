@@ -70,6 +70,21 @@
 - [x] P3.3 Technical Specs (ProductSpec table, admin form, frontend tab)
 - [x] P3.4 Image Gallery (multiple images, thumbnails, click to change)
 
+## P4: Admin Sidebar
+- [x] P4 Fixed position, real DB counts (totalUsers, pendingOrders, pendingReviews, publishedBlogPosts), scrollable
+
+## P5: Hardcoded Data
+- [x] P5 All sidebar badges use real stats from /api/admin/stats
+
+## Security Verify
+- [x] Rate limiting on all auth/* routes (register, login, OTP send/verify, password reset)
+- [x] File upload magic bytes validation (JPEG, PNG, WebP, PDF)
+- [x] Soft delete working on Product/Category/Blog
+- [x] Trash section in admin
+
+## P6: End-to-End Tests
+- [x] 49/49 tests passing (8 original + 4 new: specs, Q&A, return flow, CMS)
+
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
 commit to GitHub, then ask me before continuing.

@@ -355,6 +355,207 @@ async function testMaintenanceMode() {
   });
 }
 
+// ─── Test 9: Product specs ─────────────────────────────────────────────────
+async function testProductSpecs() {
+  console.log("\n📋 Test 9: Product specs (create → fetch → delete)");
+
+  let productId = "";
+  let specId = "";
+
+  await run("Create product for specs test", async () => {
+    const p = await prisma.product.create({
+      data: { name: "E2E Specs Product " + Date.now(), slug: "e2e-specs-" + Date.now(), price: 100000, status: "DRAFT" },
+    });
+    productId = p.id;
+  });
+
+  await run("Add spec to product", async () => {
+    const spec = await prisma.productSpec.create({
+      data: { productId, key: "رنگ", value: "مشکی", sortOrder: 0 },
+    });
+    specId = spec.id;
+    if (!spec.id) throw new Error("Spec not created");
+  });
+
+  await run("Fetch specs for product", async () => {
+    const specs = await prisma.productSpec.findMany({ where: { productId } });
+    if (specs.length !== 1) throw new Error(`Expected 1 spec, got ${specs.length}`);
+    if (specs[0].key !== "رنگ") throw new Error("Spec key mismatch");
+  });
+
+  await run("Delete spec", async () => {
+    await prisma.productSpec.delete({ where: { id: specId } });
+    const count = await prisma.productSpec.count({ where: { productId } });
+    if (count !== 0) throw new Error("Spec still exists after delete");
+  });
+
+  // Cleanup
+  await prisma.product.delete({ where: { id: productId } }).catch(() => {});
+}
+
+// ─── Test 10: Product Q&A ──────────────────────────────────────────────────
+async function testProductQA() {
+  console.log("\n❓ Test 10: Product Q&A (ask → answer → approve → show publicly)");
+
+  let productId = "";
+  let userId = "";
+  let questionId = "";
+
+  await run("Setup product and user", async () => {
+    const [p, u] = await Promise.all([
+      prisma.product.create({ data: { name: "E2E QA Product " + Date.now(), slug: "e2e-qa-" + Date.now(), price: 100000, status: "PUBLISHED" } }),
+      prisma.user.upsert({ where: { email: "e2e-qa@marjan.ir" }, update: {}, create: { firstName: "E2E", lastName: "QA", email: "e2e-qa@marjan.ir", role: "CUSTOMER", status: "ACTIVE" } }),
+    ]);
+    productId = p.id;
+    userId = u.id;
+  });
+
+  await run("Customer asks question", async () => {
+    const q = await prisma.productQuestion.create({
+      data: { productId, userId, question: "آیا این محصول ضد آب است؟", isApproved: false },
+    });
+    questionId = q.id;
+    if (q.isApproved) throw new Error("Question should not be auto-approved");
+  });
+
+  await run("Admin answers question", async () => {
+    const answered = await prisma.productQuestion.update({
+      where: { id: questionId },
+      data: { answer: "بله، کاملاً ضد آب است.", answeredAt: new Date(), isApproved: true },
+    });
+    if (!answered.answer) throw new Error("Answer not saved");
+    if (!answered.isApproved) throw new Error("Not approved after answer");
+  });
+
+  await run("Approved Q&A visible on product page", async () => {
+    const count = await prisma.productQuestion.count({
+      where: { productId, isApproved: true, answer: { not: null } },
+    });
+    if (count !== 1) throw new Error(`Expected 1 approved answer, got ${count}`);
+  });
+
+  // Cleanup
+  await prisma.productQuestion.delete({ where: { id: questionId } }).catch(() => {});
+  await prisma.product.delete({ where: { id: productId } }).catch(() => {});
+  await prisma.user.deleteMany({ where: { email: "e2e-qa@marjan.ir" } }).catch(() => {});
+}
+
+// ─── Test 11: Return flow ──────────────────────────────────────────────────
+async function testReturnFlow() {
+  console.log("\n↩️  Test 11: Return flow (request → admin approves → wallet refund)");
+
+  let userId = "";
+  let orderId = "";
+  let returnId = "";
+
+  await run("Setup user and delivered order", async () => {
+    const u = await prisma.user.upsert({
+      where: { email: "e2e-return@marjan.ir" },
+      update: {},
+      create: { firstName: "E2E", lastName: "Return", email: "e2e-return@marjan.ir", role: "CUSTOMER", status: "ACTIVE" },
+    });
+    userId = u.id;
+    const order = await prisma.order.create({
+      data: { userId, status: "DELIVERED", subtotal: 300000, totalAmount: 300000, deliveredAt: new Date() },
+    });
+    orderId = order.id;
+  });
+
+  await run("User requests return", async () => {
+    const ret = await prisma.returnRequest.create({
+      data: { orderId, userId, reason: "کالا معیوب است", status: "PENDING" },
+    });
+    returnId = ret.id;
+    if (ret.status !== "PENDING") throw new Error("Status should be PENDING");
+  });
+
+  await run("Admin approves return", async () => {
+    const approved = await prisma.returnRequest.update({
+      where: { id: returnId },
+      data: { status: "APPROVED", adminNote: "مرجوعی تأیید شد" },
+    });
+    if (approved.status !== "APPROVED") throw new Error("Status not APPROVED");
+  });
+
+  await run("Wallet refund created", async () => {
+    await prisma.wallet.upsert({
+      where: { userId },
+      update: { balance: { increment: 300000 } },
+      create: { userId, balance: 300000 },
+    });
+    const wallet = await prisma.wallet.findUnique({ where: { userId } });
+    if (!wallet || wallet.balance < 300000) throw new Error("Wallet not credited");
+  });
+
+  await run("Wallet transaction logged", async () => {
+    const tx = await prisma.walletTx.create({
+      data: { walletId: (await prisma.wallet.findUnique({ where: { userId } }))!.id, amount: 300000, type: "REFUND", description: "مرجوعی سفارش" },
+    });
+    if (!tx.id) throw new Error("Wallet transaction not created");
+    await prisma.walletTx.delete({ where: { id: tx.id } }).catch(() => {});
+  });
+
+  // Cleanup
+  await prisma.returnRequest.delete({ where: { id: returnId } }).catch(() => {});
+  await prisma.order.delete({ where: { id: orderId } }).catch(() => {});
+  await prisma.wallet.deleteMany({ where: { userId } }).catch(() => {});
+  await prisma.user.deleteMany({ where: { email: "e2e-return@marjan.ir" } }).catch(() => {});
+}
+
+// ─── Test 12: CMS (pages, banners, menus, site status) ────────────────────
+async function testCms() {
+  console.log("\n🖥️  Test 12: CMS (pages → banners → menus → site status)");
+
+  const slug = "e2e-test-page-" + Date.now();
+
+  await run("Create static page", async () => {
+    const page = await prisma.page.upsert({
+      where: { slug },
+      update: {},
+      create: { slug, title: "E2E Test Page", content: "<p>E2E content</p>", isActive: true },
+    });
+    if (!page.id) throw new Error("Page not created");
+  });
+
+  await run("Update page content", async () => {
+    const updated = await prisma.page.update({
+      where: { slug },
+      data: { content: "<p>Updated content</p>" },
+    });
+    if (updated.content !== "<p>Updated content</p>") throw new Error("Content not updated");
+  });
+
+  await run("Create banner", async () => {
+    const banner = await prisma.banner.create({
+      data: { title: "E2E Banner", type: "HERO", isActive: true },
+    });
+    if (!banner.id) throw new Error("Banner not created");
+    await prisma.banner.delete({ where: { id: banner.id } }).catch(() => {});
+  });
+
+  await run("Create menu item", async () => {
+    const item = await prisma.menuItem.create({
+      data: { menu: "HEADER", label: "E2E Link", url: "/e2e", sortOrder: 99 },
+    });
+    if (!item.id) throw new Error("Menu item not created");
+    await prisma.menuItem.delete({ where: { id: item.id } }).catch(() => {});
+  });
+
+  await run("Site status toggle (registration_closed)", async () => {
+    await prisma.siteSettings.upsert({
+      where: { key: "registration_closed" },
+      update: { value: "true" },
+      create: { key: "registration_closed", value: "true", group: "status" },
+    });
+    const s = await prisma.siteSettings.findUnique({ where: { key: "registration_closed" } });
+    if (s?.value !== "true") throw new Error("Status not toggled");
+    await prisma.siteSettings.update({ where: { key: "registration_closed" }, data: { value: "false" } });
+  });
+
+  // Cleanup
+  await prisma.page.delete({ where: { slug } }).catch(() => {});
+}
+
 // ─── Main ──────────────────────────────────────────────────────────────────
 async function main() {
   console.log("\n╔═══════════════════════════════════════╗");
@@ -370,6 +571,10 @@ async function main() {
     await testOrder();
     await testSettings();
     await testMaintenanceMode();
+    await testProductSpecs();
+    await testProductQA();
+    await testReturnFlow();
+    await testCms();
   } finally {
     await prisma.$disconnect();
   }
