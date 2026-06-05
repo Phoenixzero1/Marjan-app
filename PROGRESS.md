@@ -85,6 +85,11 @@
 ## P6: End-to-End Tests
 - [x] 49/49 tests passing (8 original + 4 new: specs, Q&A, return flow, CMS)
 
+## Senior Review - Issue 1: Cleanup
+- [x] Remove "something": "^0.0.1" from package.json (unused phantom dependency)
+- [x] Rename proxy.ts → src/middleware.ts with correct default export (was never running!)
+- [x] E2E tests: 49/49 PASS (real output verified)
+
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
 commit to GitHub, then ask me before continuing.

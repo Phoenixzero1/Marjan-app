@@ -35,7 +35,6 @@
     "react-dom": "19.2.4",
     "react-hook-form": "^7.77.0",
     "sharp": "^0.34.5",
-    "something": "^0.0.1",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },

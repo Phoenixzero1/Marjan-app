@@ -4,15 +4,12 @@ import type { NextRequest } from "next/server";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
 
-export async function proxy(req: NextRequest) {
+export default async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.AUTH_SECRET });
   const { pathname } = req.nextUrl;
 
   // ── Admin pages & admin API ─────────────────────────────────────────────────
-  if (
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/api/admin")
-  ) {
+  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
     if (!token) {
       const url = req.nextUrl.clone();
       url.pathname = "/";
@@ -43,9 +40,7 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // ── Maintenance mode — check cookie set by admin toggle ────────────────────
-  // We read from a plain response header cookie instead of fetching the DB,
-  // to avoid any latency or self-referencing issues in the Edge runtime.
+  // ── Maintenance mode — read cookie set by admin toggle ─────────────────────
   const isPublicPage =
     !pathname.startsWith("/admin") &&
     !pathname.startsWith("/api/") &&
@@ -74,7 +69,6 @@ export const config = {
     "/dashboard/:path*",
     "/checkout/:path*",
     "/api/admin/:path*",
-    // Public pages for maintenance check (no API routes)
     "/",
     "/products/:path*",
     "/product/:path*",
