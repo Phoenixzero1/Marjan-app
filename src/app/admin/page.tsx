@@ -25,6 +25,7 @@ import ReturnsManager from "@/components/admin/ReturnsManager";
 import MaintenanceManager from "@/components/admin/MaintenanceManager";
 import MigrationManager from "@/components/admin/MigrationManager";
 import CmsManager from "@/components/admin/CmsManager";
+import BrandManager from "@/components/admin/BrandManager";
 
 interface ProductRow {
   id: string; name: string; sku: string | null; price: number;
@@ -40,7 +41,7 @@ type AdminSection =
   | "settings-general" | "settings-payment" | "settings-seo"
   | "settings-security" | "backup" | "logs" | "sessions"
   | "shipping" | "invoices" | "tax" | "roles" | "api-docs"
-  | "trash" | "returns" | "maintenance" | "migration" | "cms" | "product-form";
+  | "trash" | "returns" | "maintenance" | "migration" | "cms" | "brands" | "product-form";
 
 interface Stats {
   totalOrders: number; monthOrders: number; totalUsers: number; todayUsers: number;
@@ -57,6 +58,7 @@ function buildNavGroups(stats: Stats | null) {
       label: "محتوا", items: [
         { id: "products", icon: "ti-package", label: "محصولات" },
         { id: "categories", icon: "ti-category", label: "دسته‌بندی‌ها" },
+        { id: "brands", icon: "ti-building-factory", label: "برندها" },
         { id: "blog-admin", icon: "ti-news", label: "بلاگ", badge: n(stats?.publishedBlogPosts ?? 0) },
         { id: "media", icon: "ti-photo", label: "رسانه‌ها" },
       ],
@@ -468,8 +470,10 @@ export default function AdminPage() {
 
           {section === "cms" && <CmsManager />}
 
+          {section === "brands" && <BrandManager />}
+
           {/* Generic placeholder for other sections */}
-          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security", "backup", "logs", "sessions", "roles", "trash", "returns", "maintenance", "migration", "cms"].includes(section) && (
+          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security", "backup", "logs", "sessions", "roles", "trash", "returns", "maintenance", "migration", "cms", "brands"].includes(section) && (
             <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "3rem", textAlign: "center", color: "var(--text3)" }}>
               <i className="ti ti-tool" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
               <h3 style={{ fontSize: 18, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>بخش {titleMap[section]}</h3>

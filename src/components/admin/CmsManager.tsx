@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 
 type CmsTab = "pages" | "banners" | "menus" | "status";
 
-interface Page { id: string; slug: string; title: string; content: string; isActive: boolean; }
+interface Page { id: string; slug: string; title: string; content: string; metaTitle: string | null; metaDesc: string | null; isActive: boolean; }
 interface Banner { id: string; title: string; subtitle: string | null; imageUrl: string | null; buttonText: string | null; buttonLink: string | null; type: string; targetPage: string | null; sortOrder: number; isActive: boolean; startDate: string | null; endDate: string | null; }
 interface MenuItem { id: string; menu: string; label: string; url: string; newTab: boolean; sortOrder: number; isActive: boolean; }
 interface SiteStatus { registrationClosed: boolean; ordersClosed: boolean; ordersClosedMessage: string; emergencyBanner: boolean; emergencyBannerMessage: string; }
@@ -152,7 +152,7 @@ export default function CmsManager() {
                 {p.title}
               </button>
             ))}
-            <button onClick={() => setEditPage({ id: "", slug: "", title: "", content: "", isActive: true })} style={{ background: "var(--bg)", border: "1.5px dashed var(--border)", borderRadius: 8, padding: "10px 14px", fontFamily: "Vazirmatn", fontSize: 12, cursor: "pointer", color: "var(--text3)" }}>+ صفحه جدید</button>
+            <button onClick={() => setEditPage({ id: "", slug: "", title: "", content: "", metaTitle: null, metaDesc: null, isActive: true })} style={{ background: "var(--bg)", border: "1.5px dashed var(--border)", borderRadius: 8, padding: "10px 14px", fontFamily: "Vazirmatn", fontSize: 12, cursor: "pointer", color: "var(--text3)" }}>+ صفحه جدید</button>
           </div>
 
           {editPage ? (
@@ -160,6 +160,8 @@ export default function CmsManager() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                 <div><label style={lbl}>عنوان صفحه</label><input style={inp} value={editPage.title} onChange={e => setEditPage(p => p ? { ...p, title: e.target.value } : p)} /></div>
                 <div><label style={lbl}>اسلاگ (URL)</label><input style={{ ...inp, direction: "ltr" }} value={editPage.slug} onChange={e => setEditPage(p => p ? { ...p, slug: e.target.value } : p)} placeholder="about, terms, privacy..." /></div>
+                <div><label style={lbl}>عنوان SEO (meta title)</label><input style={inp} value={editPage.metaTitle ?? ""} onChange={e => setEditPage(p => p ? { ...p, metaTitle: e.target.value || null } : p)} placeholder="عنوان برای موتور جستجو" /></div>
+                <div><label style={lbl}>توضیح SEO (meta desc)</label><input style={inp} value={editPage.metaDesc ?? ""} onChange={e => setEditPage(p => p ? { ...p, metaDesc: e.target.value || null } : p)} placeholder="توضیح کوتاه برای گوگل" /></div>
               </div>
               <div>
                 <label style={lbl}>محتوا (HTML)</label>

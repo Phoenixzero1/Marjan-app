@@ -103,6 +103,23 @@
 - [x] Homepage: hero + promo banners loaded from DB (fallback to hardcoded if empty)
 - [x] CmsManager: date pickers, targetPage selector, category type, up/down reorder buttons
 
+## Senior Review - Issue 4: Menu Manager
+- [x] Already fully implemented in CmsManager (header + footer menus, CRUD, sortOrder)
+
+## Senior Review - Issue 5: Static Pages CMS
+- [x] Page schema: metaTitle + metaDesc fields added
+- [x] About page: now loads from DB with fallback
+- [x] FAQ page: now loads from Faq model via /api/faq, fallback to static
+- [x] Terms + Privacy: already loaded from DB (revalidate=3600)
+- [x] CmsManager pages tab: metaTitle + metaDesc fields added
+- [x] /api/faq public route created
+
+## Senior Review - Issue 6: Brand Management
+- [x] Brands API: full CRUD (GET/POST/PATCH/DELETE) with product count
+- [x] BrandManager admin component: list, create, edit, delete with warning
+- [x] /brand/[slug] public page: shows brand info + all brand products
+- [x] Admin sidebar: "برندها" entry under محتوا group
+
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
 commit to GitHub, then ask me before continuing.

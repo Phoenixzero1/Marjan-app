@@ -7,6 +7,8 @@ const schema = z.object({
   slug: z.string().min(1),
   title: z.string().min(1),
   content: z.string(),
+  metaTitle: z.string().optional().nullable(),
+  metaDesc: z.string().optional().nullable(),
   isActive: z.boolean().optional().default(true),
 });
 
@@ -46,9 +48,10 @@ export async function PUT(req: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
 
+  const { slug, ...rest } = parsed.data;
   const page = await prisma.page.upsert({
-    where: { slug: parsed.data.slug },
-    update: { title: parsed.data.title, content: parsed.data.content, isActive: parsed.data.isActive ?? true },
+    where: { slug },
+    update: rest,
     create: parsed.data,
   });
 
