@@ -9,18 +9,46 @@ const schema = z.object({
   imageUrl: z.string().optional().nullable(),
   buttonText: z.string().optional().nullable(),
   buttonLink: z.string().optional().nullable(),
-  type: z.enum(["hero", "promo"]).default("hero"),
+  type: z.enum(["hero", "promo", "category"]).default("hero"),
+  targetPage: z.string().optional().nullable(),
   sortOrder: z.number().default(0),
   isActive: z.boolean().default(true),
+  startDate: z.string().optional().nullable(),
+  endDate: z.string().optional().nullable(),
 });
 
-// Public GET — used by homepage
+// Public GET — used by homepage and category pages
 export async function GET(req: NextRequest) {
-  const type = req.nextUrl.searchParams.get("type") ?? "hero";
+  const { searchParams } = req.nextUrl;
+  const type = searchParams.get("type") ?? "hero";
+  const page = searchParams.get("page"); // optional: home | category-slug | all
   const isAdmin = !!(await requirePermission("MANAGE_SETTINGS"));
 
+  const now = new Date();
+  const where: Record<string, unknown> = { type };
+
+  if (!isAdmin) {
+    where.isActive = true;
+    // Date range: only show banners whose window includes now
+    where.OR = [
+      { startDate: null, endDate: null },
+      { startDate: { lte: now }, endDate: null },
+      { startDate: null, endDate: { gte: now } },
+      { startDate: { lte: now }, endDate: { gte: now } },
+    ];
+  }
+
+  // Filter by targetPage if provided (home, all, or specific page)
+  if (page && !isAdmin) {
+    where.OR = [
+      ...(Array.isArray(where.OR) ? where.OR : []),
+    ];
+    // overwrite: targetPage must be null (all), "home", or match the page slug
+    where.targetPage = { in: [null, "all", page] };
+  }
+
   const banners = await prisma.banner.findMany({
-    where: isAdmin ? { type } : { type, isActive: true },
+    where,
     orderBy: { sortOrder: "asc" },
   });
   return NextResponse.json({ banners });
@@ -34,7 +62,14 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
 
-  const banner = await prisma.banner.create({ data: parsed.data });
+  const { startDate, endDate, ...rest } = parsed.data;
+  const banner = await prisma.banner.create({
+    data: {
+      ...rest,
+      startDate: startDate ? new Date(startDate) : null,
+      endDate: endDate ? new Date(endDate) : null,
+    },
+  });
   return NextResponse.json({ banner }, { status: 201 });
 }
 
@@ -49,7 +84,12 @@ export async function PATCH(req: NextRequest) {
   const parsed = schema.partial().safeParse(data);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
 
-  const banner = await prisma.banner.update({ where: { id }, data: parsed.data });
+  const { startDate, endDate, ...rest } = parsed.data;
+  const updateData: Record<string, unknown> = { ...rest };
+  if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : null;
+  if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null;
+
+  const banner = await prisma.banner.update({ where: { id }, data: updateData });
   return NextResponse.json({ banner });
 }
 
@@ -61,5 +101,21 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: "id الزامی است" }, { status: 400 });
 
   await prisma.banner.delete({ where: { id } });
+  return NextResponse.json({ success: true });
+}
+
+// PUT — reorder: receives [{id, sortOrder}]
+export async function PUT(req: NextRequest) {
+  if (!(await requirePermission("MANAGE_SETTINGS")))
+    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+
+  const body = await req.json();
+  const items: { id: string; sortOrder: number }[] = body.items ?? [];
+  if (!Array.isArray(items) || items.length === 0)
+    return NextResponse.json({ error: "items الزامی است" }, { status: 400 });
+
+  await prisma.$transaction(
+    items.map(({ id, sortOrder }) => prisma.banner.update({ where: { id }, data: { sortOrder } }))
+  );
   return NextResponse.json({ success: true });
 }

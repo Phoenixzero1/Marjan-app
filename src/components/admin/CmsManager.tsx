@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 type CmsTab = "pages" | "banners" | "menus" | "status";
 
 interface Page { id: string; slug: string; title: string; content: string; isActive: boolean; }
-interface Banner { id: string; title: string; subtitle: string | null; imageUrl: string | null; buttonText: string | null; buttonLink: string | null; type: string; sortOrder: number; isActive: boolean; }
+interface Banner { id: string; title: string; subtitle: string | null; imageUrl: string | null; buttonText: string | null; buttonLink: string | null; type: string; targetPage: string | null; sortOrder: number; isActive: boolean; startDate: string | null; endDate: string | null; }
 interface MenuItem { id: string; menu: string; label: string; url: string; newTab: boolean; sortOrder: number; isActive: boolean; }
 interface SiteStatus { registrationClosed: boolean; ordersClosed: boolean; ordersClosedMessage: string; emergencyBanner: boolean; emergencyBannerMessage: string; }
 
@@ -23,7 +23,7 @@ export default function CmsManager() {
 
   // ── Banners ──
   const [banners, setBanners] = useState<Banner[]>([]);
-  const [bannerType, setBannerType] = useState<"hero" | "promo">("hero");
+  const [bannerType, setBannerType] = useState<"hero" | "promo" | "category">("hero");
   const [editBanner, setEditBanner] = useState<Partial<Banner> | null>(null);
   const [savingBanner, setSavingBanner] = useState(false);
 
@@ -183,27 +183,47 @@ export default function CmsManager() {
       {/* ── BANNERS TAB ── */}
       {tab === "banners" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {(["hero", "promo"] as const).map(t => (
-              <button key={t} onClick={() => setBannerType(t)} style={{ background: bannerType === t ? "var(--primary)" : "var(--bg)", color: bannerType === t ? "#fff" : "var(--text2)", border: "1.5px solid var(--border)", borderRadius: 8, padding: "7px 16px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                {t === "hero" ? "بنر اصلی (Hero)" : "بنر تبلیغاتی"}
-              </button>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            {([["hero", "بنر اصلی (Hero)"], ["promo", "بنر تبلیغاتی"], ["category", "بنر دسته‌بندی"]] as const).map(([t, l]) => (
+              <button key={t} onClick={() => setBannerType(t as "hero" | "promo")} style={{ background: bannerType === t ? "var(--primary)" : "var(--bg)", color: bannerType === t ? "#fff" : "var(--text2)", border: "1.5px solid var(--border)", borderRadius: 8, padding: "7px 16px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{l}</button>
             ))}
-            <button onClick={() => setEditBanner({ title: "", sortOrder: banners.length, isActive: true })} style={{ marginRight: "auto", background: "var(--primary)", color: "#fff", border: "none", borderRadius: 8, padding: "7px 16px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>+ بنر جدید</button>
+            <button onClick={() => setEditBanner({ title: "", sortOrder: banners.length, isActive: true, targetPage: null, startDate: null, endDate: null })} style={{ marginRight: "auto", background: "var(--primary)", color: "#fff", border: "none", borderRadius: 8, padding: "7px 16px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>+ بنر جدید</button>
           </div>
 
           {banners.length === 0 && !editBanner && <div style={{ textAlign: "center", padding: "2rem", color: "var(--text3)" }}>بنری وجود ندارد</div>}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {banners.map(b => (
+            {banners.map((b, idx) => (
               <div key={b.id} style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+                {/* Up/Down reorder */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <button disabled={idx === 0} onClick={async () => {
+                    const updated = [...banners];
+                    [updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]];
+                    const items = updated.map((x, i) => ({ id: x.id, sortOrder: i }));
+                    await fetch("/api/admin/cms/banners", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items }) });
+                    setBanners(updated.map((x, i) => ({ ...x, sortOrder: i })));
+                  }} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 4, padding: "2px 5px", cursor: idx === 0 ? "default" : "pointer", opacity: idx === 0 ? 0.3 : 1, fontSize: 11 }}>▲</button>
+                  <button disabled={idx === banners.length - 1} onClick={async () => {
+                    const updated = [...banners];
+                    [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
+                    const items = updated.map((x, i) => ({ id: x.id, sortOrder: i }));
+                    await fetch("/api/admin/cms/banners", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items }) });
+                    setBanners(updated.map((x, i) => ({ ...x, sortOrder: i })));
+                  }} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 4, padding: "2px 5px", cursor: idx === banners.length - 1 ? "default" : "pointer", opacity: idx === banners.length - 1 ? 0.3 : 1, fontSize: 11 }}>▼</button>
+                </div>
                 {b.imageUrl && <img src={b.imageUrl} alt="" style={{ width: 64, height: 40, objectFit: "cover", borderRadius: 6, flexShrink: 0 }} />}
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 900, fontSize: 13 }}>{b.title}</div>
                   {b.subtitle && <div style={{ fontSize: 11, color: "var(--text3)" }}>{b.subtitle}</div>}
-                  {b.buttonLink && <div style={{ fontSize: 11, color: "var(--accent)", direction: "ltr" }}>{b.buttonLink}</div>}
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 2 }}>
+                    {b.buttonLink && <span style={{ fontSize: 10, color: "var(--accent)", direction: "ltr" }}>{b.buttonLink}</span>}
+                    {b.startDate && <span style={{ fontSize: 10, color: "var(--text3)" }}>از {b.startDate.slice(0,10)}</span>}
+                    {b.endDate && <span style={{ fontSize: 10, color: "var(--text3)" }}>تا {b.endDate.slice(0,10)}</span>}
+                    {b.targetPage && <span style={{ fontSize: 10, background: "var(--bg)", padding: "1px 6px", borderRadius: 10 }}>{b.targetPage}</span>}
+                  </div>
                 </div>
-                <span style={{ fontSize: 11, background: b.isActive ? "#dcfce7" : "#f1f5f9", color: b.isActive ? "#16a34a" : "#64748b", padding: "2px 8px", borderRadius: 20, fontWeight: 700 }}>{b.isActive ? "فعال" : "غیرفعال"}</span>
+                <span style={{ fontSize: 11, background: b.isActive ? "#dcfce7" : "#f1f5f9", color: b.isActive ? "#16a34a" : "#64748b", padding: "2px 8px", borderRadius: 20, fontWeight: 700, whiteSpace: "nowrap" }}>{b.isActive ? "فعال" : "غیرفعال"}</span>
                 <div style={{ display: "flex", gap: 6 }}>
                   <button onClick={() => setEditBanner({ ...b })} style={{ background: "var(--bg)", border: "1.5px solid var(--border)", borderRadius: 6, padding: "5px 10px", fontFamily: "Vazirmatn", fontSize: 11, cursor: "pointer" }}>ویرایش</button>
                   <button onClick={() => toggleBanner(b)} style={{ background: b.isActive ? "#fef3c7" : "#dcfce7", color: b.isActive ? "#92400e" : "#166534", border: "none", borderRadius: 6, padding: "5px 10px", fontFamily: "Vazirmatn", fontSize: 11, cursor: "pointer" }}>{b.isActive ? "غیرفعال" : "فعال"}</button>
@@ -220,13 +240,25 @@ export default function CmsManager() {
                 <div><label style={lbl}>عنوان <span style={{ color: "red" }}>*</span></label><input style={inp} value={editBanner.title ?? ""} onChange={e => setEditBanner(p => ({ ...p, title: e.target.value }))} /></div>
                 <div><label style={lbl}>زیرعنوان</label><input style={inp} value={editBanner.subtitle ?? ""} onChange={e => setEditBanner(p => ({ ...p, subtitle: e.target.value }))} /></div>
                 <div><label style={lbl}>آدرس تصویر</label><input style={{ ...inp, direction: "ltr" }} value={editBanner.imageUrl ?? ""} onChange={e => setEditBanner(p => ({ ...p, imageUrl: e.target.value }))} placeholder="/uploads/..." /></div>
-                <div><label style={lbl}>ترتیب</label><input type="number" style={inp} value={editBanner.sortOrder ?? 0} onChange={e => setEditBanner(p => ({ ...p, sortOrder: parseInt(e.target.value) }))} /></div>
+                <div><label style={lbl}>صفحه هدف</label>
+                  <select style={inp} value={editBanner.targetPage ?? ""} onChange={e => setEditBanner(p => ({ ...p, targetPage: e.target.value || null }))}>
+                    <option value="">همه صفحات</option>
+                    <option value="home">صفحه اصلی</option>
+                    <option value="all">همه</option>
+                  </select>
+                </div>
                 <div><label style={lbl}>متن دکمه</label><input style={inp} value={editBanner.buttonText ?? ""} onChange={e => setEditBanner(p => ({ ...p, buttonText: e.target.value }))} /></div>
                 <div><label style={lbl}>لینک دکمه</label><input style={{ ...inp, direction: "ltr" }} value={editBanner.buttonLink ?? ""} onChange={e => setEditBanner(p => ({ ...p, buttonLink: e.target.value }))} placeholder="/products" /></div>
+                <div><label style={lbl}>تاریخ شروع</label><input type="date" style={{ ...inp, direction: "ltr" }} value={editBanner.startDate?.slice(0, 10) ?? ""} onChange={e => setEditBanner(p => ({ ...p, startDate: e.target.value || null }))} /></div>
+                <div><label style={lbl}>تاریخ پایان</label><input type="date" style={{ ...inp, direction: "ltr" }} value={editBanner.endDate?.slice(0, 10) ?? ""} onChange={e => setEditBanner(p => ({ ...p, endDate: e.target.value || null }))} /></div>
+                <div><label style={lbl}>ترتیب</label><input type="number" style={inp} value={editBanner.sortOrder ?? 0} onChange={e => setEditBanner(p => ({ ...p, sortOrder: parseInt(e.target.value) }))} /></div>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={saveBanner} disabled={savingBanner} style={{ background: "var(--primary)", color: "#fff", border: "none", borderRadius: 8, padding: "9px 20px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 900, cursor: "pointer" }}>{savingBanner ? "..." : "ذخیره"}</button>
                 <button onClick={() => setEditBanner(null)} style={{ background: "var(--bg)", color: "var(--text2)", border: "1.5px solid var(--border)", borderRadius: 8, padding: "8px 14px", fontFamily: "Vazirmatn", fontSize: 13, cursor: "pointer" }}>انصراف</button>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, marginRight: "auto", cursor: "pointer" }}>
+                  <input type="checkbox" checked={editBanner.isActive ?? true} onChange={e => setEditBanner(p => ({ ...p, isActive: e.target.checked }))} /> فعال
+                </label>
               </div>
             </div>
           )}

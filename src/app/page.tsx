@@ -19,6 +19,50 @@ export const metadata: Metadata = {
   },
 };
 
+async function getHeroBanners() {
+  try {
+    const now = new Date();
+    return await prisma.banner.findMany({
+      where: {
+        type: "hero",
+        isActive: true,
+        OR: [
+          { startDate: null, endDate: null },
+          { startDate: { lte: now }, endDate: null },
+          { startDate: null, endDate: { gte: now } },
+          { startDate: { lte: now }, endDate: { gte: now } },
+        ],
+      },
+      orderBy: { sortOrder: "asc" },
+      take: 5,
+    });
+  } catch {
+    return [];
+  }
+}
+
+async function getPromoBanners() {
+  try {
+    const now = new Date();
+    return await prisma.banner.findMany({
+      where: {
+        type: "promo",
+        isActive: true,
+        OR: [
+          { startDate: null, endDate: null },
+          { startDate: { lte: now }, endDate: null },
+          { startDate: null, endDate: { gte: now } },
+          { startDate: { lte: now }, endDate: { gte: now } },
+        ],
+      },
+      orderBy: { sortOrder: "asc" },
+      take: 4,
+    });
+  } catch {
+    return [];
+  }
+}
+
 async function getFeaturedProducts() {
   try {
     return await prisma.product.findMany({
@@ -59,11 +103,41 @@ const categories = [
 ];
 
 export default async function HomePage() {
-  const [products, posts] = await Promise.all([getFeaturedProducts(), getLatestPosts()]);
+  const [products, posts, heroBanners, promoBanners] = await Promise.all([
+    getFeaturedProducts(), getLatestPosts(), getHeroBanners(), getPromoBanners(),
+  ]);
 
   return (
     <>
-      {/* HERO */}
+      {/* HERO — DB banners or fallback */}
+      {heroBanners.length > 0 ? (
+        <section style={{ position: "relative", overflow: "hidden" }}>
+          {heroBanners.map((b, i) => (
+            <div
+              key={b.id}
+              style={{
+                display: i === 0 ? "block" : "none", // client-side slider can enhance this
+                background: b.imageUrl
+                  ? `url(${b.imageUrl}) center/cover no-repeat`
+                  : "linear-gradient(135deg,var(--primary-dark) 0%,var(--primary-mid) 100%)",
+                minHeight: 420,
+                position: "relative",
+              }}
+            >
+              {b.imageUrl && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.45)" }} />}
+              <div style={{ position: "relative", maxWidth: 1280, margin: "0 auto", padding: "5rem 2rem 4rem", color: "#fff" }}>
+                {b.title && <h1 style={{ fontSize: 40, fontWeight: 900, lineHeight: 1.3, marginBottom: "1rem" }}>{b.title}</h1>}
+                {b.subtitle && <p style={{ fontSize: 16, color: "rgba(255,255,255,.8)", maxWidth: 500, marginBottom: "2rem" }}>{b.subtitle}</p>}
+                {b.buttonText && b.buttonLink && (
+                  <Link href={b.buttonLink} style={{ background: "var(--accent)", color: "#fff", padding: "13px 28px", borderRadius: "var(--radius-sm)", fontSize: 14, fontWeight: 900, display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    {b.buttonText}
+                  </Link>
+                )}
+              </div>
+            </div>
+          ))}
+        </section>
+      ) : (
       <section
         className="hero-section"
         style={{
@@ -75,7 +149,6 @@ export default async function HomePage() {
         }}
       >
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 80% 50%,rgba(232,146,10,.12) 0%,transparent 60%)" }} />
-        {/* 1 col on mobile, 2 cols on lg+ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 items-center" style={{ maxWidth: 1280, margin: "auto", gap: "3rem", position: "relative" }}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(232,146,10,.2)", border: "1px solid rgba(232,146,10,.4)", color: "var(--accent)", padding: "5px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, marginBottom: "1.5rem" }}>
@@ -105,7 +178,6 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
-          {/* Hidden on mobile, visible on lg+ */}
           <div className="hidden lg:flex items-center justify-center">
             <div style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.15)", borderRadius: "var(--radius)", width: "100%", maxWidth: 420, aspectRatio: "4/3", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
               <i className="ti ti-building-warehouse" style={{ fontSize: 90, color: "rgba(255,255,255,.2)" }} />
@@ -114,6 +186,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* TRUST BAR */}
       <div style={{ background: "#fff", boxShadow: "var(--shadow)" }}>
@@ -200,31 +273,59 @@ export default async function HomePage() {
         )}
       </div>
 
-      {/* BANNERS */}
+      {/* PROMO BANNERS — DB or fallback */}
       <div style={{ maxWidth: 1280, margin: "3rem auto", padding: "0 2rem" }}>
-        {/* 1 col mobile, 2fr/1fr on md+ (via .banner-grid CSS class) */}
-        <div className="grid banner-grid gap-5">
-          <div style={{ borderRadius: "var(--radius)", position: "relative", minHeight: 180, display: "flex", alignItems: "center", padding: "2rem", background: "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))", overflow: "hidden" }}>
-            <div>
-              <h3 style={{ fontSize: 22, fontWeight: 900, color: "#fff", marginBottom: 6 }}>خرید عمده با بهترین قیمت</h3>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,.75)", marginBottom: "1rem" }}>برای پروژه‌های بزرگ و پیمانکاران، قیمت ویژه عمده داریم.</p>
-              <Link href="/invoice?type=contractor" style={{ background: "#fff", color: "var(--primary)", padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 900, display: "inline-block" }}>
-                استعلام عمده
-              </Link>
-            </div>
-            <i className="ti ti-building" style={{ position: "absolute", left: "1.5rem", bottom: -10, fontSize: 100, color: "rgba(255,255,255,.1)" }} />
+        {promoBanners.length > 0 ? (
+          <div className="grid banner-grid gap-5">
+            {promoBanners.map((b) => (
+              <div
+                key={b.id}
+                style={{
+                  borderRadius: "var(--radius)",
+                  position: "relative",
+                  minHeight: 180,
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "2rem",
+                  background: b.imageUrl
+                    ? `url(${b.imageUrl}) center/cover no-repeat`
+                    : "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))",
+                  overflow: "hidden",
+                }}
+              >
+                {b.imageUrl && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.4)", borderRadius: "var(--radius)" }} />}
+                <div style={{ position: "relative" }}>
+                  {b.title && <h3 style={{ fontSize: 20, fontWeight: 900, color: "#fff", marginBottom: 6 }}>{b.title}</h3>}
+                  {b.subtitle && <p style={{ fontSize: 13, color: "rgba(255,255,255,.8)", marginBottom: "1rem" }}>{b.subtitle}</p>}
+                  {b.buttonText && b.buttonLink && (
+                    <Link href={b.buttonLink} style={{ background: "#fff", color: "var(--primary)", padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 900, display: "inline-block" }}>
+                      {b.buttonText}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-          <div style={{ borderRadius: "var(--radius)", position: "relative", minHeight: 180, display: "flex", alignItems: "center", padding: "2rem", background: "linear-gradient(135deg,#b54a00,var(--accent))", overflow: "hidden" }}>
-            <div>
-              <h3 style={{ fontSize: 22, fontWeight: 900, color: "#fff", marginBottom: 6 }}>فاکتور آنلاین<br />رایگان</h3>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,.75)", marginBottom: "1rem" }}>همین الان فاکتور حرفه‌ای بسازید.</p>
-              <Link href="/invoice" style={{ background: "#fff", color: "var(--accent)", padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 900, display: "inline-block" }}>
-                ساخت فاکتور
-              </Link>
+        ) : (
+          <div className="grid banner-grid gap-5">
+            <div style={{ borderRadius: "var(--radius)", position: "relative", minHeight: 180, display: "flex", alignItems: "center", padding: "2rem", background: "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))", overflow: "hidden" }}>
+              <div>
+                <h3 style={{ fontSize: 22, fontWeight: 900, color: "#fff", marginBottom: 6 }}>خرید عمده با بهترین قیمت</h3>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,.75)", marginBottom: "1rem" }}>برای پروژه‌های بزرگ و پیمانکاران، قیمت ویژه عمده داریم.</p>
+                <Link href="/invoice?type=contractor" style={{ background: "#fff", color: "var(--primary)", padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 900, display: "inline-block" }}>استعلام عمده</Link>
+              </div>
+              <i className="ti ti-building" style={{ position: "absolute", left: "1.5rem", bottom: -10, fontSize: 100, color: "rgba(255,255,255,.1)" }} />
             </div>
-            <i className="ti ti-file-invoice" style={{ position: "absolute", left: "1.5rem", bottom: -10, fontSize: 100, color: "rgba(255,255,255,.1)" }} />
+            <div style={{ borderRadius: "var(--radius)", position: "relative", minHeight: 180, display: "flex", alignItems: "center", padding: "2rem", background: "linear-gradient(135deg,#b54a00,var(--accent))", overflow: "hidden" }}>
+              <div>
+                <h3 style={{ fontSize: 22, fontWeight: 900, color: "#fff", marginBottom: 6 }}>فاکتور آنلاین<br />رایگان</h3>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,.75)", marginBottom: "1rem" }}>همین الان فاکتور حرفه‌ای بسازید.</p>
+                <Link href="/invoice" style={{ background: "#fff", color: "var(--accent)", padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 900, display: "inline-block" }}>ساخت فاکتور</Link>
+              </div>
+              <i className="ti ti-file-invoice" style={{ position: "absolute", left: "1.5rem", bottom: -10, fontSize: 100, color: "rgba(255,255,255,.1)" }} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* BLOG */}

@@ -97,6 +97,12 @@
 - [x] User DELETE: anonymize reviews before deletion
 - [x] E2E cascade tests: 53/53 PASS
 
+## Senior Review - Issue 3: Banner/Slider Management
+- [x] Schema: startDate, endDate, targetPage, category type added to Banner
+- [x] API: date-range filter on public GET, reorder PUT endpoint
+- [x] Homepage: hero + promo banners loaded from DB (fallback to hardcoded if empty)
+- [x] CmsManager: date pickers, targetPage selector, category type, up/down reorder buttons
+
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
 commit to GitHub, then ask me before continuing.
