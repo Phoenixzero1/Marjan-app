@@ -49,6 +49,18 @@ interface Stats {
   pendingReviews: number; publishedBlogPosts: number;
 }
 
+interface ChartDay { label: string; value: number; }
+interface ActivityItem {
+  id: string; user: string; type: string; typeLabel: string;
+  typeClass: string; detail: string; createdAt: string;
+}
+interface AnalyticsData {
+  chart: ChartDay[];
+  activity: ActivityItem[];
+  revenueChange: number;
+  ordersChange: number;
+}
+
 function buildNavGroups(stats: Stats | null) {
   const n = (v: number) => v > 0 ? String(v) : undefined;
   return [
@@ -126,9 +138,11 @@ export default function AdminPage() {
     return () => document.body.classList.remove("admin-mode");
   }, []);
   const [products, setProducts] = useState<ProductRow[]>([]);
+  const [productSearch, setProductSearch] = useState("");
   const [editProductId, setEditProductId] = useState<string | undefined>(undefined);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [adminToast, setAdminToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
 
   const showAdminToast = useCallback((type: "success" | "error", msg: string) => {
     setAdminToast({ type, msg });
@@ -162,7 +176,10 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (section === "products") fetch("/api/admin/products").then((r) => r.json()).then((d) => setProducts(d.products ?? []));
-  }, [section]);
+    if (section === "analytics" && !analyticsData) {
+      fetch("/api/admin/analytics").then((r) => r.json()).then(setAnalyticsData);
+    }
+  }, [section, analyticsData]);
 
   // Reload products list after returning from product form
   const handleProductFormSuccess = useCallback(() => {
@@ -271,49 +288,68 @@ export default function AdminPage() {
           {/* ANALYTICS */}
           {section === "analytics" && stats && (
             <>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1.25rem", marginBottom: "1.5rem" }}>
-                {[
-                  { icon: "ti-currency-dollar", color: "var(--primary)", val: `${Math.round(stats.totalRevenue / 1000000)}M`, label: "فروش کل (تومان)", change: "+۱۲٪ این ماه", up: true },
-                  { icon: "ti-package", color: "#1a7a4a", val: stats.monthOrders, label: "سفارشات این ماه", change: "+۸٪", up: true },
+              {(() => {
+                const revChange = analyticsData?.revenueChange ?? 0;
+                const ordChange = analyticsData?.ordersChange ?? 0;
+                const cards = [
+                  { icon: "ti-currency-dollar", color: "var(--primary)", val: `${Math.round(stats.totalRevenue / 1_000_000)}M`, label: "فروش کل (تومان)", change: revChange === 0 ? "—" : `${revChange > 0 ? "+" : ""}${revChange}٪ vs ماه قبل`, up: revChange >= 0 },
+                  { icon: "ti-package", color: "#1a7a4a", val: stats.monthOrders, label: "سفارشات این ماه", change: ordChange === 0 ? "—" : `${ordChange > 0 ? "+" : ""}${ordChange}٪ vs ماه قبل`, up: ordChange >= 0 },
                   { icon: "ti-users", color: "var(--accent)", val: stats.totalUsers, label: "کاربران ثبت‌نام", change: `+${stats.todayUsers} امروز`, up: true },
-                  { icon: "ti-eye", color: "#c0392b", val: stats.todayVisits, label: "بازدید امروز", change: "-۳٪", up: false },
-                ].map((s, i) => (
-                  <div key={i} style={{ background: "#fff", borderRadius: "var(--radius)", padding: "1.5rem", boxShadow: "var(--shadow)", display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <div style={{ width: 52, height: 52, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: s.color }}>
-                      <i className={`ti ${s.icon}`} style={{ fontSize: 26, color: "#fff" }} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 26, fontWeight: 900, color: "var(--primary)", lineHeight: 1 }}>{s.val}</div>
-                      <div style={{ fontSize: 12, color: "var(--text3)", marginTop: 4, fontWeight: 700 }}>{s.label}</div>
-                      <div style={{ fontSize: 11, fontWeight: 900, marginTop: 6, color: s.up ? "#1a7a4a" : "#c0392b" }}>
-                        <i className={`ti ${s.up ? "ti-trending-up" : "ti-trending-down"}`} /> {s.change}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Bar chart */}
-              <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", marginBottom: "1.5rem" }}>
-                <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: "var(--primary)", display: "flex", alignItems: "center", gap: 8 }}>
-                    <i className="ti ti-chart-line" /> فروش ۷ روز اخیر
-                  </div>
-                </div>
-                <div style={{ padding: "1.5rem" }}>
-                  <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 140 }}>
-                    {[45, 72, 38, 90, 64, 55, 82].map((h, i) => (
-                      <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                        <span style={{ fontSize: 10, color: "var(--primary)", fontWeight: 900 }}>{h}M</span>
-                        <div style={{ width: "100%", background: "var(--primary)", borderRadius: "4px 4px 0 0", height: `${h}%`, minHeight: 4 }} />
-                        <span style={{ fontSize: 10, color: "var(--text3)", fontWeight: 700 }}>{["ش", "ی", "د", "س", "چ", "پ", "ج"][i]}</span>
+                  { icon: "ti-eye", color: "#c0392b", val: stats.todayVisits, label: "بازدید امروز (لاگ)", change: stats.todayVisits > 0 ? "داده واقعی" : "—", up: true },
+                ];
+                return (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1.25rem", marginBottom: "1.5rem" }}>
+                    {cards.map((s, i) => (
+                      <div key={i} style={{ background: "#fff", borderRadius: "var(--radius)", padding: "1.5rem", boxShadow: "var(--shadow)", display: "flex", alignItems: "center", gap: "1rem" }}>
+                        <div style={{ width: 52, height: 52, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: s.color }}>
+                          <i className={`ti ${s.icon}`} style={{ fontSize: 26, color: "#fff" }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 26, fontWeight: 900, color: "var(--primary)", lineHeight: 1 }}>{s.val}</div>
+                          <div style={{ fontSize: 12, color: "var(--text3)", marginTop: 4, fontWeight: 700 }}>{s.label}</div>
+                          <div style={{ fontSize: 11, fontWeight: 900, marginTop: 6, color: s.up ? "#1a7a4a" : "#c0392b" }}>
+                            <i className={`ti ${s.up ? "ti-trending-up" : "ti-trending-down"}`} /> {s.change}
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
+                );
+              })()}
+
+              {/* Bar chart — real 7-day sales */}
+              <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", marginBottom: "1.5rem" }}>
+                <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border)" }}>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: "var(--primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                    <i className="ti ti-chart-line" /> فروش ۷ روز اخیر (تومان)
+                  </div>
+                </div>
+                <div style={{ padding: "1.5rem" }}>
+                  {!analyticsData ? (
+                    <div style={{ height: 140, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text3)" }}>در حال بارگذاری...</div>
+                  ) : (() => {
+                    const maxVal = Math.max(...analyticsData.chart.map(d => d.value), 1);
+                    return (
+                      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 140 }}>
+                        {analyticsData.chart.map((d, i) => {
+                          const pct = Math.round((d.value / maxVal) * 100);
+                          return (
+                            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                              <span style={{ fontSize: 10, color: "var(--primary)", fontWeight: 900 }}>
+                                {d.value > 0 ? `${(d.value / 1_000_000).toFixed(1)}M` : "—"}
+                              </span>
+                              <div style={{ width: "100%", background: "var(--primary)", borderRadius: "4px 4px 0 0", height: `${Math.max(pct, d.value > 0 ? 4 : 2)}%`, minHeight: 2, opacity: d.value === 0 ? 0.15 : 1 }} />
+                              <span style={{ fontSize: 10, color: "var(--text3)", fontWeight: 700 }}>{d.label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
-              {/* Recent activity */}
+              {/* Recent activity — real DB data */}
               <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)" }}>
                 <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border)" }}>
                   <div style={{ fontSize: 14, fontWeight: 900, color: "var(--primary)", display: "flex", alignItems: "center", gap: 8 }}>
@@ -321,30 +357,35 @@ export default function AdminPage() {
                   </div>
                 </div>
                 <div style={{ padding: 0 }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                    <thead>
-                      <tr>
-                        {["کاربر", "عملیات", "جزئیات", "زمان"].map((h) => (
-                          <th key={h} style={{ background: "var(--bg)", padding: "10px 12px", fontSize: 11, fontWeight: 900, color: "var(--text2)", textAlign: "right", borderBottom: "2px solid var(--border)" }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { user: "علی رضایی", op: "سفارش جدید", opClass: "pill-green", detail: "ORD-۱۴۰۴-۰۰۱۲", time: "۲ دقیقه پیش" },
-                        { user: "مریم کریمی", op: "ثبت‌نام", opClass: "pill-blue", detail: "از طریق گوگل", time: "۸ دقیقه پیش" },
-                        { user: "رضا احمدی", op: "بررسی سفارش", opClass: "pill-orange", detail: "ORD-۱۴۰۴-۰۰۱۱", time: "۱۵ دقیقه پیش" },
-                        { user: "سیستم", op: "پشتیبان‌گیری", opClass: "pill-gray", detail: "backup_1404_03_30.zip", time: "۱ ساعت پیش" },
-                      ].map((row, i) => (
-                        <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
-                          <td style={{ padding: "10px 12px", fontWeight: 700 }}>{row.user}</td>
-                          <td style={{ padding: "10px 12px" }}><span className={row.opClass} style={{ fontSize: 11, fontWeight: 900, padding: "3px 10px", borderRadius: 20, display: "inline-block" }}>{row.op}</span></td>
-                          <td style={{ padding: "10px 12px" }}>{row.detail}</td>
-                          <td style={{ padding: "10px 12px", color: "var(--text3)" }}>{row.time}</td>
+                  {!analyticsData ? (
+                    <div style={{ padding: "2rem", textAlign: "center", color: "var(--text3)" }}>در حال بارگذاری...</div>
+                  ) : analyticsData.activity.length === 0 ? (
+                    <div style={{ padding: "2rem", textAlign: "center", color: "var(--text3)" }}>هنوز فعالیتی ثبت نشده است</div>
+                  ) : (
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                      <thead>
+                        <tr>
+                          {["کاربر", "عملیات", "جزئیات", "زمان"].map((h) => (
+                            <th key={h} style={{ background: "var(--bg)", padding: "10px 12px", fontSize: 11, fontWeight: 900, color: "var(--text2)", textAlign: "right", borderBottom: "2px solid var(--border)" }}>{h}</th>
+                          ))}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {analyticsData.activity.map((row, i) => (
+                          <tr key={row.id + i} style={{ borderBottom: "1px solid var(--border)" }}>
+                            <td style={{ padding: "10px 12px", fontWeight: 700 }}>{row.user || "کاربر ناشناس"}</td>
+                            <td style={{ padding: "10px 12px" }}>
+                              <span className={row.typeClass} style={{ fontSize: 11, fontWeight: 900, padding: "3px 10px", borderRadius: 20, display: "inline-block" }}>{row.typeLabel}</span>
+                            </td>
+                            <td style={{ padding: "10px 12px", direction: "ltr", color: "var(--text3)" }}>{row.detail}</td>
+                            <td style={{ padding: "10px 12px", color: "var(--text3)", fontSize: 12 }}>
+                              {new Date(row.createdAt).toLocaleString("fa-IR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
               </div>
             </>
@@ -357,7 +398,12 @@ export default function AdminPage() {
           {section === "products" && (
             <>
               <div style={{ display: "flex", gap: 10, marginBottom: "1.25rem" }}>
-                <input placeholder="جستجو نام محصول..." style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", maxWidth: 300 }} />
+                <input
+                  value={productSearch}
+                  onChange={e => setProductSearch(e.target.value)}
+                  placeholder="جستجو نام محصول..."
+                  style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", maxWidth: 300 }}
+                />
                 <button onClick={() => { setEditProductId(undefined); setSection("product-form"); }} style={{ marginRight: "auto", background: "var(--primary)", color: "#fff", border: "none", padding: "9px 16px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 900, fontFamily: "Vazirmatn", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
                   <i className="ti ti-plus" /> محصول جدید
                 </button>
@@ -375,7 +421,7 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {products.map((p) => (
+                    {products.filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()) || (p.sku ?? "").toLowerCase().includes(productSearch.toLowerCase())).map((p) => (
                       <tr key={p.id} style={{ borderBottom: "1px solid var(--border)" }}>
                         <td style={{ padding: "10px 12px" }}><input type="checkbox" /></td>
                         <td style={{ padding: "10px 12px" }}>
@@ -408,8 +454,8 @@ export default function AdminPage() {
                         </td>
                       </tr>
                     ))}
-                    {products.length === 0 && (
-                      <tr><td colSpan={8} style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>محصولی یافت نشد</td></tr>
+                    {products.filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()) || (p.sku ?? "").toLowerCase().includes(productSearch.toLowerCase())).length === 0 && (
+                      <tr><td colSpan={8} style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>{productSearch ? `محصولی با نام "${productSearch}" یافت نشد` : "محصولی یافت نشد"}</td></tr>
                     )}
                   </tbody>
                 </table>

@@ -12,7 +12,7 @@ async function getProduct(slug: string) {
         images: { where: { isPrimary: true }, take: 1, select: { url: true, altText: true } },
         brand: { select: { name: true } },
         category: { select: { name: true, slug: true, parent: { select: { name: true, slug: true } } } },
-        reviews: { where: { isApproved: true }, select: { rating: true, title: true, content: true, createdAt: true, user: { select: { firstName: true, lastName: true } } }, take: 5 },
+        reviews: { where: { isApproved: true }, select: { rating: true, title: true, content: true, createdAt: true, reviewerName: true, user: { select: { firstName: true, lastName: true } } }, take: 5 },
       },
     });
   } catch { return null; }
@@ -112,7 +112,7 @@ export default async function ProductLayout({
       name: r.title ?? p.name,
       reviewBody: r.content ?? undefined,
       datePublished: r.createdAt.toISOString().split("T")[0],
-      author: { "@type": "Person", name: `${r.user.firstName} ${r.user.lastName}` },
+      author: { "@type": "Person", name: r.reviewerName ?? (r.user ? `${r.user.firstName} ${r.user.lastName}` : "کاربر") },
     }));
   }
 

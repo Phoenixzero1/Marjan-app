@@ -29,18 +29,26 @@ export async function POST(req: NextRequest) {
   });
 
   // Allow review even without purchase but flag it
-  const review = await prisma.review.upsert({
-    where: { productId_userId: { productId, userId: session.user.id } },
-    update: { rating, title: title ?? null, content: content ?? null, isApproved: false },
-    create: {
-      productId,
-      userId: session.user.id,
-      rating,
-      title: title ?? null,
-      content: content ?? null,
-      isApproved: !!purchased, // auto-approve verified buyers
-    },
+  const existing = await prisma.review.findFirst({
+    where: { productId, userId: session.user.id },
   });
+
+  const review = existing
+    ? await prisma.review.update({
+        where: { id: existing.id },
+        data: { rating, title: title ?? null, content: content ?? null, isApproved: false },
+      })
+    : await prisma.review.create({
+        data: {
+          productId,
+          userId: session.user.id,
+          reviewerName: undefined,
+          rating,
+          title: title ?? null,
+          content: content ?? null,
+          isApproved: !!purchased,
+        },
+      });
 
   return NextResponse.json({
     review,
