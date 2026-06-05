@@ -64,6 +64,12 @@
 - [x] L. Migration package (ZIP + installer.html + live log)
 - [x] M. E2E test script (31/31 passing)
 
+## P3: Product Page Enhancements
+- [x] P3.1 Related products (same category, exclude current)
+- [x] P3.2 Product Q&A (ProductQuestion table, API, frontend tab)
+- [x] P3.3 Technical Specs (ProductSpec table, admin form, frontend tab)
+- [x] P3.4 Image Gallery (multiple images, thumbnails, click to change)
+
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
 commit to GitHub, then ask me before continuing.

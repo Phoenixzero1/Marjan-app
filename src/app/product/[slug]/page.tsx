@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useCart } from "@/store/cart";
 
@@ -29,6 +30,9 @@ interface Review {
   user: { firstName: string; lastName: string; avatarUrl: string | null };
 }
 
+interface ProductSpec { id: string; key: string; value: string; sortOrder: number; }
+interface ProductQuestion { id: string; question: string; answer: string | null; answeredAt: string | null; createdAt: string; user: { firstName: string; lastName: string }; }
+
 interface Product {
   id: string;
   name: string;
@@ -46,6 +50,8 @@ interface Product {
   avgRating: number;
   images: ProductImage[];
   sizes: ProductSize[];
+  specs: ProductSpec[];
+  questions: ProductQuestion[];
   reviews: Review[];
   brand: { name: string; slug: string } | null;
   category: { name: string; slug: string; parent: { name: string; slug: string } | null } | null;
@@ -77,8 +83,13 @@ export default function ProductDetailPage() {
   const [selectedSize, setSelectedSize] = useState<ProductSize | null>(null);
   const [qty, setQty] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [activeTab, setActiveTab] = useState<"description" | "specs" | "reviews" | "qa">("description");
+  const [questionText, setQuestionText] = useState("");
+  const [questionLoading, setQuestionLoading] = useState(false);
+  const [questionDone, setQuestionDone] = useState(false);
 
   const { addItem, openCart } = useCart();
+  const { data: session } = useSession();
 
   useEffect(() => {
     if (!slug) return;
@@ -127,6 +138,21 @@ export default function ProductDetailPage() {
   const lowStock = selectedSize
     ? selectedSize.stock > 0 && selectedSize.stock <= product.lowStockAlert
     : product.stockQty > 0 && product.stockQty <= product.lowStockAlert;
+
+  async function submitQuestion() {
+    if (!questionText.trim() || !slug) return;
+    setQuestionLoading(true);
+    try {
+      const res = await fetch(`/api/products/${slug}/questions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: questionText }),
+      });
+      if (res.ok) { setQuestionDone(true); setQuestionText(""); }
+    } finally {
+      setQuestionLoading(false);
+    }
+  }
 
   function handleAddToCart() {
     addItem({
@@ -349,39 +375,64 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* Description + Reviews Tabs */}
-      <div style={{ marginBottom: 48 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 32 }}>
-          {/* Description */}
-          <div>
-            <h2 style={{ fontSize: 17, fontWeight: 900, color: "var(--text)", borderBottom: "2px solid var(--primary)", paddingBottom: 10, marginBottom: 20 }}>
-              توضیحات محصول
-            </h2>
-            {product.description ? (
-              <div
-                style={{ fontSize: 13, color: "var(--text2)", lineHeight: 2 }}
-                dangerouslySetInnerHTML={{ __html: product.description }}
-              />
-            ) : (
-              <p style={{ fontSize: 13, color: "var(--text3)" }}>توضیحاتی برای این محصول ثبت نشده است.</p>
-            )}
-          </div>
+      {/* Tabs: Description | Specs | Reviews | Q&A */}
+      <div style={{ marginBottom: 48, background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)" }}>
+        {/* Tab bar */}
+        <div style={{ display: "flex", borderBottom: "2px solid var(--border)" }}>
+          {([
+            ["description", "توضیحات"],
+            ["specs", `مشخصات فنی${product.specs.length > 0 ? ` (${product.specs.length})` : ""}`],
+            ["reviews", `نظرات (${product.reviews.length})`],
+            ["qa", `پرسش و پاسخ (${product.questions.length})`],
+          ] as const).map(([t, l]) => (
+            <button
+              key={t}
+              onClick={() => setActiveTab(t)}
+              style={{ background: "none", border: "none", borderBottom: activeTab === t ? "3px solid var(--primary)" : "3px solid transparent", marginBottom: -2, padding: "14px 20px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, color: activeTab === t ? "var(--primary)" : "var(--text3)", cursor: "pointer" }}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
 
-          {/* Reviews */}
-          <div>
-            <h2 style={{ fontSize: 17, fontWeight: 900, color: "var(--text)", borderBottom: "2px solid var(--primary)", paddingBottom: 10, marginBottom: 20 }}>
-              نظرات ({product.reviews.length})
-            </h2>
-            {product.reviews.length === 0 ? (
-              <p style={{ fontSize: 13, color: "var(--text3)" }}>هنوز نظری ثبت نشده است.</p>
+        <div style={{ padding: "1.5rem" }}>
+          {/* Description Tab */}
+          {activeTab === "description" && (
+            product.description ? (
+              <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 2 }} dangerouslySetInnerHTML={{ __html: product.description }} />
+            ) : (
+              <p style={{ fontSize: 13, color: "var(--text3)", textAlign: "center", padding: "2rem" }}>توضیحاتی برای این محصول ثبت نشده است.</p>
+            )
+          )}
+
+          {/* Specs Tab */}
+          {activeTab === "specs" && (
+            product.specs.length > 0 ? (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <tbody>
+                  {product.specs.map((spec, i) => (
+                    <tr key={spec.id} style={{ borderBottom: "1px solid var(--border)", background: i % 2 === 0 ? "#fff" : "var(--bg)" }}>
+                      <td style={{ padding: "10px 16px", fontWeight: 700, color: "var(--text)", width: "35%", borderLeft: "2px solid var(--border)" }}>{spec.key}</td>
+                      <td style={{ padding: "10px 16px", color: "var(--text2)" }}>{spec.value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p style={{ fontSize: 13, color: "var(--text3)", textAlign: "center", padding: "2rem" }}>مشخصات فنی برای این محصول ثبت نشده است.</p>
+            )
+          )}
+
+          {/* Reviews Tab */}
+          {activeTab === "reviews" && (
+            product.reviews.length === 0 ? (
+              <p style={{ fontSize: 13, color: "var(--text3)", textAlign: "center", padding: "2rem" }}>هنوز نظری ثبت نشده است.</p>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {product.reviews.map((rev) => (
                   <div key={rev.id} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: 14 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700 }}>
-                        {rev.user.firstName} {rev.user.lastName}
-                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 700 }}>{rev.user.firstName} {rev.user.lastName}</span>
                       <div style={{ display: "flex", gap: 2 }}>
                         {[1,2,3,4,5].map((s) => (
                           <i key={s} className={s <= rev.rating ? "ti ti-star-filled" : "ti ti-star"} style={{ fontSize: 12, color: "#f39c12" }} />
@@ -393,8 +444,65 @@ export default function ProductDetailPage() {
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            )
+          )}
+
+          {/* Q&A Tab */}
+          {activeTab === "qa" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Answered questions */}
+              {product.questions.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {product.questions.map((q) => (
+                    <div key={q.id} style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
+                      <div style={{ background: "var(--bg)", padding: "10px 14px", display: "flex", gap: 10 }}>
+                        <i className="ti ti-question-mark" style={{ color: "var(--primary)", fontSize: 16, flexShrink: 0, marginTop: 2 }} />
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 700 }}>{q.question}</div>
+                          <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 2 }}>{q.user.firstName} {q.user.lastName}</div>
+                        </div>
+                      </div>
+                      {q.answer && (
+                        <div style={{ padding: "10px 14px", display: "flex", gap: 10, background: "#f0f9ff" }}>
+                          <i className="ti ti-message-circle-check" style={{ color: "#16a34a", fontSize: 16, flexShrink: 0, marginTop: 2 }} />
+                          <p style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.7, margin: 0 }}>{q.answer}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Submit question form */}
+              <div style={{ borderTop: product.questions.length > 0 ? "1px solid var(--border)" : "none", paddingTop: product.questions.length > 0 ? 16 : 0 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 900, color: "var(--primary)", margin: "0 0 12px" }}>سوال خود را بپرسید</h3>
+                {questionDone ? (
+                  <div style={{ background: "#dcfce7", border: "1px solid #86efac", borderRadius: 8, padding: "12px 16px", fontSize: 13, color: "#166534", fontWeight: 700 }}>
+                    ✅ سوال شما ثبت شد. پس از بررسی و پاسخ توسط کارشناسان، نمایش داده می‌شود.
+                  </div>
+                ) : !session ? (
+                  <p style={{ fontSize: 13, color: "var(--text3)" }}>برای ثبت سوال لطفاً <Link href="/" style={{ color: "var(--primary)", fontWeight: 700 }}>وارد شوید</Link>.</p>
+                ) : (
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <input
+                      value={questionText}
+                      onChange={(e) => setQuestionText(e.target.value)}
+                      placeholder="سوال خود را بنویسید..."
+                      style={{ flex: 1, border: "1.5px solid var(--border)", borderRadius: 8, padding: "10px 14px", fontFamily: "Vazirmatn", fontSize: 13, outline: "none" }}
+                      onKeyDown={(e) => e.key === "Enter" && !questionLoading && submitQuestion()}
+                    />
+                    <button
+                      onClick={submitQuestion}
+                      disabled={questionLoading || !questionText.trim()}
+                      style={{ background: "var(--primary)", color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", opacity: questionLoading ? .7 : 1 }}
+                    >
+                      {questionLoading ? "..." : "ارسال سوال"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -35,6 +35,7 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
   const [isNew, setIsNew] = useState(false);
   const [tags, setTags] = useState("");
   const [images, setImages] = useState<PImage[]>([]);
+  const [specs, setSpecs] = useState<{ key: string; value: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,6 +85,10 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
         setIsNew(!!p.isNew);
         setTags((p.tags ?? []).join(", "));
         setImages((p.images ?? []).map((img: PImage, i: number) => ({ ...img, sortOrder: i })));
+      })
+      .then(() => {
+        // Load specs separately
+        if (productId) fetch(`/api/admin/products/${productId}/specs`).then(r => r.json()).then(d => setSpecs((d.specs ?? []).map((s: { key: string; value: string }) => ({ key: s.key, value: s.value }))));
       })
       .finally(() => setLoading(false));
   }, [productId]);
@@ -174,6 +179,16 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
         return;
       }
 
+      // Save specs if product exists (new product: save after creation)
+      const savedProductId = productId ?? data.product?.id;
+      if (savedProductId && specs.length >= 0) {
+        await fetch(`/api/admin/products/${savedProductId}/specs`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ specs: specs.filter(s => s.key.trim() && s.value.trim()) }),
+        });
+      }
+
       showToast("success", productId ? "محصول با موفقیت ویرایش شد" : "محصول با موفقیت ذخیره شد");
       setTimeout(onSuccess, 1200);
     } catch {
@@ -260,6 +275,29 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
                 <label style={lbl}>تگ‌ها <span style={{ color: "var(--text3)", fontWeight: 700 }}>(با کاما جدا کنید)</span></label>
                 <input value={tags} onChange={(e) => setTags(e.target.value)} style={inp} placeholder="شیر، توپی، برنجی، ۱ اینچ" />
               </div>
+            </div>
+          </div>
+
+          {/* Specs */}
+          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)" }}>
+            <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border)", fontSize: 14, fontWeight: 900, color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              مشخصات فنی
+              <button type="button" onClick={() => setSpecs(s => [...s, { key: "", value: "" }])} style={{ background: "var(--primary)", color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>+ افزودن ردیف</button>
+            </div>
+            <div style={{ padding: "1rem 1.5rem" }}>
+              {specs.length === 0 ? (
+                <p style={{ fontSize: 12, color: "var(--text3)", textAlign: "center" }}>ردیفی ندارد — روی «افزودن ردیف» کلیک کنید</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {specs.map((sp, i) => (
+                    <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <input value={sp.key} onChange={e => setSpecs(s => s.map((x, j) => j === i ? { ...x, key: e.target.value } : x))} placeholder="مشخصه (مثال: جنس)" style={{ ...inp, flex: 1 }} />
+                      <input value={sp.value} onChange={e => setSpecs(s => s.map((x, j) => j === i ? { ...x, value: e.target.value } : x))} placeholder="مقدار (مثال: برنجی)" style={{ ...inp, flex: 2 }} />
+                      <button type="button" onClick={() => setSpecs(s => s.filter((_, j) => j !== i))} style={{ background: "#fdecea", color: "#c0392b", border: "none", borderRadius: 6, width: 32, height: 32, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
