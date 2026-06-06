@@ -66,11 +66,11 @@ button {
 .cart-panel {
   position: fixed;
   left: 0;
-  top: 64px;
+  top: 0;
   bottom: 0;
   width: 380px;
   background: #fff;
-  z-index: 500;
+  z-index: 200;
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
@@ -85,7 +85,7 @@ button {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 400;
+  z-index: 190;
 }
 .cart-overlay.open {
   display: block;
@@ -240,7 +240,7 @@ html, body {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
-  z-index: 698;
+  z-index: 240;
 }
 .mobile-nav-overlay.open { display: block; }
 
@@ -252,7 +252,7 @@ html, body {
   width: 85vw;
   max-width: 320px;
   background: var(--primary-dark);
-  z-index: 699;
+  z-index: 250;
   transition: right 0.3s ease;
   overflow-y: auto;
   display: flex;
@@ -266,7 +266,7 @@ html, body {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 100;
+  z-index: 130;
 }
 .filter-overlay.open { display: block; }
 
@@ -278,7 +278,7 @@ html, body {
   width: 85vw;
   max-width: 300px;
   background: #fff;
-  z-index: 101;
+  z-index: 140;
   transition: right 0.3s ease;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);

@@ -65,7 +65,6 @@ const sections = [
 export default async function TermsPage() {
   const page = await getPage();
   const title = page?.title ?? "قوانین و مقررات";
-  const hasCustomContent = !!page?.content;
 
   return (
     <>
@@ -94,41 +93,39 @@ export default async function TermsPage() {
       </div>
 
       <div style={{ maxWidth: 1000, margin: "3rem auto", padding: "0 2rem" }}>
-        {hasCustomContent ? (
-          /* CMS custom content */
-          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "2rem" }}>
-            <div className="prose-content" style={{ lineHeight: 2, color: "var(--text2)" }} dangerouslySetInnerHTML={{ __html: page!.content }} />
-          </div>
+        {/* Intro — CMS content if available, otherwise default note */}
+        {page?.content ? (
+          <div className="prose-content" style={{ fontSize: 14, lineHeight: 2, color: "var(--text2)", marginBottom: "2.5rem", padding: "1.25rem 1.5rem", background: "var(--bg2)", borderRadius: "var(--radius)", borderRight: "4px solid var(--primary)" }} dangerouslySetInnerHTML={{ __html: page.content }} />
         ) : (
-          /* Default structured layout */
-          <>
-            <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 2, marginBottom: "2.5rem", padding: "1.25rem 1.5rem", background: "var(--bg2)", borderRadius: "var(--radius)", borderRight: "4px solid var(--primary)" }}>
-              لطفاً قبل از خرید، قوانین و مقررات زیر را به دقت مطالعه فرمایید. استفاده از خدمات مارجان به منزله پذیرش کامل این قوانین است.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              {sections.map((s, i) => (
-                <div key={s.title} style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", overflow: "hidden", display: "flex" }}>
-                  {/* Number strip */}
-                  <div style={{ width: 56, background: s.color, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0, gap: 6 }}>
-                    <i className={`ti ${s.icon}`} style={{ fontSize: 22, color: s.iconColor }} />
-                    <span style={{ fontSize: 11, fontWeight: 900, color: s.iconColor }}>{(i + 1).toLocaleString("fa-IR")}</span>
-                  </div>
-                  <div style={{ padding: "1.25rem 1.5rem", flex: 1 }}>
-                    <h3 style={{ fontSize: 15, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>{s.title}</h3>
-                    <p style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.9 }}>{s.content}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: "2rem", padding: "1.25rem 1.5rem", background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", display: "flex", alignItems: "center", gap: 12 }}>
-              <i className="ti ti-phone" style={{ fontSize: 24, color: "var(--accent)", flexShrink: 0 }} />
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text)", marginBottom: 2 }}>سوال دارید؟</div>
-                <div style={{ fontSize: 13, color: "var(--text2)" }}>با تیم پشتیبانی مارجان تماس بگیرید: <Link href="/contact" style={{ color: "var(--primary)", fontWeight: 700 }}>صفحه تماس با ما</Link></div>
+          <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 2, marginBottom: "2.5rem", padding: "1.25rem 1.5rem", background: "var(--bg2)", borderRadius: "var(--radius)", borderRight: "4px solid var(--primary)" }}>
+            لطفاً قبل از خرید، قوانین و مقررات زیر را به دقت مطالعه فرمایید. استفاده از خدمات مارجان به منزله پذیرش کامل این قوانین است.
+          </p>
+        )}
+
+        {/* Structured sections — always visible */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          {sections.map((s, i) => (
+            <div key={s.title} style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", overflow: "hidden", display: "flex" }}>
+              {/* Number strip */}
+              <div style={{ width: 56, background: s.color, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0, gap: 6 }}>
+                <i className={`ti ${s.icon}`} style={{ fontSize: 22, color: s.iconColor }} />
+                <span style={{ fontSize: 11, fontWeight: 900, color: s.iconColor }}>{(i + 1).toLocaleString("fa-IR")}</span>
+              </div>
+              <div style={{ padding: "1.25rem 1.5rem", flex: 1 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>{s.title}</h3>
+                <p style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.9 }}>{s.content}</p>
               </div>
             </div>
-          </>
-        )}
+          ))}
+        </div>
+
+        <div style={{ marginTop: "2rem", padding: "1.25rem 1.5rem", background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", display: "flex", alignItems: "center", gap: 12 }}>
+          <i className="ti ti-phone" style={{ fontSize: 24, color: "var(--accent)", flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text)", marginBottom: 2 }}>سوال دارید؟</div>
+            <div style={{ fontSize: 13, color: "var(--text2)" }}>با تیم پشتیبانی مارجان تماس بگیرید: <Link href="/contact" style={{ color: "var(--primary)", fontWeight: 700 }}>صفحه تماس با ما</Link></div>
+          </div>
+        </div>
       </div>
     </>
   );

@@ -105,7 +105,7 @@ export default function AuthModal({ onClose }: Props) {
         position: "fixed",
         inset: 0,
         background: "rgba(0,0,0,.55)",
-        zIndex: 700,
+        zIndex: 300,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

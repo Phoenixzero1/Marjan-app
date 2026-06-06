@@ -83,7 +83,6 @@ const sections = [
 export default async function PrivacyPage() {
   const page = await getPage();
   const title = page?.title ?? "حریم خصوصی";
-  const hasCustomContent = !!page?.content;
 
   return (
     <>
@@ -112,48 +111,46 @@ export default async function PrivacyPage() {
       </div>
 
       <div style={{ maxWidth: 1000, margin: "3rem auto", padding: "0 2rem" }}>
-        {hasCustomContent ? (
-          /* CMS custom content */
-          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "2rem" }}>
-            <div className="prose-content" style={{ lineHeight: 2, color: "var(--text2)" }} dangerouslySetInnerHTML={{ __html: page!.content }} />
-          </div>
+        {/* Intro — CMS content if available, otherwise default note */}
+        {page?.content ? (
+          <div className="prose-content" style={{ fontSize: 14, lineHeight: 2, color: "var(--text2)", marginBottom: "2.5rem", padding: "1.25rem 1.5rem", background: "var(--bg2)", borderRadius: "var(--radius)", borderRight: "4px solid var(--primary)" }} dangerouslySetInnerHTML={{ __html: page.content }} />
         ) : (
-          /* Default structured layout */
-          <>
-            <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 2, marginBottom: "2.5rem", padding: "1.25rem 1.5rem", background: "var(--bg2)", borderRadius: "var(--radius)", borderRight: "4px solid var(--primary)" }}>
-              مارجان متعهد است اطلاعات شخصی کاربران را با بالاترین استانداردهای امنیتی حفظ کند. این سیاست توضیح می‌دهد چه اطلاعاتی جمع‌آوری می‌شود و چگونه استفاده می‌گردد.
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: "1.25rem" }}>
-              {sections.map((s) => (
-                <div key={s.title} style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", overflow: "hidden" }}>
-                  {/* Section header */}
-                  <div style={{ background: s.color, padding: "1rem 1.25rem", display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 38, height: 38, background: "#fff", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <i className={`ti ${s.icon}`} style={{ fontSize: 20, color: s.iconColor }} />
-                    </div>
-                    <h3 style={{ fontSize: 14, fontWeight: 900, color: s.iconColor }}>{s.title}</h3>
-                  </div>
-                  {/* Items */}
-                  <ul style={{ padding: "1.25rem", listStyle: "none" }}>
-                    {s.items.map((item) => (
-                      <li key={item} style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.8, padding: "4px 0", display: "flex", alignItems: "flex-start", gap: 8 }}>
-                        <i className="ti ti-check" style={{ fontSize: 14, color: s.iconColor, flexShrink: 0, marginTop: 3 }} />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: "2rem", padding: "1.25rem 1.5rem", background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", display: "flex", alignItems: "center", gap: 12 }}>
-              <i className="ti ti-mail" style={{ fontSize: 24, color: "var(--accent)", flexShrink: 0 }} />
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text)", marginBottom: 2 }}>سوال درباره حریم خصوصی؟</div>
-                <div style={{ fontSize: 13, color: "var(--text2)" }}>از طریق <Link href="/contact" style={{ color: "var(--primary)", fontWeight: 700 }}>فرم تماس با ما</Link> اطلاع دهید.</div>
-              </div>
-            </div>
-          </>
+          <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 2, marginBottom: "2.5rem", padding: "1.25rem 1.5rem", background: "var(--bg2)", borderRadius: "var(--radius)", borderRight: "4px solid var(--primary)" }}>
+            مارجان متعهد است اطلاعات شخصی کاربران را با بالاترین استانداردهای امنیتی حفظ کند. این سیاست توضیح می‌دهد چه اطلاعاتی جمع‌آوری می‌شود و چگونه استفاده می‌گردد.
+          </p>
         )}
+
+        {/* Structured sections — always visible */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: "1.25rem" }}>
+          {sections.map((s) => (
+            <div key={s.title} style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", overflow: "hidden" }}>
+              {/* Section header */}
+              <div style={{ background: s.color, padding: "1rem 1.25rem", display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 38, height: 38, background: "#fff", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <i className={`ti ${s.icon}`} style={{ fontSize: 20, color: s.iconColor }} />
+                </div>
+                <h3 style={{ fontSize: 14, fontWeight: 900, color: s.iconColor }}>{s.title}</h3>
+              </div>
+              {/* Items */}
+              <ul style={{ padding: "1.25rem", listStyle: "none" }}>
+                {s.items.map((item) => (
+                  <li key={item} style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.8, padding: "4px 0", display: "flex", alignItems: "flex-start", gap: 8 }}>
+                    <i className="ti ti-check" style={{ fontSize: 14, color: s.iconColor, flexShrink: 0, marginTop: 3 }} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: "2rem", padding: "1.25rem 1.5rem", background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", display: "flex", alignItems: "center", gap: 12 }}>
+          <i className="ti ti-mail" style={{ fontSize: 24, color: "var(--accent)", flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text)", marginBottom: 2 }}>سوال درباره حریم خصوصی؟</div>
+            <div style={{ fontSize: 13, color: "var(--text2)" }}>از طریق <Link href="/contact" style={{ color: "var(--primary)", fontWeight: 700 }}>فرم تماس با ما</Link> اطلاع دهید.</div>
+          </div>
+        </div>
       </div>
     </>
   );

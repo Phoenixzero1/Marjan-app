@@ -85,7 +85,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav style={{ background: "var(--primary)", position: "sticky", top: 0, zIndex: 700, boxShadow: "var(--shadow-lg)" }}>
+      <nav style={{ background: "var(--primary)", position: "sticky", top: 0, zIndex: 50, boxShadow: "var(--shadow-lg)" }}>
         <div style={{ maxWidth: 1280, margin: "auto", padding: "0 1rem", display: "flex", alignItems: "center", gap: "0.75rem", height: 64 }}>
 
           {/* Hamburger — mobile only */}
@@ -193,7 +193,7 @@ export default function Navbar() {
                   <span className="hidden md:inline">{session.user.name?.split(" ")[0]}</span>
                 </button>
                 {userMenuOpen && (
-                  <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)", minWidth: 180, zIndex: 600, overflow: "hidden" }}>
+                  <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)", minWidth: 180, zIndex: 60, overflow: "hidden" }}>
                     <Link href="/dashboard" onClick={() => setUserMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", fontSize: 13, fontWeight: 700, color: "var(--text2)", minHeight: 44 }}>
                       <i className="ti ti-layout-dashboard" style={{ color: "var(--primary)" }} /> داشبورد
                     </Link>
@@ -347,7 +347,7 @@ export default function Navbar() {
 
       {/* Click-outside for user menu */}
       {userMenuOpen && (
-        <div onClick={() => setUserMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 599 }} />
+        <div onClick={() => setUserMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 55 }} />
       )}
     </>
   );
