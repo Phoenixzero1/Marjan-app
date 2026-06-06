@@ -1,7 +1,7 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
-
-import { prisma } from "@/lib/prisma";// GET — list all soft-deleted items across entities
+import { prisma } from "@/lib/prisma";
+import { z } from "zod";// GET — list all soft-deleted items across entities
 export async function GET() {
   if (!(await requirePermission("VIEW_ADMIN"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
@@ -31,32 +31,32 @@ export async function GET() {
   return NextResponse.json({ products, categories, blogPosts, orders });
 }
 
+const restoreSchema = z.object({
+  entity: z.enum(["product", "category", "blogPost", "order"]),
+  id: z.string().min(1, "شناسه الزامی است"),
+});
+
 // PATCH — restore a soft-deleted item
 export async function PATCH(req: NextRequest) {
   if (!(await requirePermission("VIEW_ADMIN"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const { entity, id } = await req.json() as { entity: string; id: string };
+  const body = await req.json();
+  const parsed = restoreSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
+  const { entity, id } = parsed.data;
 
-  const updateData = { deletedAt: null };
-
-  switch (entity) {
-    case "product":
-      await prisma.product.update({ where: { id }, data: updateData });
-      break;
-    case "category":
-      await prisma.category.update({ where: { id }, data: updateData });
-      break;
-    case "blogPost":
-      await prisma.blogPost.update({ where: { id }, data: updateData });
-      break;
-    case "order":
-      await prisma.order.update({ where: { id }, data: updateData });
-      break;
-    default:
-      return NextResponse.json({ error: "موجودیت نامعتبر" }, { status: 400 });
+  try {
+    const updateData = { deletedAt: null };
+    switch (entity) {
+      case "product":  await prisma.product.update({ where: { id }, data: updateData }); break;
+      case "category": await prisma.category.update({ where: { id }, data: updateData }); break;
+      case "blogPost": await prisma.blogPost.update({ where: { id }, data: updateData }); break;
+      case "order":    await prisma.order.update({ where: { id }, data: updateData }); break;
+    }
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "خطا در بازیابی آیتم" }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }
 
 // DELETE — permanently delete an item (cannot be undone)

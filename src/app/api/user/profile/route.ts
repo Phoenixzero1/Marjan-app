@@ -43,27 +43,20 @@ export async function PATCH(req: NextRequest) {
 
   const { firstName, lastName, email, nationalCode, companyName, city, postalCode } = parsed.data;
 
-  // Check email uniqueness if changing
-  if (email) {
-    const existing = await prisma.user.findFirst({
-      where: { email, id: { not: session.user.id } },
+  try {
+    if (email) {
+      const existing = await prisma.user.findFirst({ where: { email, id: { not: session.user.id } } });
+      if (existing) return NextResponse.json({ error: "این ایمیل توسط کاربر دیگری استفاده شده است" }, { status: 409 });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: session.user.id },
+      data: { firstName, lastName, email: email || null, nationalCode: nationalCode || null, companyName: companyName || null, city: city || null, postalCode: postalCode || null },
+      select: { id: true, firstName: true, lastName: true, email: true, phone: true, role: true },
     });
-    if (existing) return NextResponse.json({ error: "این ایمیل توسط کاربر دیگری استفاده شده است" }, { status: 409 });
+
+    return NextResponse.json({ user, message: "پروفایل با موفقیت بروزرسانی شد" });
+  } catch {
+    return NextResponse.json({ error: "خطا در بروزرسانی پروفایل" }, { status: 500 });
   }
-
-  const user = await prisma.user.update({
-    where: { id: session.user.id },
-    data: {
-      firstName,
-      lastName,
-      email: email || null,
-      nationalCode: nationalCode || null,
-      companyName: companyName || null,
-      city: city || null,
-      postalCode: postalCode || null,
-    },
-    select: { id: true, firstName: true, lastName: true, email: true, phone: true, role: true },
-  });
-
-  return NextResponse.json({ user, message: "پروفایل با موفقیت بروزرسانی شد" });
 }

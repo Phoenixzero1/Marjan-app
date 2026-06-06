@@ -28,15 +28,19 @@ export async function PATCH(
     return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
   }
 
-  const existing = await prisma.address.findFirst({ where: { id, userId: session.user.id } });
-  if (!existing) return NextResponse.json({ error: "آدرس یافت نشد" }, { status: 404 });
+  try {
+    const existing = await prisma.address.findFirst({ where: { id, userId: session.user.id } });
+    if (!existing) return NextResponse.json({ error: "آدرس یافت نشد" }, { status: 404 });
 
-  if (parsed.data.isDefault) {
-    await prisma.address.updateMany({ where: { userId: session.user.id }, data: { isDefault: false } });
+    if (parsed.data.isDefault) {
+      await prisma.address.updateMany({ where: { userId: session.user.id }, data: { isDefault: false } });
+    }
+
+    const address = await prisma.address.update({ where: { id }, data: parsed.data });
+    return NextResponse.json({ address });
+  } catch {
+    return NextResponse.json({ error: "خطا در بروزرسانی آدرس" }, { status: 500 });
   }
-
-  const address = await prisma.address.update({ where: { id }, data: parsed.data });
-  return NextResponse.json({ address });
 }
 
 export async function DELETE(

@@ -29,15 +29,15 @@ export async function PATCH(req: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
 
-  const question = await prisma.productQuestion.update({
-    where: { id: parsed.data.id },
-    data: {
-      answer: parsed.data.answer,
-      answeredAt: new Date(),
-      isApproved: parsed.data.isApproved ?? true,
-    },
-  });
-  return NextResponse.json({ question });
+  try {
+    const question = await prisma.productQuestion.update({
+      where: { id: parsed.data.id },
+      data: { answer: parsed.data.answer, answeredAt: new Date(), isApproved: parsed.data.isApproved ?? true },
+    });
+    return NextResponse.json({ question });
+  } catch {
+    return NextResponse.json({ error: "خطا در بروزرسانی سوال" }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest) {

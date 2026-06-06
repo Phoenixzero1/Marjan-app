@@ -49,11 +49,10 @@ export async function PUT(req: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
 
   const { slug, ...rest } = parsed.data;
-  const page = await prisma.page.upsert({
-    where: { slug },
-    update: rest,
-    create: parsed.data,
-  });
-
-  return NextResponse.json({ page });
+  try {
+    const page = await prisma.page.upsert({ where: { slug }, update: rest, create: parsed.data });
+    return NextResponse.json({ page });
+  } catch {
+    return NextResponse.json({ error: "خطا در ذخیره صفحه" }, { status: 500 });
+  }
 }

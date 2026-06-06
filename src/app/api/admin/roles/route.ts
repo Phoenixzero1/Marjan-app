@@ -92,14 +92,17 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "نمی‌توانید نقش خودتان را تغییر دهید" }, { status: 400 });
   }
 
-  const updated = await prisma.user.update({
-    where: { id: userId },
-    data: {
-      ...(role ? { role: role as "CUSTOMER" | "CONTRACTOR" | "CONTENT_MANAGER" | "ADMIN" | "SUPER_ADMIN" } : {}),
-      ...(status ? { status: status as "ACTIVE" | "SUSPENDED" | "PENDING_VERIFY" | "DELETED" } : {}),
-    },
-    select: { id: true, firstName: true, lastName: true, email: true, role: true, status: true },
-  });
-
-  return NextResponse.json({ success: true, user: updated });
+  try {
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(role ? { role: role as "CUSTOMER" | "CONTRACTOR" | "CONTENT_MANAGER" | "ADMIN" | "SUPER_ADMIN" } : {}),
+        ...(status ? { status: status as "ACTIVE" | "SUSPENDED" | "PENDING_VERIFY" | "DELETED" } : {}),
+      },
+      select: { id: true, firstName: true, lastName: true, email: true, role: true, status: true },
+    });
+    return NextResponse.json({ success: true, user: updated });
+  } catch {
+    return NextResponse.json({ error: "خطا در بروزرسانی نقش کاربر" }, { status: 500 });
+  }
 }

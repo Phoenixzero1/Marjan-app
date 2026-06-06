@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -72,8 +72,12 @@ export async function PATCH(req: NextRequest) {
   const parsed = itemSchema.partial().safeParse(data);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
 
-  const item = await prisma.menuItem.update({ where: { id }, data: parsed.data });
-  return NextResponse.json({ item });
+  try {
+    const item = await prisma.menuItem.update({ where: { id }, data: parsed.data });
+    return NextResponse.json({ item });
+  } catch {
+    return NextResponse.json({ error: "خطا در بروزرسانی منو" }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest) {
