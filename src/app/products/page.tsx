@@ -117,7 +117,7 @@ export default function ProductsPage() {
         <div className="grid products-layout" style={{ gap: "1.5rem", alignItems: "start" }}>
 
           {/* Sidebar — hidden on mobile, shown on md+ */}
-          <aside className="hidden md:block" style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1.5rem", position: "sticky", top: 100 }}>
+          <aside className="hidden md:block" style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1.5rem", position: "sticky", top: 112 }}>
             {filterBody}
           </aside>
 
