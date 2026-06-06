@@ -15,7 +15,7 @@ export default async function middleware(req: NextRequest) {
       url.pathname = "/";
       return NextResponse.redirect(url);
     }
-    if (!ADMIN_ROLES.includes((token.role as string) ?? "")) {
+    if (!ADMIN_ROLES.includes((token as { role?: string }).role ?? "")) {
       const url = req.nextUrl.clone();
       url.pathname = "/";
       return NextResponse.redirect(url);
@@ -51,7 +51,7 @@ export default async function middleware(req: NextRequest) {
   if (isPublicPage) {
     const maintenanceCookie = req.cookies.get("maintenance_mode")?.value;
     if (maintenanceCookie === "true") {
-      const role = (token?.role as string) ?? "";
+      const role = (token as { role?: string } | null)?.role ?? "";
       if (!["ADMIN", "SUPER_ADMIN"].includes(role)) {
         const url = req.nextUrl.clone();
         url.pathname = "/maintenance";
