@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   );
 
   await Promise.all(updates);
-  revalidateTag(SETTINGS_TAG, "max");
+  revalidateTag(SETTINGS_TAG);
   audit({ userId: session.user.id, action: "SETTINGS_UPDATE", entity: "SiteSettings", newValue: parsed.data, oldValue: oldMap, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ success: true });
 }

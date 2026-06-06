@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { audit } from "@/lib/audit";
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     ...(estimated !== undefined ? [prisma.siteSettings.upsert({ where: { key: "maintenance_estimated" }, update: { value: estimated }, create: { key: "maintenance_estimated", value: estimated, group: "maintenance" } })] : []),
   ]);
 
-  revalidateTag(SETTINGS_TAG, "max");
+  revalidateTag(SETTINGS_TAG);
 
   audit({
     userId: (session.user as { id: string }).id,

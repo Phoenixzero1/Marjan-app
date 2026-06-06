@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -55,6 +55,6 @@ export async function POST(req: NextRequest) {
     })
   ));
 
-  revalidateTag(SETTINGS_TAG, "max");
+  revalidateTag(SETTINGS_TAG);
   return NextResponse.json({ success: true });
 }
