@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -11,22 +11,22 @@ const specSchema = z.object({
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   if (!(await requirePermission("EDIT_PRODUCTS")))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
-  const { id } = await params;
+  const { id } = params;
   const specs = await prisma.productSpec.findMany({ where: { productId: id }, orderBy: { sortOrder: "asc" } });
   return NextResponse.json({ specs });
 }
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   if (!(await requirePermission("EDIT_PRODUCTS")))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
-  const { id } = await params;
+  const { id } = params;
   const body = await req.json();
 
   // Bulk replace: receive array of specs
@@ -51,7 +51,7 @@ export async function POST(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   if (!(await requirePermission("EDIT_PRODUCTS")))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });

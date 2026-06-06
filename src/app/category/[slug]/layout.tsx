@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Script from "next/script";
 import { prisma } from "@/lib/prisma";
 
@@ -19,9 +19,9 @@ async function getCategory(slug: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug } = params;
   const cat = await getCategory(slug);
   if (!cat) return { title: "دسته‌بندی | مارجان" };
 
@@ -48,9 +48,9 @@ export default async function CategoryLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }) {
-  const { slug } = await params;
+  const { slug } = params;
   const cat = await getCategory(slug);
   if (!cat) return <>{children}</>;
 

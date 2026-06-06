@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -7,12 +7,12 @@ const schema = z.object({ question: z.string().min(5, "سوال باید حدا�
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: { slug: string } }
 ) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "لطفاً وارد شوید" }, { status: 401 });
 
-  const { slug } = await params;
+  const { slug } = params;
   const product = await prisma.product.findUnique({ where: { slug }, select: { id: true } });
   if (!product) return NextResponse.json({ error: "محصول یافت نشد" }, { status: 404 });
 

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import Script from "next/script";
 
@@ -21,9 +21,9 @@ async function getProduct(slug: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug } = params;
   const p = await getProduct(slug);
   if (!p) return { title: "محصول یافت نشد | مارجان" };
 
@@ -58,9 +58,9 @@ export default async function ProductLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }) {
-  const { slug } = await params;
+  const { slug } = params;
   const p = await getProduct(slug);
   if (!p) return <>{children}</>;
 

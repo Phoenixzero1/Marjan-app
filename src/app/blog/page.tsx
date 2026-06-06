@@ -59,9 +59,9 @@ const staticCategories = ["آموزش", "مقایسه", "فنی", "معرفی ب
 export default async function BlogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  const sp = await searchParams;
+  const sp = searchParams;
   const q = typeof sp.q === "string" && sp.q.trim() ? sp.q.trim() : undefined;
   const category = typeof sp.category === "string" && sp.category.trim() ? sp.category.trim() : undefined;
 

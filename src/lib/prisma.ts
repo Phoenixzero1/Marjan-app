@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -9,10 +10,10 @@ declare global {
 function createClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    // Return a proxy that throws helpful errors in non-runtime contexts
     return new PrismaClient();
   }
-  const adapter = new PrismaPg({ connectionString });
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
