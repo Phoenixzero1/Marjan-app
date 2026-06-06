@@ -101,7 +101,7 @@ button {
   box-shadow: var(--shadow-lg);
   border-radius: 0 0 var(--radius) var(--radius);
   min-width: 240px;
-  z-index: 300;
+  z-index: 100;
   padding: 8px 0;
 }
 .mega-item:hover .mega-drop {
@@ -137,7 +137,7 @@ button {
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
   border: 1.5px solid var(--border);
-  z-index: 500;
+  z-index: 100;
   max-height: 420px;
   overflow-y: auto;
 }

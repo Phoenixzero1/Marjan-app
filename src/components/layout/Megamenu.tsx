@@ -74,7 +74,7 @@ export default function Megamenu() {
         background: "var(--primary-mid)",
         position: "sticky",
         top: 64,
-        zIndex: 60,
+        zIndex: 49,
       }}
     >
       <div

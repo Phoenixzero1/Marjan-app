@@ -39,10 +39,22 @@ export default function Navbar() {
   // Hydration fix: don't render cart count until client has rehydrated the store
   const [mounted, setMounted] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    function handler(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [userMenuOpen]);
 
   useEffect(() => {
     if (query.length < 2) { setResults([]); setDropOpen(false); return; }
@@ -184,7 +196,7 @@ export default function Navbar() {
 
             {/* User menu */}
             {session?.user ? (
-              <div style={{ position: "relative" }}>
+              <div ref={menuRef} style={{ position: "relative" }}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   style={{ background: "rgba(255,255,255,.15)", border: "1px solid rgba(255,255,255,.3)", color: "#fff", padding: "8px 10px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, minHeight: 44 }}
@@ -193,7 +205,7 @@ export default function Navbar() {
                   <span className="hidden md:inline">{session.user.name?.split(" ")[0]}</span>
                 </button>
                 {userMenuOpen && (
-                  <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)", minWidth: 180, zIndex: 60, overflow: "hidden" }}>
+                  <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)", minWidth: 180, zIndex: 100, overflow: "hidden" }}>
                     <Link href="/dashboard" onClick={() => setUserMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", fontSize: 13, fontWeight: 700, color: "var(--text2)", minHeight: 44 }}>
                       <i className="ti ti-layout-dashboard" style={{ color: "var(--primary)" }} /> داشبورد
                     </Link>
@@ -344,11 +356,6 @@ export default function Navbar() {
 
       <CartPanel />
       {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
-
-      {/* Click-outside for user menu */}
-      {userMenuOpen && (
-        <div onClick={() => setUserMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 55 }} />
-      )}
     </>
   );
 }
