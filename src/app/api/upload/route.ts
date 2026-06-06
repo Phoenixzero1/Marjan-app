@@ -5,6 +5,7 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { audit } from "@/lib/audit";
 import { getClientIp } from "@/lib/rateLimit";
+import sharp from "sharp";
 
 // ── Whitelist ──────────────────────────────────────────────────────────────────
 const ALLOWED_MIME: Record<string, string> = {
@@ -104,9 +105,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── 5. Virus scan placeholder ─────────────────────────────────────────────
-    // TODO: pipe `buf` to ClamAV / VirusTotal API before saving
-    console.warn(`[Upload][VirusScan] Skipped for ${file.name} (${file.size} bytes) — integrate ClamAV here`);
+    // ── 5. Image dimension limit via Sharp (images only, not PDF) ────────────────
+    if (file.type !== "application/pdf") {
+      try {
+        const meta = await sharp(Buffer.from(bytes)).metadata();
+        const MAX_DIM = 4000;
+        if ((meta.width ?? 0) > MAX_DIM || (meta.height ?? 0) > MAX_DIM) {
+          return NextResponse.json(
+            { error: `ابعاد تصویر نباید بیشتر از ${MAX_DIM}×${MAX_DIM} پیکسل باشد` },
+            { status: 400 }
+          );
+        }
+      } catch {
+        return NextResponse.json({ error: "فایل تصویری معتبر نیست" }, { status: 400 });
+      }
+    }
 
     // ── 6. UUID filename — derived ext from MIME, never from user input ────────
     const safeExt = ALLOWED_MIME[file.type]; // e.g. "jpg", "png", "pdf"
