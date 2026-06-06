@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
-import { requirePermission } from "@/lib/permissions";
+﻿import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 const DAY_LABELS = ["ی", "د", "س", "چ", "پ", "ج", "ش"]; // Sun→Sat
 
 export async function GET() {
-  if (!(await requirePermission("VIEW_ADMIN")))
+  if (!(await requireAdmin()))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   const now = new Date();
