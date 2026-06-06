@@ -266,7 +266,6 @@ function CheckoutContent() {
                     {[
                       { key: "fullName", label: "نام و نام خانوادگی" },
                       { key: "phone", label: "تلفن", dir: "ltr" },
-                      { key: "province", label: "استان" },
                       { key: "city", label: "شهر" },
                       { key: "postalCode", label: "کد پستی", dir: "ltr" },
                       { key: "label", label: "برچسب (خانه، محل کار...)" },
@@ -281,6 +280,13 @@ function CheckoutContent() {
                         />
                       </div>
                     ))}
+                    <div>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 4 }}>استان</label>
+                      <select value={newAddr.province} onChange={(e) => setNewAddr((p) => ({ ...p, province: e.target.value }))} style={inputStyle}>
+                        <option value="">انتخاب استان...</option>
+                        {["آذربایجان شرقی","آذربایجان غربی","اردبیل","اصفهان","البرز","ایلام","بوشهر","تهران","چهارمحال و بختیاری","خراسان جنوبی","خراسان رضوی","خراسان شمالی","خوزستان","زنجان","سمنان","سیستان و بلوچستان","فارس","قزوین","قم","کردستان","کرمان","کرمانشاه","کهگیلویه و بویراحمد","گلستان","گیلان","لرستان","مازندران","مرکزی","هرمزگان","همدان","یزد"].map((p) => <option key={p} value={p}>{p}</option>)}
+                      </select>
+                    </div>
                   </div>
                   <div style={{ gridColumn: "1/-1", marginTop: 10 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 4 }}>آدرس کامل</label>

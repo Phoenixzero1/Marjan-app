@@ -46,6 +46,11 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  const count = await prisma.address.count({ where: { userId: session.user.id } });
+  if (count >= 5) {
+    return NextResponse.json({ error: "حداکثر ۵ آدرس می‌توانید ذخیره کنید" }, { status: 400 });
+  }
+
   const address = await prisma.address.create({
     data: { ...data, userId: session.user.id },
   });

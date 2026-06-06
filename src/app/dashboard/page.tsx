@@ -50,6 +50,8 @@ const inp: React.CSSProperties = {
 
 const emptyAddr = { label: "خانه", fullName: "", phone: "", province: "", city: "", address: "", postalCode: "", isDefault: false };
 
+const PROVINCES = ["آذربایجان شرقی","آذربایجان غربی","اردبیل","اصفهان","البرز","ایلام","بوشهر","تهران","چهارمحال و بختیاری","خراسان جنوبی","خراسان رضوی","خراسان شمالی","خوزستان","زنجان","سمنان","سیستان و بلوچستان","فارس","قزوین","قم","کردستان","کرمان","کرمانشاه","کهگیلویه و بویراحمد","گلستان","گیلان","لرستان","مازندران","مرکزی","هرمزگان","همدان","یزد"];
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -224,8 +226,16 @@ export default function DashboardPage() {
 
   // Address delete
   async function deleteAddress(id: string) {
+    if (!window.confirm("آیا از حذف این آدرس مطمئن هستید؟")) return;
     await fetch(`/api/addresses/${id}`, { method: "DELETE" });
     setAddresses((prev) => prev.filter((a) => a.id !== id));
+  }
+
+  async function setDefaultAddress(id: string) {
+    const res = await fetch(`/api/addresses/${id}/default`, { method: "PUT" });
+    if (res.ok) {
+      setAddresses((prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })));
+    }
   }
 
   // Remove from wishlist
@@ -645,7 +655,6 @@ export default function DashboardPage() {
                     { key: "label", label: "برچسب (مثلاً: خانه، محل کار)" },
                     { key: "fullName", label: "نام و نام خانوادگی گیرنده" },
                     { key: "phone", label: "شماره موبایل گیرنده" },
-                    { key: "province", label: "استان" },
                     { key: "city", label: "شهر" },
                     { key: "postalCode", label: "کد پستی (۱۰ رقم)" },
                   ] as { key: keyof typeof emptyAddr; label: string }[]).map(({ key, label }) => (
@@ -658,6 +667,13 @@ export default function DashboardPage() {
                       />
                     </div>
                   ))}
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 4 }}>استان</label>
+                    <select value={addrForm.province} onChange={(e) => setAddrForm((f) => ({ ...f, province: e.target.value }))} style={{ ...inp }}>
+                      <option value="">انتخاب استان...</option>
+                      {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
                   <div style={{ gridColumn: "span 2" }}>
                     <label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 4 }}>آدرس کامل</label>
                     <input
@@ -711,12 +727,22 @@ export default function DashboardPage() {
                       <div>{addr.address}</div>
                       <div style={{ color: "var(--text3)", fontSize: 12 }}>کد پستی: {addr.postalCode}</div>
                     </div>
-                    <button
-                      onClick={() => deleteAddress(addr.id)}
-                      style={{ marginTop: 12, background: "transparent", border: "1px solid #f5c6c6", color: "#c0392b", padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 700, fontFamily: "Vazirmatn", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
-                    >
-                      <i className="ti ti-trash" /> حذف
-                    </button>
+                    <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                      {!addr.isDefault && (
+                        <button
+                          onClick={() => setDefaultAddress(addr.id)}
+                          style={{ background: "transparent", border: "1px solid var(--primary)", color: "var(--primary)", padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 700, fontFamily: "Vazirmatn", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                        >
+                          <i className="ti ti-star" /> پیش‌فرض
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteAddress(addr.id)}
+                        style={{ background: "transparent", border: "1px solid #f5c6c6", color: "#c0392b", padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 700, fontFamily: "Vazirmatn", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                      >
+                        <i className="ti ti-trash" /> حذف
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

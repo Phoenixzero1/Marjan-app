@@ -139,6 +139,24 @@
   - [x] Fixed review upsert (@@unique removed, now findFirst+update/create)
   - [x] Fixed layout.tsx review author using reviewerName fallback
 
+## Senior Review - 12 Issues (all complete)
+- [x] Issue 1: Unified auth - removed jsonwebtoken, fixed token.role casts
+- [x] Issue 2: Double security - requireAdmin() added, all 39 admin routes guarded
+- [x] Issue 3: Rate limiting - admin API 100/hr/IP via middleware; auth/otp/contact already done
+- [x] Issue 4: File upload - Sharp dimension limit 4000x4000 added; magic bytes/UUID/path traversal already done
+- [x] Issue 5+7: Error handling - Zod + try/catch on 11 PATCH/PUT handlers; Persian errors standardized
+- [x] Issue 6: Pagination - all 5 endpoints verified; users/logs standardized to totalPages format
+- [x] Issue 8: Production scripts - db:migrate → deploy, db:seed → tsx, tsx installed
+- [x] Issue 9: Service layer - src/services/ with productService, orderService, userService, authService
+- [x] Issue 10: Size selector - disabled attr removed, OOS shows line-through + ناموجود badge + pointer cursor
+- [x] Issue 11: Cart panel - already correct (left: 0, translateX(-100%)) for RTL
+- [x] Issue 12: Address management:
+  - [x] POST /api/addresses: max 5 check added
+  - [x] PUT /api/addresses/[id]/default: new endpoint
+  - [x] Dashboard: Set Default button + delete confirmation + province select dropdown
+  - [x] Checkout: province select dropdown (31 Iranian provinces)
+  - [x] All address API routes verified (GET/POST/PATCH/DELETE/default)
+
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
 commit to GitHub, then ask me before continuing.
