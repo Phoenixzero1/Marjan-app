@@ -1,12 +1,21 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isRateLimited, getClientIp } from "@/lib/rateLimit";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
 
 export default async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.AUTH_SECRET });
   const { pathname } = req.nextUrl;
+
+  // ── Admin API rate limit: 100 requests / hour / IP ─────────────────────────
+  if (pathname.startsWith("/api/admin")) {
+    const ip = getClientIp(req as unknown as Request);
+    if (isRateLimited(`admin-api:${ip}`, 100, 60 * 60_000)) {
+      return NextResponse.json({ error: "تعداد درخواست‌های شما بیش از حد مجاز است. یک ساعت دیگر تلاش کنید." }, { status: 429 });
+    }
+  }
 
   // ── Admin pages & admin API ─────────────────────────────────────────────────
   if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
