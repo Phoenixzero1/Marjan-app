@@ -42,7 +42,7 @@ import { prisma } from "@/lib/prisma";export async function GET(req: NextRequest
 
   const levelCounts = Object.fromEntries(counts.map(c => [c.level, c._count._all]));
 
-  return NextResponse.json({ logs, total, page, pages: Math.ceil(total / limit), levelCounts });
+  return NextResponse.json({ logs, pagination: { total, page, limit, totalPages: Math.ceil(total / limit) }, levelCounts });
 }
 
 export async function DELETE(req: NextRequest) {

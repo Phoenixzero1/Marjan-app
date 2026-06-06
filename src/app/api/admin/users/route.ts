@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     prisma.user.count({ where }),
   ]);
 
-  return NextResponse.json({ users, pagination: { total, page, limit } });
+  return NextResponse.json({ users, pagination: { total, page, limit, totalPages: Math.ceil(total / limit) } });
 }
 
 const createSchema = z.object({
