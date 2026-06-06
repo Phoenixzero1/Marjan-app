@@ -312,20 +312,22 @@ export default function ProductDetailPage() {
                   <button
                     key={sz.id}
                     onClick={() => setSelectedSize(selectedSize?.id === sz.id ? null : sz)}
-                    disabled={sz.stock === 0}
                     style={{
                       padding: "7px 16px",
-                      border: `2px solid ${selectedSize?.id === sz.id ? "var(--primary)" : "var(--border)"}`,
+                      border: `2px solid ${selectedSize?.id === sz.id ? "var(--primary)" : sz.stock === 0 ? "var(--border)" : "var(--border)"}`,
                       borderRadius: "var(--radius-sm)",
                       background: selectedSize?.id === sz.id ? "var(--primary)" : "#fff",
                       color: selectedSize?.id === sz.id ? "#fff" : sz.stock === 0 ? "var(--text3)" : "var(--text)",
                       fontSize: 13, fontWeight: 700, fontFamily: "Vazirmatn",
-                      cursor: sz.stock === 0 ? "not-allowed" : "pointer",
-                      opacity: sz.stock === 0 ? 0.5 : 1,
+                      cursor: "pointer",
+                      opacity: sz.stock === 0 ? 0.6 : 1,
+                      textDecoration: sz.stock === 0 ? "line-through" : "none",
+                      position: "relative",
                     }}
                   >
                     {sz.label} {sz.unit !== "PIECE" ? sz.unit.toLowerCase() : ""}
                     {sz.price && sz.price !== product.price ? ` — ${formatPrice(sz.price)}` : ""}
+                    {sz.stock === 0 && <span style={{ fontSize: 9, position: "absolute", top: -8, right: -4, background: "#e74c3c", color: "#fff", borderRadius: 10, padding: "1px 5px", fontWeight: 900, textDecoration: "none" }}>ناموجود</span>}
                   </button>
                 ))}
               </div>
@@ -340,21 +342,28 @@ export default function ProductDetailPage() {
               <button onClick={() => setQty(qty + 1)} style={{ width: 36, height: 44, background: "transparent", border: "none", fontSize: 18, cursor: "pointer", color: "var(--text)" }}>+</button>
             </div>
 
-            <button
-              onClick={handleAddToCart}
-              disabled={!inStock}
-              style={{
-                flex: 1, height: 44, background: inStock ? "var(--primary)" : "var(--border)",
-                color: "#fff", border: "none", borderRadius: "var(--radius-sm)",
-                fontSize: 14, fontWeight: 900, fontFamily: "Vazirmatn",
-                cursor: inStock ? "pointer" : "not-allowed",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                transition: "background 0.2s",
-              }}
-            >
-              <i className={addedToCart ? "ti ti-check" : "ti ti-shopping-cart"} />
-              {addedToCart ? "افزوده شد!" : inStock ? "افزودن به سبد خرید" : "ناموجود"}
-            </button>
+            {(() => {
+              const needsSize = product.sizes.length > 0 && !selectedSize;
+              const canAdd = !needsSize && inStock;
+              return (
+                <button
+                  onClick={handleAddToCart}
+                  disabled={!canAdd}
+                  style={{
+                    flex: 1, height: 44,
+                    background: canAdd ? "var(--primary)" : needsSize ? "var(--accent)" : "var(--border)",
+                    color: "#fff", border: "none", borderRadius: "var(--radius-sm)",
+                    fontSize: 14, fontWeight: 900, fontFamily: "Vazirmatn",
+                    cursor: canAdd ? "pointer" : "not-allowed",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    transition: "background 0.2s",
+                  }}
+                >
+                  <i className={addedToCart ? "ti ti-check" : needsSize ? "ti ti-hand-click" : "ti ti-shopping-cart"} />
+                  {addedToCart ? "افزوده شد!" : needsSize ? "ابتدا سایز را انتخاب کنید" : inStock ? "افزودن به سبد خرید" : "ناموجود"}
+                </button>
+              );
+            })()}
           </div>
 
           {/* Tags */}
