@@ -31,10 +31,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials, request) {
         try {
-          // Rate limit: max 5 login attempts per IP per 15 minutes
+          // Rate limit: max 20 login attempts per 5 minutes per IP
           if (request) {
             const ip = getClientIp(request as Request);
-            if (isRateLimited(`login:${ip}`, 5, 15 * 60_000)) {
+            if (isRateLimited(`login:${ip}`, 20, 5 * 60_000)) {
               throw new Error("RATE_LIMITED");
             }
           }
