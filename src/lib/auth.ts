@@ -180,6 +180,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
 
+    async redirect({ url, baseUrl }) {
+      return url.startsWith(baseUrl) ? url : baseUrl;
+    },
+
     async signIn({ account, profile }) {
       if (account?.provider === "google" && profile?.email) {
         const existing = await prisma.user.findFirst({ where: { email: profile.email } });

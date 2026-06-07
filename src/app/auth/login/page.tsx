@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -66,7 +66,17 @@ function LoginForm() {
     if (result?.error) {
       setError("ایمیل / شماره موبایل یا رمز عبور اشتباه است");
     } else {
-      router.replace(callbackUrl);
+      if (callbackUrl !== "/") {
+        router.replace(callbackUrl);
+        return;
+      }
+      const session = await getSession();
+      const role = (session?.user as { role?: string })?.role ?? "";
+      if (role === "ADMIN" || role === "SUPER_ADMIN") {
+        router.replace("/admin");
+      } else {
+        router.replace("/dashboard");
+      }
     }
   }
 
