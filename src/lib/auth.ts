@@ -30,71 +30,87 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, request) {
-        // Rate limit: max 5 login attempts per IP per 15 minutes
-        if (request) {
-          const ip = getClientIp(request as Request);
-          if (isRateLimited(`login:${ip}`, 5, 15 * 60_000)) {
-            throw new Error("RATE_LIMITED");
+        try {
+          // Rate limit: max 5 login attempts per IP per 15 minutes
+          if (request) {
+            const ip = getClientIp(request as Request);
+            if (isRateLimited(`login:${ip}`, 5, 15 * 60_000)) {
+              throw new Error("RATE_LIMITED");
+            }
           }
-        }
 
-        const parsed = loginSchema.safeParse(credentials);
-        if (!parsed.success) return null;
+          const parsed = loginSchema.safeParse(credentials);
+          if (!parsed.success) {
+            console.log("[auth] schema parse failed:", parsed.error.issues);
+            return null;
+          }
 
-        const { phone, email, password } = parsed.data;
+          const { phone, email, password } = parsed.data;
+          console.log("[auth] authorize attempt — email:", email, "phone:", phone);
 
-        const user = await prisma.user.findFirst({
-          where: {
-            OR: [
-              phone ? { phone } : undefined,
-              email ? { email } : undefined,
-            ].filter(Boolean) as object[],
-          },
-        });
-
-        if (!user?.passwordHash) return null;
-
-        const isValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isValid) return null;
-
-        if (user.status === "SUSPENDED" || user.status === "DELETED") return null;
-
-        // Extract IP and User-Agent for session tracking
-        const ip = request ? getClientIp(request as Request) : null;
-        const ua = request
-          ? ((request as Request).headers as Headers).get("user-agent") ?? null
-          : null;
-
-        // Create a tracked session record in the database
-        const sessionToken = crypto.randomUUID();
-        const expires = new Date(Date.now() + SESSION_TTL_MS);
-
-        await prisma.$transaction([
-          prisma.user.update({
-            where: { id: user.id },
-            data: { lastLoginAt: new Date() },
-          }),
-          prisma.session.create({
-            data: {
-              sessionToken,
-              userId: user.id,
-              expires,
-              ipAddress: ip,
-              userAgent: ua,
+          const user = await prisma.user.findFirst({
+            where: {
+              OR: [
+                phone ? { phone } : undefined,
+                email ? { email } : undefined,
+              ].filter(Boolean) as object[],
             },
-          }),
-        ]);
+          });
 
-        return {
-          id: user.id,
-          email: user.email ?? undefined,
-          name: `${user.firstName} ${user.lastName}`,
-          phone: user.phone ?? undefined,
-          role: user.role,
-          image: user.avatarUrl ?? undefined,
-          // Custom field — picked up in the jwt callback below
-          sessionToken,
-        };
+          console.log("[auth] user found:", !!user, "hasHash:", !!user?.passwordHash);
+
+          if (!user?.passwordHash) return null;
+
+          const isValid = await bcrypt.compare(password, user.passwordHash);
+          console.log("[auth] password valid:", isValid);
+
+          if (!isValid) return null;
+
+          if (user.status === "SUSPENDED" || user.status === "DELETED") return null;
+
+          // Extract IP and User-Agent for session tracking
+          const ip = request ? getClientIp(request as Request) : null;
+          const ua = request
+            ? ((request as Request).headers as Headers).get("user-agent") ?? null
+            : null;
+
+          // Create a tracked session record — wrapped so DB errors don't block login
+          const sessionToken = crypto.randomUUID();
+          const expires = new Date(Date.now() + SESSION_TTL_MS);
+
+          try {
+            await prisma.$transaction([
+              prisma.user.update({
+                where: { id: user.id },
+                data: { lastLoginAt: new Date() },
+              }),
+              prisma.session.create({
+                data: {
+                  sessionToken,
+                  userId: user.id,
+                  expires,
+                  ipAddress: ip,
+                  userAgent: ua,
+                },
+              }),
+            ]);
+          } catch (sessionErr) {
+            console.error("[auth] session tracking failed (non-fatal):", sessionErr);
+          }
+
+          return {
+            id: user.id,
+            email: user.email ?? undefined,
+            name: `${user.firstName} ${user.lastName}`,
+            phone: user.phone ?? undefined,
+            role: user.role,
+            image: user.avatarUrl ?? undefined,
+            sessionToken,
+          };
+        } catch (err) {
+          console.error("[auth] authorize error:", err);
+          throw err;
+        }
       },
     }),
   ],
