@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -7,10 +8,10 @@ import { isRateLimited, getClientIp, limitExceeded } from "@/lib/rateLimit";
 const schema = z.object({
   identifier: z
     .string()
-    .min(1, "این فیلد الزامی است")
+    .min(1, "Ø§ÛŒÙ† ÙÛŒÙ„Ø¯ Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª")
     .refine(
       (v) => /^[\w.+-]+@[\w-]+\.[a-z]{2,}$/i.test(v) || /^09\d{9}$/.test(v),
-      "ایمیل یا شماره موبایل معتبر نیست"
+      "Ø§ÛŒÙ…ÛŒÙ„ ÛŒØ§ Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ Ù…Ø¹ØªØ¨Ø± Ù†ÛŒØ³Øª"
     ),
 });
 
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
   // Rate limit: max 3 reset requests per IP per 15 minutes
   const ip = getClientIp(req);
   if (isRateLimited(`reset-request:${ip}`, 3, 15 * 60_000)) {
-    return limitExceeded("تعداد درخواست‌های بازیابی رمز بیش از حد است. ۱۵ دقیقه صبر کنید.");
+    return limitExceeded("ØªØ¹Ø¯Ø§Ø¯ Ø¯Ø±Ø®ÙˆØ§Ø³Øªâ€ŒÙ‡Ø§ÛŒ Ø¨Ø§Ø²ÛŒØ§Ø¨ÛŒ Ø±Ù…Ø² Ø¨ÛŒØ´ Ø§Ø² Ø­Ø¯ Ø§Ø³Øª. Û±Ûµ Ø¯Ù‚ÛŒÙ‚Ù‡ ØµØ¨Ø± Ú©Ù†ÛŒØ¯.");
   }
 
   try {
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "ورودی نامعتبر" },
+        { error: parsed.error.issues[0]?.message ?? "ÙˆØ±ÙˆØ¯ÛŒ Ù†Ø§Ù…Ø¹ØªØ¨Ø±" },
         { status: 400 }
       );
     }
@@ -58,16 +59,16 @@ export async function POST(req: NextRequest) {
 
     if (isEmail && user.email) {
       // In production: send email via SMTP
-      // await sendEmail(user.email, "بازیابی رمز عبور مارجان", resetUrl)
+      // await sendEmail(user.email, "Ø¨Ø§Ø²ÛŒØ§Ø¨ÛŒ Ø±Ù…Ø² Ø¹Ø¨ÙˆØ± Ù…Ø§Ø±Ø¬Ø§Ù†", resetUrl)
       console.log(`[Password Reset] Email: ${user.email} | URL: ${resetUrl}`);
     } else if (user.phone) {
       // In production: send SMS with reset link
-      // await sendSms(user.phone, `لینک بازیابی رمز: ${resetUrl}`)
+      // await sendSms(user.phone, `Ù„ÛŒÙ†Ú© Ø¨Ø§Ø²ÛŒØ§Ø¨ÛŒ Ø±Ù…Ø²: ${resetUrl}`)
       console.log(`[Password Reset] Phone: ${user.phone} | URL: ${resetUrl}`);
     }
 
     return NextResponse.json({ success: true });
   } catch {
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    return NextResponse.json({ error: "Ø®Ø·Ø§ÛŒ Ø³Ø±ÙˆØ±" }, { status: 500 });
   }
 }

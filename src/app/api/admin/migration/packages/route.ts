@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 import { readdir, readFile, stat } from "fs/promises";
@@ -8,7 +9,7 @@ const PACKAGES_DIR = path.join(process.cwd(), "migration-packages");
 
 export async function GET() {
   if (!(await requirePermission("MANAGE_BACKUP")))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   if (!existsSync(PACKAGES_DIR)) return NextResponse.json({ packages: [] });
 

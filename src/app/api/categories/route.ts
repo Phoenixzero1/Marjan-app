@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
         },
       });
       if (!category) {
-        return NextResponse.json({ error: "دسته‌بندی یافت نشد" }, { status: 404 });
+        return NextResponse.json({ error: "Ø¯Ø³ØªÙ‡â€ŒØ¨Ù†Ø¯ÛŒ ÛŒØ§ÙØª Ù†Ø´Ø¯" }, { status: 404 });
       }
       return NextResponse.json({ category });
     }
@@ -40,6 +41,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(categories);
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    return NextResponse.json({ error: "Ø®Ø·Ø§ÛŒ Ø³Ø±ÙˆØ±" }, { status: 500 });
   }
 }

@@ -1,11 +1,12 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { isRateLimited, getClientIp, limitExceeded } from "@/lib/rateLimit";
 
 const schema = z.object({
-  phone: z.string().regex(/^09\d{9}$/, "شماره موبایل معتبر نیست"),
-  code: z.string().length(6, "کد باید ۶ رقمی باشد"),
+  phone: z.string().regex(/^09\d{9}$/, "Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ Ù…Ø¹ØªØ¨Ø± Ù†ÛŒØ³Øª"),
+  code: z.string().length(6, "Ú©Ø¯ Ø¨Ø§ÛŒØ¯ Û¶ Ø±Ù‚Ù…ÛŒ Ø¨Ø§Ø´Ø¯"),
   purpose: z.enum(["register", "login", "reset"]),
 });
 
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest) {
   // Block IPs hammering the endpoint from rotating phones
   const ip = getClientIp(req);
   if (isRateLimited(`otp-verify:ip:${ip}`, 3, 10 * 60_000)) {
-    return limitExceeded("تعداد تلاش‌های تأیید OTP بیش از حد مجاز است. ۱۰ دقیقه صبر کنید.");
+    return limitExceeded("ØªØ¹Ø¯Ø§Ø¯ ØªÙ„Ø§Ø´â€ŒÙ‡Ø§ÛŒ ØªØ£ÛŒÛŒØ¯ OTP Ø¨ÛŒØ´ Ø§Ø² Ø­Ø¯ Ù…Ø¬Ø§Ø² Ø§Ø³Øª. Û±Û° Ø¯Ù‚ÛŒÙ‚Ù‡ ØµØ¨Ø± Ú©Ù†ÛŒØ¯.");
   }
 
   try {
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "ورودی نامعتبر" },
+        { error: parsed.error.issues[0]?.message ?? "ÙˆØ±ÙˆØ¯ÛŒ Ù†Ø§Ù…Ø¹ØªØ¨Ø±" },
         { status: 400 }
       );
     }
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     // Per-phone limit: max 5 verify attempts per phone per 10 minutes (brute-force guard)
     if (isRateLimited(`otp-verify:phone:${phone}`, 3, 10 * 60_000)) {
-      return limitExceeded("تعداد تلاش‌های تأیید برای این شماره بیش از حد است. ۱۰ دقیقه صبر کنید.");
+      return limitExceeded("ØªØ¹Ø¯Ø§Ø¯ ØªÙ„Ø§Ø´â€ŒÙ‡Ø§ÛŒ ØªØ£ÛŒÛŒØ¯ Ø¨Ø±Ø§ÛŒ Ø§ÛŒÙ† Ø´Ù…Ø§Ø±Ù‡ Ø¨ÛŒØ´ Ø§Ø² Ø­Ø¯ Ø§Ø³Øª. Û±Û° Ø¯Ù‚ÛŒÙ‚Ù‡ ØµØ¨Ø± Ú©Ù†ÛŒØ¯.");
     }
 
     const otp = await prisma.otpCode.findFirst({
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     if (!otp) {
       return NextResponse.json(
-        { error: "کد تأیید نامعتبر یا منقضی شده است" },
+        { error: "Ú©Ø¯ ØªØ£ÛŒÛŒØ¯ Ù†Ø§Ù…Ø¹ØªØ¨Ø± ÛŒØ§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª" },
         { status: 400 }
       );
     }
@@ -64,6 +65,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, verified: true });
   } catch {
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    return NextResponse.json({ error: "Ø®Ø·Ø§ÛŒ Ø³Ø±ÙˆØ±" }, { status: 500 });
   }
 }

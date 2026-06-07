@@ -1,10 +1,11 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { isRateLimited, getClientIp } from "@/lib/rateLimit";
 
 const schema = z.object({
-  phone: z.string().regex(/^09\d{9}$/, "شماره موبایل معتبر نیست"),
+  phone: z.string().regex(/^09\d{9}$/, "Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ Ù…Ø¹ØªØ¨Ø± Ù†ÛŒØ³Øª"),
   purpose: z.enum(["register", "login", "reset"]),
 });
 
@@ -16,7 +17,7 @@ function generateOtp(): string {
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
   if (isRateLimited(`otp:${ip}`, 3, 10 * 60_000)) {
-    return NextResponse.json({ error: "تعداد درخواست‌های OTP بیش از حد است. ۱۰ دقیقه صبر کنید." }, { status: 429 });
+    return NextResponse.json({ error: "ØªØ¹Ø¯Ø§Ø¯ Ø¯Ø±Ø®ÙˆØ§Ø³Øªâ€ŒÙ‡Ø§ÛŒ OTP Ø¨ÛŒØ´ Ø§Ø² Ø­Ø¯ Ø§Ø³Øª. Û±Û° Ø¯Ù‚ÛŒÙ‚Ù‡ ØµØ¨Ø± Ú©Ù†ÛŒØ¯." }, { status: 429 });
   }
 
   try {
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "ورودی نامعتبر" },
+        { error: parsed.error.issues[0]?.message ?? "ÙˆØ±ÙˆØ¯ÛŒ Ù†Ø§Ù…Ø¹ØªØ¨Ø±" },
         { status: 400 }
       );
     }
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     if (recentCount >= 3) {
       return NextResponse.json(
-        { error: "تعداد درخواست‌های OTP بیش از حد مجاز است. ۱۰ دقیقه صبر کنید." },
+        { error: "ØªØ¹Ø¯Ø§Ø¯ Ø¯Ø±Ø®ÙˆØ§Ø³Øªâ€ŒÙ‡Ø§ÛŒ OTP Ø¨ÛŒØ´ Ø§Ø² Ø­Ø¯ Ù…Ø¬Ø§Ø² Ø§Ø³Øª. Û±Û° Ø¯Ù‚ÛŒÙ‚Ù‡ ØµØ¨Ø± Ú©Ù†ÛŒØ¯." },
         { status: 429 }
       );
     }
@@ -68,16 +69,16 @@ export async function POST(req: NextRequest) {
       console.log(`[OTP] Phone: ${phone} | Purpose: ${purpose} | Code: ${code}`);
     } else {
       // TODO: integrate SMS gateway
-      // await sendSms(phone, `کد تأیید مارجان: ${code}`)
+      // await sendSms(phone, `Ú©Ø¯ ØªØ£ÛŒÛŒØ¯ Ù…Ø§Ø±Ø¬Ø§Ù†: ${code}`)
     }
 
     return NextResponse.json({
       success: true,
-      message: "کد تأیید ارسال شد",
+      message: "Ú©Ø¯ ØªØ£ÛŒÛŒØ¯ Ø§Ø±Ø³Ø§Ù„ Ø´Ø¯",
       // Expose code only in development
       ...(process.env.NODE_ENV === "development" ? { code } : {}),
     });
   } catch {
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    return NextResponse.json({ error: "Ø®Ø·Ø§ÛŒ Ø³Ø±ÙˆØ±" }, { status: 500 });
   }
 }

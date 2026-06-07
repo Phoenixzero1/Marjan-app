@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -60,14 +61,14 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     if (err instanceof z.ZodError)
       return NextResponse.json({ error: err.issues[0]?.message }, { status: 400 });
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    return NextResponse.json({ error: "Ø®Ø·Ø§ÛŒ Ø³Ø±ÙˆØ±" }, { status: 500 });
   }
 }
 
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id)
-    return NextResponse.json({ error: "نیاز به ورود دارید" }, { status: 401 });
+    return NextResponse.json({ error: "Ù†ÛŒØ§Ø² Ø¨Ù‡ ÙˆØ±ÙˆØ¯ Ø¯Ø§Ø±ÛŒØ¯" }, { status: 401 });
 
   const { searchParams } = req.nextUrl;
   const page = parseInt(searchParams.get("page") ?? "1");

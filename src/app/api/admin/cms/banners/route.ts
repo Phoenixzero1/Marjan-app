@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
@@ -17,7 +18,7 @@ const schema = z.object({
   endDate: z.string().optional().nullable(),
 });
 
-// Public GET — used by homepage and category pages
+// Public GET â€” used by homepage and category pages
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const type = searchParams.get("type") ?? "hero";
@@ -56,7 +57,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (!(await requirePermission("MANAGE_SETTINGS")))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
@@ -75,11 +76,11 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   if (!(await requirePermission("MANAGE_SETTINGS")))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   const body = await req.json();
   const { id, ...data } = body;
-  if (!id) return NextResponse.json({ error: "id الزامی است" }, { status: 400 });
+  if (!id) return NextResponse.json({ error: "id Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª" }, { status: 400 });
 
   const parsed = schema.partial().safeParse(data);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
@@ -95,24 +96,24 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   if (!(await requirePermission("MANAGE_SETTINGS")))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   const id = req.nextUrl.searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "id الزامی است" }, { status: 400 });
+  if (!id) return NextResponse.json({ error: "id Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª" }, { status: 400 });
 
   await prisma.banner.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }
 
-// PUT — reorder: receives [{id, sortOrder}]
+// PUT â€” reorder: receives [{id, sortOrder}]
 export async function PUT(req: NextRequest) {
   if (!(await requirePermission("MANAGE_SETTINGS")))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   const body = await req.json();
   const items: { id: string; sortOrder: number }[] = body.items ?? [];
   if (!Array.isArray(items) || items.length === 0)
-    return NextResponse.json({ error: "items الزامی است" }, { status: 400 });
+    return NextResponse.json({ error: "items Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª" }, { status: 400 });
 
   await prisma.$transaction(
     items.map(({ id, sortOrder }) => prisma.banner.update({ where: { id }, data: { sortOrder } }))

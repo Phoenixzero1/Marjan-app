@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -9,7 +10,7 @@ const itemSchema = z.object({
   quantity: z.number().int().min(1).max(100),
 });
 
-// GET — load cart from DB for the current user
+// GET â€” load cart from DB for the current user
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
@@ -32,11 +33,11 @@ export async function GET() {
   return NextResponse.json({ items });
 }
 
-// POST — add or update cart item
+// POST â€” add or update cart item
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "لطفاً وارد شوید" }, { status: 401 });
+    return NextResponse.json({ error: "Ù„Ø·ÙØ§Ù‹ ÙˆØ§Ø±Ø¯ Ø´ÙˆÛŒØ¯" }, { status: 401 });
   }
 
   const body = await req.json();
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     select: { id: true, stockQty: true },
   });
   if (!product) {
-    return NextResponse.json({ error: "محصول یافت نشد" }, { status: 404 });
+    return NextResponse.json({ error: "Ù…Ø­ØµÙˆÙ„ ÛŒØ§ÙØª Ù†Ø´Ø¯" }, { status: 404 });
   }
 
   const resolvedSizeId = sizeId ?? null;
@@ -71,11 +72,11 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ item });
 }
 
-// DELETE — remove item from DB cart
+// DELETE â€” remove item from DB cart
 export async function DELETE(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "لطفاً وارد شوید" }, { status: 401 });
+    return NextResponse.json({ error: "Ù„Ø·ÙØ§Ù‹ ÙˆØ§Ø±Ø¯ Ø´ÙˆÛŒØ¯" }, { status: 401 });
   }
 
   const { productId, sizeId } = await req.json();

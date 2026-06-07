@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -25,7 +26,7 @@ const orderSchema = z.object({
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id)
-    return NextResponse.json({ error: "نیاز به ورود دارید" }, { status: 401 });
+    return NextResponse.json({ error: "Ù†ÛŒØ§Ø² Ø¨Ù‡ ÙˆØ±ÙˆØ¯ Ø¯Ø§Ø±ÛŒØ¯" }, { status: 401 });
 
   const { searchParams } = req.nextUrl;
   const page = parseInt(searchParams.get("page") ?? "1");
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id)
-    return NextResponse.json({ error: "نیاز به ورود دارید" }, { status: 401 });
+    return NextResponse.json({ error: "Ù†ÛŒØ§Ø² Ø¨Ù‡ ÙˆØ±ÙˆØ¯ Ø¯Ø§Ø±ÛŒØ¯" }, { status: 401 });
 
   try {
     const body = await req.json();
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
     let subtotal = 0;
     const orderItems = data.items.map((item) => {
       const product = products.find((p) => p.id === item.productId);
-      if (!product) throw new Error(`محصول ${item.productId} پیدا نشد`);
+      if (!product) throw new Error(`Ù…Ø­ØµÙˆÙ„ ${item.productId} Ù¾ÛŒØ¯Ø§ Ù†Ø´Ø¯`);
       const sizePrice = item.sizeLabel
         ? product.sizes.find((s) => s.label === item.sizeLabel)?.price ?? product.price
         : product.price;
@@ -104,7 +105,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     if (err instanceof z.ZodError)
       return NextResponse.json({ error: err.issues[0]?.message }, { status: 400 });
-    const message = err instanceof Error ? err.message : "خطای سرور";
+    const message = err instanceof Error ? err.message : "Ø®Ø·Ø§ÛŒ Ø³Ø±ÙˆØ±";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

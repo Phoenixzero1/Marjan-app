@@ -1,10 +1,11 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const schema = z.object({
-  productId: z.string().min(1, "شناسه محصول الزامی است"),
+  productId: z.string().min(1, "Ø´Ù†Ø§Ø³Ù‡ Ù…Ø­ØµÙˆÙ„ Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª"),
   rating: z.number().int().min(1).max(5),
   title: z.string().max(100).optional(),
   content: z.string().max(1000).optional(),
@@ -12,7 +13,7 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "لطفاً وارد شوید" }, { status: 401 });
+  if (!session?.user?.id) return NextResponse.json({ error: "Ù„Ø·ÙØ§Ù‹ ÙˆØ§Ø±Ø¯ Ø´ÙˆÛŒØ¯" }, { status: 401 });
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
@@ -53,14 +54,14 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     review,
     message: review.isApproved
-      ? "نظر شما با موفقیت ثبت شد"
-      : "نظر شما ثبت شد و پس از تأیید نمایش داده خواهد شد",
+      ? "Ù†Ø¸Ø± Ø´Ù…Ø§ Ø¨Ø§ Ù…ÙˆÙÙ‚ÛŒØª Ø«Ø¨Øª Ø´Ø¯"
+      : "Ù†Ø¸Ø± Ø´Ù…Ø§ Ø«Ø¨Øª Ø´Ø¯ Ùˆ Ù¾Ø³ Ø§Ø² ØªØ£ÛŒÛŒØ¯ Ù†Ù…Ø§ÛŒØ´ Ø¯Ø§Ø¯Ù‡ Ø®ÙˆØ§Ù‡Ø¯ Ø´Ø¯",
   });
 }
 
 export async function GET(req: NextRequest) {
   const productId = req.nextUrl.searchParams.get("productId");
-  if (!productId) return NextResponse.json({ error: "شناسه محصول الزامی است" }, { status: 400 });
+  if (!productId) return NextResponse.json({ error: "Ø´Ù†Ø§Ø³Ù‡ Ù…Ø­ØµÙˆÙ„ Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª" }, { status: 400 });
 
   const reviews = await prisma.review.findMany({
     where: { productId, isApproved: true },

@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
@@ -104,7 +105,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // No search — use Prisma ORM (faster for browsing)
+    // No search â€” use Prisma ORM (faster for browsing)
     const where: Record<string, unknown> = { status, deletedAt: null };
     if (categoryId) where.categoryId = categoryId;
     if (brandId) where.brandId = brandId;
@@ -142,6 +143,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+    return NextResponse.json({ error: "Ø®Ø·Ø§ÛŒ Ø³Ø±ÙˆØ±" }, { status: 500 });
   }
 }

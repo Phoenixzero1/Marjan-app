@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
@@ -5,7 +6,7 @@ import { z } from "zod";
 
 export async function GET(req: NextRequest) {
   if (!(await requirePermission("EDIT_PRODUCTS")))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   const unanswered = req.nextUrl.searchParams.get("unanswered") === "true";
   const questions = await prisma.productQuestion.findMany({
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   if (!(await requirePermission("EDIT_PRODUCTS")))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   const body = await req.json();
   const schema = z.object({ id: z.string(), answer: z.string().min(2), isApproved: z.boolean().optional() });
@@ -36,15 +37,15 @@ export async function PATCH(req: NextRequest) {
     });
     return NextResponse.json({ question });
   } catch {
-    return NextResponse.json({ error: "خطا در بروزرسانی سوال" }, { status: 500 });
+    return NextResponse.json({ error: "Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ Ø³ÙˆØ§Ù„" }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   if (!(await requirePermission("EDIT_PRODUCTS")))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
   const id = req.nextUrl.searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "id الزامی است" }, { status: 400 });
+  if (!id) return NextResponse.json({ error: "id Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª" }, { status: 400 });
   await prisma.productQuestion.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

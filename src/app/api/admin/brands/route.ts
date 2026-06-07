@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
@@ -5,7 +6,7 @@ import { z } from "zod";
 
 const schema = z.object({
   name: z.string().min(1),
-  slug: z.string().min(1).regex(/^[a-z0-9-]+$/, "اسلاگ فقط حروف انگلیسی، اعداد و خط تیره"),
+  slug: z.string().min(1).regex(/^[a-z0-9-]+$/, "Ø§Ø³Ù„Ø§Ú¯ ÙÙ‚Ø· Ø­Ø±ÙˆÙ Ø§Ù†Ú¯Ù„ÛŒØ³ÛŒØŒ Ø§Ø¹Ø¯Ø§Ø¯ Ùˆ Ø®Ø· ØªÛŒØ±Ù‡"),
   logoUrl: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
   country: z.string().optional().nullable(),
@@ -14,7 +15,7 @@ const schema = z.object({
 
 export async function GET() {
   if (!(await requirePermission("EDIT_PRODUCTS")))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   const brands = await prisma.brand.findMany({
     orderBy: { name: "asc" },
@@ -30,14 +31,14 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   if (!(await requirePermission("EDIT_PRODUCTS")))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
 
   const exists = await prisma.brand.findUnique({ where: { slug: parsed.data.slug } });
-  if (exists) return NextResponse.json({ error: "این اسلاگ قبلاً استفاده شده است" }, { status: 409 });
+  if (exists) return NextResponse.json({ error: "Ø§ÛŒÙ† Ø§Ø³Ù„Ø§Ú¯ Ù‚Ø¨Ù„Ø§Ù‹ Ø§Ø³ØªÙØ§Ø¯Ù‡ Ø´Ø¯Ù‡ Ø§Ø³Øª" }, { status: 409 });
 
   const brand = await prisma.brand.create({ data: parsed.data });
   return NextResponse.json({ brand }, { status: 201 });
@@ -45,11 +46,11 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   if (!(await requirePermission("EDIT_PRODUCTS")))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   const body = await req.json();
   const { id, ...data } = body;
-  if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
+  if (!id) return NextResponse.json({ error: "Ø´Ù†Ø§Ø³Ù‡ Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª" }, { status: 400 });
 
   const parsed = schema.partial().safeParse(data);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
@@ -60,10 +61,10 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const session = await requirePermission("EDIT_PRODUCTS");
-  if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+  if (!session) return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   const { id } = await req.json();
-  if (!id) return NextResponse.json({ error: "شناسه برند الزامی است" }, { status: 400 });
+  if (!id) return NextResponse.json({ error: "Ø´Ù†Ø§Ø³Ù‡ Ø¨Ø±Ù†Ø¯ Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª" }, { status: 400 });
 
   const productCount = await prisma.product.count({ where: { brandId: id } });
 

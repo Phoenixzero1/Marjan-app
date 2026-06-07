@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -25,10 +26,10 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "لطفاً وارد شوید" }, { status: 401 });
+  if (!session?.user?.id) return NextResponse.json({ error: "Ù„Ø·ÙØ§Ù‹ ÙˆØ§Ø±Ø¯ Ø´ÙˆÛŒØ¯" }, { status: 401 });
 
   const { productId } = await req.json();
-  if (!productId) return NextResponse.json({ error: "شناسه محصول الزامی است" }, { status: 400 });
+  if (!productId) return NextResponse.json({ error: "Ø´Ù†Ø§Ø³Ù‡ Ù…Ø­ØµÙˆÙ„ Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª" }, { status: 400 });
 
   const existing = await prisma.wishlist.findUnique({
     where: { userId_productId: { userId: session.user.id, productId } },

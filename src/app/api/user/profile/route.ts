@@ -1,13 +1,14 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const schema = z.object({
-  firstName: z.string().min(2, "نام الزامی است"),
-  lastName: z.string().min(2, "نام خانوادگی الزامی است"),
-  email: z.string().email("ایمیل معتبر نیست").optional().or(z.literal("")),
-  nationalCode: z.string().length(10, "کد ملی باید ۱۰ رقم باشد").optional().or(z.literal("")),
+  firstName: z.string().min(2, "Ù†Ø§Ù… Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª"),
+  lastName: z.string().min(2, "Ù†Ø§Ù… Ø®Ø§Ù†ÙˆØ§Ø¯Ú¯ÛŒ Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª"),
+  email: z.string().email("Ø§ÛŒÙ…ÛŒÙ„ Ù…Ø¹ØªØ¨Ø± Ù†ÛŒØ³Øª").optional().or(z.literal("")),
+  nationalCode: z.string().length(10, "Ú©Ø¯ Ù…Ù„ÛŒ Ø¨Ø§ÛŒØ¯ Û±Û° Ø±Ù‚Ù… Ø¨Ø§Ø´Ø¯").optional().or(z.literal("")),
   companyName: z.string().optional(),
   city: z.string().optional(),
   postalCode: z.string().optional(),
@@ -15,7 +16,7 @@ const schema = z.object({
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "لطفاً وارد شوید" }, { status: 401 });
+  if (!session?.user?.id) return NextResponse.json({ error: "Ù„Ø·ÙØ§Ù‹ ÙˆØ§Ø±Ø¯ Ø´ÙˆÛŒØ¯" }, { status: 401 });
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -27,13 +28,13 @@ export async function GET() {
     },
   });
 
-  if (!user) return NextResponse.json({ error: "کاربر یافت نشد" }, { status: 404 });
+  if (!user) return NextResponse.json({ error: "Ú©Ø§Ø±Ø¨Ø± ÛŒØ§ÙØª Ù†Ø´Ø¯" }, { status: 404 });
   return NextResponse.json({ user });
 }
 
 export async function PATCH(req: NextRequest) {
   const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "لطفاً وارد شوید" }, { status: 401 });
+  if (!session?.user?.id) return NextResponse.json({ error: "Ù„Ø·ÙØ§Ù‹ ÙˆØ§Ø±Ø¯ Ø´ÙˆÛŒØ¯" }, { status: 401 });
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
@@ -46,7 +47,7 @@ export async function PATCH(req: NextRequest) {
   try {
     if (email) {
       const existing = await prisma.user.findFirst({ where: { email, id: { not: session.user.id } } });
-      if (existing) return NextResponse.json({ error: "این ایمیل توسط کاربر دیگری استفاده شده است" }, { status: 409 });
+      if (existing) return NextResponse.json({ error: "Ø§ÛŒÙ† Ø§ÛŒÙ…ÛŒÙ„ ØªÙˆØ³Ø· Ú©Ø§Ø±Ø¨Ø± Ø¯ÛŒÚ¯Ø±ÛŒ Ø§Ø³ØªÙØ§Ø¯Ù‡ Ø´Ø¯Ù‡ Ø§Ø³Øª" }, { status: 409 });
     }
 
     const user = await prisma.user.update({
@@ -55,8 +56,8 @@ export async function PATCH(req: NextRequest) {
       select: { id: true, firstName: true, lastName: true, email: true, phone: true, role: true },
     });
 
-    return NextResponse.json({ user, message: "پروفایل با موفقیت بروزرسانی شد" });
+    return NextResponse.json({ user, message: "Ù¾Ø±ÙˆÙØ§ÛŒÙ„ Ø¨Ø§ Ù…ÙˆÙÙ‚ÛŒØª Ø¨Ø±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ Ø´Ø¯" });
   } catch {
-    return NextResponse.json({ error: "خطا در بروزرسانی پروفایل" }, { status: 500 });
+    return NextResponse.json({ error: "Ø®Ø·Ø§ Ø¯Ø± Ø¨Ø±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ Ù¾Ø±ÙˆÙØ§ÛŒÙ„" }, { status: 500 });
   }
 }

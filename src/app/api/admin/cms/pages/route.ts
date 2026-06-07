@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
@@ -13,25 +14,25 @@ const schema = z.object({
 });
 
 const DEFAULT_PAGES = [
-  { slug: "about", title: "درباره ما", content: "<h2>درباره مارجان</h2><p>بیش از ۱۵ سال تجربه در تأمین لوازم ساختمانی و تأسیساتی...</p>" },
-  { slug: "terms", title: "قوانین و مقررات", content: "<h2>قوانین استفاده از خدمات مارجان</h2><p>با خرید از این فروشگاه، شما قوانین زیر را می‌پذیرید...</p>" },
-  { slug: "privacy", title: "حریم خصوصی", content: "<h2>سیاست حریم خصوصی</h2><p>ما به حریم خصوصی شما احترام می‌گذاریم...</p>" },
+  { slug: "about", title: "Ø¯Ø±Ø¨Ø§Ø±Ù‡ Ù…Ø§", content: "<h2>Ø¯Ø±Ø¨Ø§Ø±Ù‡ Ù…Ø§Ø±Ø¬Ø§Ù†</h2><p>Ø¨ÛŒØ´ Ø§Ø² Û±Ûµ Ø³Ø§Ù„ ØªØ¬Ø±Ø¨Ù‡ Ø¯Ø± ØªØ£Ù…ÛŒÙ† Ù„ÙˆØ§Ø²Ù… Ø³Ø§Ø®ØªÙ…Ø§Ù†ÛŒ Ùˆ ØªØ£Ø³ÛŒØ³Ø§ØªÛŒ...</p>" },
+  { slug: "terms", title: "Ù‚ÙˆØ§Ù†ÛŒÙ† Ùˆ Ù…Ù‚Ø±Ø±Ø§Øª", content: "<h2>Ù‚ÙˆØ§Ù†ÛŒÙ† Ø§Ø³ØªÙØ§Ø¯Ù‡ Ø§Ø² Ø®Ø¯Ù…Ø§Øª Ù…Ø§Ø±Ø¬Ø§Ù†</h2><p>Ø¨Ø§ Ø®Ø±ÛŒØ¯ Ø§Ø² Ø§ÛŒÙ† ÙØ±ÙˆØ´Ú¯Ø§Ù‡ØŒ Ø´Ù…Ø§ Ù‚ÙˆØ§Ù†ÛŒÙ† Ø²ÛŒØ± Ø±Ø§ Ù…ÛŒâ€ŒÙ¾Ø°ÛŒØ±ÛŒØ¯...</p>" },
+  { slug: "privacy", title: "Ø­Ø±ÛŒÙ… Ø®ØµÙˆØµÛŒ", content: "<h2>Ø³ÛŒØ§Ø³Øª Ø­Ø±ÛŒÙ… Ø®ØµÙˆØµÛŒ</h2><p>Ù…Ø§ Ø¨Ù‡ Ø­Ø±ÛŒÙ… Ø®ØµÙˆØµÛŒ Ø´Ù…Ø§ Ø§Ø­ØªØ±Ø§Ù… Ù…ÛŒâ€ŒÚ¯Ø°Ø§Ø±ÛŒÙ…...</p>" },
 ];
 
 export async function GET(req: NextRequest) {
   const isAdmin = await requirePermission("MANAGE_SETTINGS");
   const slug = req.nextUrl.searchParams.get("slug");
 
-  if (!isAdmin && !slug) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+  if (!isAdmin && !slug) return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   if (slug) {
-    // Public endpoint — return single page by slug
+    // Public endpoint â€” return single page by slug
     const page = await prisma.page.findUnique({ where: { slug } });
-    if (!page || !page.isActive) return NextResponse.json({ error: "صفحه یافت نشد" }, { status: 404 });
+    if (!page || !page.isActive) return NextResponse.json({ error: "ØµÙØ­Ù‡ ÛŒØ§ÙØª Ù†Ø´Ø¯" }, { status: 404 });
     return NextResponse.json({ page });
   }
 
-  // Admin — list all pages; seed defaults if empty
+  // Admin â€” list all pages; seed defaults if empty
   let pages = await prisma.page.findMany({ orderBy: { slug: "asc" } });
   if (pages.length === 0) {
     await prisma.page.createMany({ data: DEFAULT_PAGES });
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   if (!(await requirePermission("MANAGE_SETTINGS")))
-    return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
+    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
@@ -53,6 +54,6 @@ export async function PUT(req: NextRequest) {
     const page = await prisma.page.upsert({ where: { slug }, update: rest, create: parsed.data });
     return NextResponse.json({ page });
   } catch {
-    return NextResponse.json({ error: "خطا در ذخیره صفحه" }, { status: 500 });
+    return NextResponse.json({ error: "Ø®Ø·Ø§ Ø¯Ø± Ø°Ø®ÛŒØ±Ù‡ ØµÙØ­Ù‡" }, { status: 500 });
   }
 }
