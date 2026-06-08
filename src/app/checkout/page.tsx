@@ -177,6 +177,13 @@ function CheckoutContent() {
       return;
     }
 
+    // 100% discount — order is free, skip payment gateway
+    if (data.isFree) {
+      clearCart();
+      router.replace(`/dashboard/orders?success=${data.order.orderNumber}`);
+      return;
+    }
+
     // Initiate payment
     const payRes = await fetch("/api/payment/request", {
       method: "POST",

@@ -82,8 +82,27 @@ export async function POST(req: NextRequest) {
       return { productId: item.productId, sizeLabel: item.sizeLabel, quantity: item.quantity, unitPrice: sizePrice, totalPrice: total };
     });
 
-    const taxAmount = Math.round(subtotal * 0.1);
-    const totalAmount = subtotal + taxAmount;
+    // Apply coupon discount
+    let discountAmount = 0;
+    if (data.couponCode) {
+      const coupon = await prisma.coupon.findUnique({
+        where: { code: data.couponCode.toUpperCase() },
+      });
+      if (coupon && coupon.isActive) {
+        const raw = coupon.discountType === "percent"
+          ? Math.round((subtotal * coupon.discountValue) / 100)
+          : coupon.discountValue;
+        discountAmount = Math.min(Math.round(raw), subtotal);
+        await prisma.coupon.update({
+          where: { code: data.couponCode.toUpperCase() },
+          data: { usedCount: { increment: 1 } },
+        });
+      }
+    }
+
+    const taxBase = Math.max(0, subtotal - discountAmount);
+    const taxAmount = Math.round(taxBase * 0.1);
+    const totalAmount = Math.max(0, taxBase + taxAmount);
 
     const order = await prisma.order.create({
       data: {
@@ -91,6 +110,7 @@ export async function POST(req: NextRequest) {
         userId: session.user.id,
         addressId: data.addressId,
         subtotal,
+        discountAmount,
         taxAmount,
         totalAmount,
         couponCode: data.couponCode,
@@ -100,6 +120,17 @@ export async function POST(req: NextRequest) {
       },
       include: { items: true },
     });
+
+    // 100% discount — skip payment gateway, auto-complete
+    if (totalAmount === 0) {
+      await prisma.$transaction([
+        prisma.order.update({ where: { id: order.id }, data: { status: "PROCESSING" } }),
+        prisma.payment.create({
+          data: { orderId: order.id, amount: 0, status: "PAID", gateway: "free", paidAt: new Date() },
+        }),
+      ]);
+      return NextResponse.json({ success: true, order: { ...order, status: "PROCESSING" }, isFree: true }, { status: 201 });
+    }
 
     return NextResponse.json({ success: true, order }, { status: 201 });
   } catch (err) {
