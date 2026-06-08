@@ -160,3 +160,22 @@
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
 commit to GitHub, then ask me before continuing.
+
+## Session Fixes (2026-06-08)
+- [x] Fix 1: Product size + per-size stock in admin product form
+  - New API: /api/admin/products/[id]/sizes (GET + POST replace)
+  - ProductForm: INCH/MM toggle, predefined size buttons, stock input per size
+  - Loads existing sizes on edit; saves with product
+- [x] Fix 2: Address not saving in checkout
+  - Added client-side validation (phone, postalCode, province, address)
+  - Error message shown when API returns 400 (was silently swallowed)
+  - Loading state on save button; textarea moved inside grid
+- [x] Fix 3: 100% discount coupon = auto-complete order
+  - Orders API now applies coupon discount to totalAmount
+  - If totalAmount = 0: order → PROCESSING, payment → PAID (gateway: free)
+  - Checkout page: isFree → skip payment, clear cart, redirect to /dashboard/orders
+- [x] Fix 4: Orange hover effect on footer
+  - Footer links → #e8920a on hover (0.2s transition)
+  - Social icons → orange background + white icon on hover
+  - Bottom bar links (terms, privacy) also orange on hover
+- [x] Fix 5: GitHub auto-update after every change (done throughout)
