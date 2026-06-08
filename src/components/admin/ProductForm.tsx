@@ -5,6 +5,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 interface Category { id: string; name: string; parentId: string | null; }
 interface Brand { id: string; name: string; }
 interface PImage { id?: string; url: string; isPrimary: boolean; altText?: string; sortOrder: number; }
+interface PSize { label: string; unit: "INCH" | "MM"; stock: number; }
+
+const INCH_SIZES = ['1/4"', '3/8"', '1/2"', '3/4"', '1"', '1 1/4"', '1 1/2"', '2"', '2 1/2"', '3"', '4"', '5"', '6"'];
+const MM_SIZES = ["16", "20", "25", "32", "40", "50", "63", "75", "90", "110", "125", "160", "200", "250", "315"];
 
 interface Props {
   productId?: string;
@@ -36,6 +40,8 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
   const [tags, setTags] = useState("");
   const [images, setImages] = useState<PImage[]>([]);
   const [specs, setSpecs] = useState<{ key: string; value: string }[]>([]);
+  const [sizes, setSizes] = useState<PSize[]>([]);
+  const [sizeUnit, setSizeUnit] = useState<"INCH" | "MM">("INCH");
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,8 +93,14 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
         setImages((p.images ?? []).map((img: PImage, i: number) => ({ ...img, sortOrder: i })));
       })
       .then(() => {
-        // Load specs separately
-        if (productId) fetch(`/api/admin/products/${productId}/specs`).then(r => r.json()).then(d => setSpecs((d.specs ?? []).map((s: { key: string; value: string }) => ({ key: s.key, value: s.value }))));
+        if (productId) {
+          fetch(`/api/admin/products/${productId}/specs`).then(r => r.json()).then(d => setSpecs((d.specs ?? []).map((s: { key: string; value: string }) => ({ key: s.key, value: s.value }))));
+          fetch(`/api/admin/products/${productId}/sizes`).then(r => r.json()).then(d => {
+            const loaded: PSize[] = (d.sizes ?? []).map((s: { label: string; unit: "INCH" | "MM"; stock: number }) => ({ label: s.label, unit: s.unit, stock: s.stock }));
+            setSizes(loaded);
+            if (loaded.length > 0) setSizeUnit(loaded[0].unit);
+          });
+        }
       })
       .finally(() => setLoading(false));
   }, [productId]);
@@ -179,13 +191,17 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
         return;
       }
 
-      // Save specs if product exists (new product: save after creation)
       const savedProductId = productId ?? data.product?.id;
-      if (savedProductId && specs.length >= 0) {
+      if (savedProductId) {
         await fetch(`/api/admin/products/${savedProductId}/specs`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ specs: specs.filter(s => s.key.trim() && s.value.trim()) }),
+        });
+        await fetch(`/api/admin/products/${savedProductId}/sizes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sizes }),
         });
       }
 
@@ -297,6 +313,95 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sizes */}
+          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)" }}>
+            <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border)", fontSize: 14, fontWeight: 900, color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              سایزبندی و موجودی هر سایز
+              <div style={{ display: "flex", gap: 6 }}>
+                <button
+                  type="button"
+                  onClick={() => { setSizeUnit("INCH"); setSizes([]); }}
+                  style={{ padding: "4px 14px", borderRadius: 6, border: "1.5px solid", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", background: sizeUnit === "INCH" ? "var(--primary)" : "#fff", color: sizeUnit === "INCH" ? "#fff" : "var(--text2)", borderColor: sizeUnit === "INCH" ? "var(--primary)" : "var(--border)" }}
+                >اینچ</button>
+                <button
+                  type="button"
+                  onClick={() => { setSizeUnit("MM"); setSizes([]); }}
+                  style={{ padding: "4px 14px", borderRadius: 6, border: "1.5px solid", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", background: sizeUnit === "MM" ? "var(--primary)" : "#fff", color: sizeUnit === "MM" ? "#fff" : "var(--text2)", borderColor: sizeUnit === "MM" ? "var(--primary)" : "var(--border)" }}
+                >میلی‌متر</button>
+              </div>
+            </div>
+            <div style={{ padding: "1rem 1.5rem" }}>
+              {/* Size toggle buttons */}
+              <p style={{ fontSize: 12, color: "var(--text3)", margin: "0 0 10px" }}>روی سایز کلیک کنید تا انتخاب شود:</p>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+                {(sizeUnit === "INCH" ? INCH_SIZES : MM_SIZES).map((lbl) => {
+                  const active = sizes.some(s => s.label === lbl && s.unit === sizeUnit);
+                  return (
+                    <button
+                      key={lbl}
+                      type="button"
+                      onClick={() => {
+                        if (active) {
+                          setSizes(prev => prev.filter(s => !(s.label === lbl && s.unit === sizeUnit)));
+                        } else {
+                          setSizes(prev => [...prev, { label: lbl, unit: sizeUnit, stock: 0 }]);
+                        }
+                      }}
+                      style={{
+                        padding: "5px 14px", borderRadius: 6, border: "1.5px solid",
+                        fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                        background: active ? "var(--primary)" : "#fff",
+                        color: active ? "#fff" : "var(--text2)",
+                        borderColor: active ? "var(--primary)" : "var(--border)",
+                        transition: "all .15s",
+                      }}
+                    >
+                      {lbl} {sizeUnit === "INCH" ? "" : "mm"}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Stock inputs for selected sizes */}
+              {sizes.length > 0 && (
+                <div>
+                  <p style={{ fontSize: 12, color: "var(--text3)", margin: "0 0 8px", fontWeight: 700 }}>موجودی هر سایز:</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {sizes.map((sz, i) => (
+                      <div key={`${sz.label}-${sz.unit}`} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ minWidth: 70, fontSize: 13, fontWeight: 900, color: "var(--text)" }}>
+                          {sz.label}{sz.unit === "MM" ? " mm" : ""}
+                        </span>
+                        <input
+                          type="number"
+                          min={0}
+                          value={sz.stock}
+                          onChange={e => setSizes(prev => prev.map((s, j) => j === i ? { ...s, stock: Math.max(0, Number(e.target.value) || 0) } : s))}
+                          style={{ ...inp, width: 90, textAlign: "center" }}
+                          placeholder="موجودی"
+                        />
+                        <span style={{ fontSize: 11, color: sz.stock === 0 ? "#c0392b" : "#1a7a4a", fontWeight: 700 }}>
+                          {sz.stock === 0 ? "ناموجود" : `${sz.stock} عدد`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setSizes(prev => prev.filter((_, j) => j !== i))}
+                          style={{ background: "#fdecea", color: "#c0392b", border: "none", borderRadius: 5, width: 28, height: 28, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}
+                        >×</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {sizes.length === 0 && (
+                <p style={{ fontSize: 12, color: "var(--text3)", textAlign: "center", padding: "8px 0" }}>
+                  سایزی انتخاب نشده — اگر محصول سایز ندارد خالی بگذارید
+                </p>
               )}
             </div>
           </div>
