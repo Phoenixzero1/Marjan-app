@@ -44,3 +44,9 @@ next-env.d.ts
 public/uploads/
 backups/
 migration-packages/
+
+# tunnel / deployment temp files
+*.log
+cloudflared.exe
+ngrok.exe
+ngrok.zip
