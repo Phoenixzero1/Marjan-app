@@ -55,6 +55,8 @@ function CheckoutContent() {
 
   // New address form
   const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addrSaving, setAddrSaving] = useState(false);
+  const [addrError, setAddrError] = useState("");
   const [newAddr, setNewAddr] = useState({
     label: "خانه", fullName: "", phone: "", province: "", city: "", address: "", postalCode: "",
   });
@@ -103,17 +105,35 @@ function CheckoutContent() {
   }
 
   async function saveAddress() {
-    const res = await fetch("/api/addresses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newAddr),
-    });
-    const data = await res.json();
-    if (res.ok && data.address) {
+    setAddrError("");
+    if (!newAddr.fullName.trim()) { setAddrError("نام و نام خانوادگی الزامی است"); return; }
+    if (!/^09\d{9}$/.test(newAddr.phone)) { setAddrError("شماره موبایل معتبر وارد کنید (مثال: 09121234567)"); return; }
+    if (!newAddr.province) { setAddrError("استان را انتخاب کنید"); return; }
+    if (!newAddr.city.trim()) { setAddrError("شهر الزامی است"); return; }
+    if (newAddr.address.trim().length < 5) { setAddrError("آدرس کامل وارد کنید"); return; }
+    if (!/^\d{10}$/.test(newAddr.postalCode)) { setAddrError("کد پستی باید ۱۰ رقم باشد"); return; }
+
+    setAddrSaving(true);
+    try {
+      const res = await fetch("/api/addresses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAddr),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAddrError(data.error ?? "خطا در ذخیره آدرس");
+        return;
+      }
       setAddresses((prev) => [...prev, data.address]);
       setSelectedAddressId(data.address.id);
       setShowAddressForm(false);
+      setAddrError("");
       setNewAddr({ label: "خانه", fullName: "", phone: "", province: "", city: "", address: "", postalCode: "" });
+    } catch {
+      setAddrError("خطا در اتصال به سرور");
+    } finally {
+      setAddrSaving(false);
     }
   }
 
@@ -262,12 +282,17 @@ function CheckoutContent() {
               {showAddressForm && (
                 <div style={{ border: "1.5px solid var(--primary)", borderRadius: "var(--radius-sm)", padding: 16, background: "#f8faff" }}>
                   <h3 style={{ fontSize: 13, fontWeight: 900, marginBottom: 14 }}>آدرس جدید</h3>
+                  {addrError && (
+                    <div style={{ background: "#fdecea", border: "1px solid #f5c6c6", color: "#c0392b", padding: "9px 12px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 700, marginBottom: 12 }}>
+                      {addrError}
+                    </div>
+                  )}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                     {[
                       { key: "fullName", label: "نام و نام خانوادگی" },
                       { key: "phone", label: "تلفن", dir: "ltr" },
                       { key: "city", label: "شهر" },
-                      { key: "postalCode", label: "کد پستی", dir: "ltr" },
+                      { key: "postalCode", label: "کد پستی (۱۰ رقم)", dir: "ltr" },
                       { key: "label", label: "برچسب (خانه، محل کار...)" },
                     ].map(({ key, label, dir }) => (
                       <div key={key}>
@@ -287,20 +312,25 @@ function CheckoutContent() {
                         {["آذربایجان شرقی","آذربایجان غربی","اردبیل","اصفهان","البرز","ایلام","بوشهر","تهران","چهارمحال و بختیاری","خراسان جنوبی","خراسان رضوی","خراسان شمالی","خوزستان","زنجان","سمنان","سیستان و بلوچستان","فارس","قزوین","قم","کردستان","کرمان","کرمانشاه","کهگیلویه و بویراحمد","گلستان","گیلان","لرستان","مازندران","مرکزی","هرمزگان","همدان","یزد"].map((p) => <option key={p} value={p}>{p}</option>)}
                       </select>
                     </div>
-                  </div>
-                  <div style={{ gridColumn: "1/-1", marginTop: 10 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 4 }}>آدرس کامل</label>
-                    <textarea
-                      style={{ ...inputStyle, minHeight: 70, resize: "vertical" }}
-                      value={newAddr.address}
-                      onChange={(e) => setNewAddr((p) => ({ ...p, address: e.target.value }))}
-                    />
+                    <div style={{ gridColumn: "1/-1" }}>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 4 }}>آدرس کامل</label>
+                      <textarea
+                        style={{ ...inputStyle, minHeight: 70, resize: "vertical" }}
+                        placeholder="خیابان، کوچه، پلاک، واحد..."
+                        value={newAddr.address}
+                        onChange={(e) => setNewAddr((p) => ({ ...p, address: e.target.value }))}
+                      />
+                    </div>
                   </div>
                   <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-                    <button onClick={saveAddress} style={{ background: "var(--primary)", color: "#fff", border: "none", padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 700, fontFamily: "Vazirmatn", cursor: "pointer" }}>
-                      ذخیره آدرس
+                    <button
+                      onClick={saveAddress}
+                      disabled={addrSaving}
+                      style={{ background: addrSaving ? "#aaa" : "var(--primary)", color: "#fff", border: "none", padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 700, fontFamily: "Vazirmatn", cursor: addrSaving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 6 }}
+                    >
+                      {addrSaving ? <><i className="ti ti-loader-2" /> در حال ذخیره...</> : <><i className="ti ti-check" /> ذخیره آدرس</>}
                     </button>
-                    <button onClick={() => setShowAddressForm(false)} style={{ background: "transparent", color: "var(--text3)", border: "1.5px solid var(--border)", padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 700, fontFamily: "Vazirmatn", cursor: "pointer" }}>
+                    <button onClick={() => { setShowAddressForm(false); setAddrError(""); }} style={{ background: "transparent", color: "var(--text3)", border: "1.5px solid var(--border)", padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 700, fontFamily: "Vazirmatn", cursor: "pointer" }}>
                       انصراف
                     </button>
                   </div>
