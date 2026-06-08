@@ -25,6 +25,32 @@ export default async function Footer() {
   const s = await getSiteSettings();
   return (
     <footer style={{ background: "var(--primary-dark)", color: "rgba(255,255,255,.75)", marginTop: "4rem" }}>
+      <style>{`
+        .footer-link {
+          font-size: 13px;
+          color: rgba(255,255,255,.6);
+          text-decoration: none;
+          transition: color .2s;
+        }
+        .footer-link:hover { color: #e8920a; }
+        .footer-bottom-link {
+          color: rgba(255,255,255,.5);
+          text-decoration: none;
+          transition: color .2s;
+        }
+        .footer-bottom-link:hover { color: #e8920a; }
+        .soc-btn {
+          width: 36px; height: 36px;
+          background: rgba(255,255,255,.1);
+          border-radius: var(--radius-sm);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 18px;
+          color: rgba(255,255,255,.7);
+          text-decoration: none;
+          transition: background .2s, color .2s;
+        }
+        .soc-btn:hover { background: #e8920a; color: #fff; }
+      `}</style>
       <div
         style={{
           maxWidth: 1280,
@@ -55,18 +81,7 @@ export default async function Footer() {
                 href={social.href || "#"}
                 target={social.href && social.href !== "#" ? "_blank" : undefined}
                 rel="noreferrer"
-                style={{
-                  width: 36,
-                  height: 36,
-                  background: "rgba(255,255,255,.1)",
-                  borderRadius: "var(--radius-sm)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 18,
-                  color: "rgba(255,255,255,.7)",
-                  transition: "all .2s",
-                }}
+                className="soc-btn"
               >
                 <i className={`ti ${social.icon}`} />
               </a>
@@ -88,7 +103,7 @@ export default async function Footer() {
               { label: "تماس با ما", href: "/contact" },
             ].map((l) => (
               <li key={l.href}>
-                <Link href={l.href} style={{ fontSize: 13, color: "rgba(255,255,255,.6)" }}>
+                <Link href={l.href} className="footer-link">
                   {l.label}
                 </Link>
               </li>
@@ -104,7 +119,7 @@ export default async function Footer() {
           <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
             {categories.map((cat) => (
               <li key={cat.id}>
-                <Link href={`/category/${cat.slug}`} style={{ fontSize: 13, color: "rgba(255,255,255,.6)" }}>
+                <Link href={`/category/${cat.slug}`} className="footer-link">
                   {cat.name}
                 </Link>
               </li>
@@ -153,10 +168,10 @@ export default async function Footer() {
         >
           <span>{s.site_footer_text}</span>
           <div style={{ display: "flex", gap: "1.5rem" }}>
-            <Link href="/terms" style={{ color: "rgba(255,255,255,.5)" }}>
+            <Link href="/terms" className="footer-bottom-link">
               قوانین و مقررات
             </Link>
-            <Link href="/privacy" style={{ color: "rgba(255,255,255,.5)" }}>
+            <Link href="/privacy" className="footer-bottom-link">
               حریم خصوصی
             </Link>
           </div>
