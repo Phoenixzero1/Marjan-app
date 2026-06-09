@@ -26,6 +26,7 @@ import MaintenanceManager from "@/components/admin/MaintenanceManager";
 import MigrationManager from "@/components/admin/MigrationManager";
 import CmsManager from "@/components/admin/CmsManager";
 import BrandManager from "@/components/admin/BrandManager";
+import SliderManager from "@/components/admin/SliderManager";
 
 interface ProductRow {
   id: string; name: string; sku: string | null; price: number;
@@ -40,7 +41,7 @@ type AdminSection =
   | "media" | "notifications-admin" | "comments" | "newsletter"
   | "settings-general" | "settings-payment" | "settings-seo"
   | "settings-security" | "backup" | "logs" | "sessions"
-  | "roles" | "trash" | "returns" | "maintenance" | "migration" | "cms" | "brands" | "product-form";
+  | "roles" | "trash" | "returns" | "maintenance" | "migration" | "cms" | "brands" | "slider" | "product-form";
 
 interface Stats {
   totalOrders: number; monthOrders: number; totalUsers: number; todayUsers: number;
@@ -82,6 +83,7 @@ function buildNavGroups(counts: NotifCounts, seen: SeenCounts) {
         { id: "products", icon: "ti-package", label: "محصولات", badge: undefined as BadgeInfo | undefined },
         { id: "categories", icon: "ti-category", label: "دسته‌بندی‌ها", badge: undefined as BadgeInfo | undefined },
         { id: "brands", icon: "ti-building-factory", label: "برندها", badge: undefined as BadgeInfo | undefined },
+        { id: "slider", icon: "ti-slideshow", label: "اسلایدر", badge: undefined as BadgeInfo | undefined },
         { id: "blog-admin", icon: "ti-news", label: "بلاگ", badge: badge(counts.blog, seen.blog) },
         { id: "media", icon: "ti-photo", label: "رسانه‌ها", badge: undefined as BadgeInfo | undefined },
       ],
@@ -321,6 +323,7 @@ export default function AdminPage() {
     migration: "انتقال سایت",
     cms: "مدیریت محتوا",
     returns: "مرجوعی‌ها",
+    slider: "مدیریت اسلایدر",
   };
 
   return (
@@ -690,8 +693,10 @@ export default function AdminPage() {
 
           {section === "brands" && <BrandManager />}
 
+          {section === "slider" && <SliderManager />}
+
           {/* Generic placeholder for other sections */}
-          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security", "backup", "logs", "sessions", "roles", "trash", "returns", "maintenance", "migration", "cms", "brands"].includes(section) && (
+          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security", "backup", "logs", "sessions", "roles", "trash", "returns", "maintenance", "migration", "cms", "brands", "slider"].includes(section) && (
             <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "3rem", textAlign: "center", color: "var(--text3)" }}>
               <i className="ti ti-tool" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
               <h3 style={{ fontSize: 18, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>بخش {titleMap[section]}</h3>

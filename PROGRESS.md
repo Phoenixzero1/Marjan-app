@@ -157,6 +157,20 @@
   - [x] Checkout: province select dropdown (31 Iranian provinces)
   - [x] All address API routes verified (GET/POST/PATCH/DELETE/default)
 
+## Homepage Redesign (2026-06-10)
+- [x] Part 1: Hero Slider
+  - HeroSlider client component (fade transitions, arrows, dots, auto-play, pause on hover)
+  - Admin SliderManager: CRUD slides, reorder up/down, active toggle, scheduling dates
+  - Slider settings: autoplay on/off, interval, show/hide arrows, show/hide dots
+  - New API routes: /api/admin/slider (GET/POST/PUT), /api/admin/slider/[id] (PATCH/DELETE), /api/admin/slider/settings (GET/PUT)
+  - Settings stored in SiteSettings (slider_autoplay, slider_interval, slider_arrows, slider_dots)
+  - Homepage loads slider from DB; falls back to static hero if no slides configured
+  - Admin sidebar: اسلایدر under محتوا group
+- [ ] Part 2: Homepage Landing Redesign (category circles, مرجان تایم flash deals, promo banners, etc.)
+- [ ] Part 3: User Account Dropdown Redesign
+- [ ] Part 4: Wallet Tab in User Dashboard
+- [ ] Part 5: Organizational Purchase (خرید سازمانی)
+
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
 commit to GitHub, then ask me before continuing.

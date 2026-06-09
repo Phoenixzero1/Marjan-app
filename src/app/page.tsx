@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import ProductCard from "@/components/shop/ProductCard";
+import HeroSlider, { type SliderSettings } from "@/components/home/HeroSlider";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://marjan.ir";
 
@@ -80,6 +81,23 @@ async function getFeaturedProducts() {
   }
 }
 
+async function getSliderSettings(): Promise<SliderSettings> {
+  try {
+    const rows = await prisma.siteSettings.findMany({
+      where: { key: { in: ["slider_autoplay", "slider_interval", "slider_arrows", "slider_dots"] } },
+    });
+    const get = (key: string, def: string) => rows.find((r) => r.key === key)?.value ?? def;
+    return {
+      autoPlay: get("slider_autoplay", "true") === "true",
+      interval: parseInt(get("slider_interval", "5000")),
+      showArrows: get("slider_arrows", "true") === "true",
+      showDots: get("slider_dots", "true") === "true",
+    };
+  } catch {
+    return { autoPlay: true, interval: 5000, showArrows: true, showDots: true };
+  }
+}
+
 async function getLatestPosts() {
   try {
     return await prisma.blogPost.findMany({
@@ -103,40 +121,25 @@ const categories = [
 ];
 
 export default async function HomePage() {
-  const [products, posts, heroBanners, promoBanners] = await Promise.all([
-    getFeaturedProducts(), getLatestPosts(), getHeroBanners(), getPromoBanners(),
+  const [products, posts, heroBanners, promoBanners, sliderSettings] = await Promise.all([
+    getFeaturedProducts(), getLatestPosts(), getHeroBanners(), getPromoBanners(), getSliderSettings(),
   ]);
 
   return (
     <>
-      {/* HERO — DB banners or fallback */}
+      {/* HERO — DB slider or fallback */}
       {heroBanners.length > 0 ? (
-        <section style={{ position: "relative", overflow: "hidden" }}>
-          {heroBanners.map((b, i) => (
-            <div
-              key={b.id}
-              style={{
-                display: i === 0 ? "block" : "none", // client-side slider can enhance this
-                background: b.imageUrl
-                  ? `url(${b.imageUrl}) center/cover no-repeat`
-                  : "linear-gradient(135deg,var(--primary-dark) 0%,var(--primary-mid) 100%)",
-                minHeight: 420,
-                position: "relative",
-              }}
-            >
-              {b.imageUrl && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.45)" }} />}
-              <div style={{ position: "relative", maxWidth: 1280, margin: "0 auto", padding: "5rem 2rem 4rem", color: "#fff" }}>
-                {b.title && <h1 style={{ fontSize: 40, fontWeight: 900, lineHeight: 1.3, marginBottom: "1rem" }}>{b.title}</h1>}
-                {b.subtitle && <p style={{ fontSize: 16, color: "rgba(255,255,255,.8)", maxWidth: 500, marginBottom: "2rem" }}>{b.subtitle}</p>}
-                {b.buttonText && b.buttonLink && (
-                  <Link href={b.buttonLink} style={{ background: "var(--accent)", color: "#fff", padding: "13px 28px", borderRadius: "var(--radius-sm)", fontSize: 14, fontWeight: 900, display: "inline-flex", alignItems: "center", gap: 8 }}>
-                    {b.buttonText}
-                  </Link>
-                )}
-              </div>
-            </div>
-          ))}
-        </section>
+        <HeroSlider
+          slides={heroBanners.map((b) => ({
+            id: b.id,
+            imageUrl: b.imageUrl,
+            title: b.title,
+            subtitle: b.subtitle,
+            buttonText: b.buttonText,
+            buttonLink: b.buttonLink,
+          }))}
+          settings={sliderSettings}
+        />
       ) : (
       <section
         className="hero-section"
