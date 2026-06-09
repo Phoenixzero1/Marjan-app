@@ -52,7 +52,8 @@ export default function ReturnsManager() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: modal.action, adminNote: adminNote || undefined, refundAmount: refundAmount ? parseInt(refundAmount) : undefined }),
     });
-    const d = await res.json();
+    const text = await res.text();
+    const d = text ? JSON.parse(text) : {};
     setActing(null);
     setModal(null);
     setAdminNote("");

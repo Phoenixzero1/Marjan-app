@@ -327,10 +327,10 @@ export default function AdminPage() {
                   {!analyticsData ? (
                     <div style={{ height: 140, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text3)" }}>در حال بارگذاری...</div>
                   ) : (() => {
-                    const maxVal = Math.max(...analyticsData.chart.map(d => d.value), 1);
+                    const maxVal = Math.max(...(analyticsData?.chart ?? []).map(d => d.value), 1);
                     return (
                       <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 140 }}>
-                        {analyticsData.chart.map((d, i) => {
+                        {(analyticsData?.chart ?? []).map((d, i) => {
                           const pct = Math.round((d.value / maxVal) * 100);
                           return (
                             <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -358,7 +358,7 @@ export default function AdminPage() {
                 <div style={{ padding: 0 }}>
                   {!analyticsData ? (
                     <div style={{ padding: "2rem", textAlign: "center", color: "var(--text3)" }}>در حال بارگذاری...</div>
-                  ) : analyticsData.activity.length === 0 ? (
+                  ) : (analyticsData?.activity ?? []).length === 0 ? (
                     <div style={{ padding: "2rem", textAlign: "center", color: "var(--text3)" }}>هنوز فعالیتی ثبت نشده است</div>
                   ) : (
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -370,7 +370,7 @@ export default function AdminPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {analyticsData.activity.map((row, i) => (
+                        {(analyticsData?.activity ?? []).map((row, i) => (
                           <tr key={row.id + i} style={{ borderBottom: "1px solid var(--border)" }}>
                             <td style={{ padding: "10px 12px", fontWeight: 700 }}>{row.user || "کاربر ناشناس"}</td>
                             <td style={{ padding: "10px 12px" }}>
