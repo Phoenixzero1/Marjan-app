@@ -166,7 +166,15 @@
   - Settings stored in SiteSettings (slider_autoplay, slider_interval, slider_arrows, slider_dots)
   - Homepage loads slider from DB; falls back to static hero if no slides configured
   - Admin sidebar: اسلایدر under محتوا group
-- [ ] Part 2: Homepage Landing Redesign (category circles, مرجان تایم flash deals, promo banners, etc.)
+- [x] Part 2: Homepage Landing Redesign
+  - Category circles: horizontal scroll, circular icons from DB (with fallback to hardcoded)
+  - مرجان تایم flash deals: countdown timer, horizontal product scroll
+  - Admin FlashDealManager: product selection, end time, discount %, active toggle
+  - New API: /api/admin/flash-deal (config stored in SiteSettings as JSON)
+  - Newest products section (8 latest published products)
+  - Brands horizontal row with logos/fallback icons
+  - Blog cards now show post thumbnail image
+  - Admin sidebar: مرجان تایم under محتوا group
 - [ ] Part 3: User Account Dropdown Redesign
 - [ ] Part 4: Wallet Tab in User Dashboard
 - [ ] Part 5: Organizational Purchase (خرید سازمانی)
