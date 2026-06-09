@@ -115,6 +115,7 @@ model User {
   returns       ReturnRequest[]
   permissions   UserPermission[]
   questions     ProductQuestion[]
+  seenSections  AdminSeenSection[]
 
   @@index([email])
   @@index([phone])
@@ -750,5 +751,18 @@ model UserPermission {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, permission])
+  @@index([userId])
+}
+
+model AdminSeenSection {
+  id        String   @id @default(cuid())
+  userId    String
+  section   String   // orders | comments | blog
+  seenCount Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, section])
   @@index([userId])
 }

@@ -45,8 +45,10 @@ type AdminSection =
 interface Stats {
   totalOrders: number; monthOrders: number; totalUsers: number; todayUsers: number;
   totalRevenue: number; monthRevenue: number; pendingOrders: number; todayVisits: number;
-  pendingReviews: number; publishedBlogPosts: number;
+  pendingReviews: number; pendingBlogPosts: number;
 }
+
+interface SeenCounts { orders: number; comments: number; blog: number; }
 
 interface ChartDay { label: string; value: number; }
 interface ActivityItem {
@@ -60,23 +62,26 @@ interface AnalyticsData {
   ordersChange: number;
 }
 
-function buildNavGroups(stats: Stats | null) {
-  const n = (v: number) => v > 0 ? String(v) : undefined;
+function buildNavGroups(stats: Stats | null, seen: SeenCounts) {
+  const badge = (raw: number, seenCount: number) => {
+    const unseen = Math.max(0, raw - seenCount);
+    return unseen > 0 ? String(unseen) : undefined;
+  };
   return [
     { label: "داشبورد", items: [{ id: "analytics", icon: "ti-chart-bar", label: "آمار و گزارشات" }] },
-    { label: "کاربران", items: [{ id: "users", icon: "ti-users", label: "مدیریت کاربران", badge: n(stats?.totalUsers ?? 0) }] },
+    { label: "کاربران", items: [{ id: "users", icon: "ti-users", label: "مدیریت کاربران" }] },
     {
       label: "محتوا", items: [
         { id: "products", icon: "ti-package", label: "محصولات" },
         { id: "categories", icon: "ti-category", label: "دسته‌بندی‌ها" },
         { id: "brands", icon: "ti-building-factory", label: "برندها" },
-        { id: "blog-admin", icon: "ti-news", label: "بلاگ", badge: n(stats?.publishedBlogPosts ?? 0) },
+        { id: "blog-admin", icon: "ti-news", label: "بلاگ", badge: badge(stats?.pendingBlogPosts ?? 0, seen.blog) },
         { id: "media", icon: "ti-photo", label: "رسانه‌ها" },
       ],
     },
     {
       label: "فروش", items: [
-        { id: "orders-admin", icon: "ti-truck-delivery", label: "سفارشات", badge: n(stats?.pendingOrders ?? 0) },
+        { id: "orders-admin", icon: "ti-truck-delivery", label: "سفارشات", badge: badge(stats?.pendingOrders ?? 0, seen.orders) },
         { id: "returns", icon: "ti-arrow-back-up", label: "مرجوعی‌ها" },
         { id: "finance", icon: "ti-report-money", label: "مالی" },
         { id: "coupons", icon: "ti-ticket", label: "تخفیف و کوپن" },
@@ -85,7 +90,7 @@ function buildNavGroups(stats: Stats | null) {
     {
       label: "سیستم‌های جانبی", items: [
         { id: "notifications-admin", icon: "ti-bell", label: "اطلاع‌رسانی" },
-        { id: "comments", icon: "ti-message-circle", label: "نظرات", badge: n(stats?.pendingReviews ?? 0) },
+        { id: "comments", icon: "ti-message-circle", label: "نظرات", badge: badge(stats?.pendingReviews ?? 0, seen.comments) },
         { id: "newsletter", icon: "ti-mail", label: "خبرنامه" },
       ],
     },
@@ -124,11 +129,20 @@ function buildNavGroups(stats: Stats | null) {
   ];
 }
 
+// Maps section id → seen API key
+const SECTION_SEEN_KEY: Partial<Record<AdminSection, keyof SeenCounts>> = {
+  "orders-admin": "orders",
+  "comments": "comments",
+  "blog-admin": "blog",
+};
+
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [section, setSection] = useState<AdminSection>("analytics");
   const [stats, setStats] = useState<Stats | null>(null);
+  const [seen, setSeen] = useState<SeenCounts>({ orders: 0, comments: 0, blog: 0 });
+  const [markingRead, setMarkingRead] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Hide site Topbar, Megamenu, and Footer while on admin page
@@ -170,6 +184,9 @@ export default function AdminPage() {
       const role = (session.user as { role?: string }).role ?? "";
       if (!["ADMIN", "SUPER_ADMIN"].includes(role)) { router.push("/"); return; }
       fetch("/api/admin/stats").then((r) => r.json()).then(setStats);
+      fetch("/api/admin/notifications/seen").then((r) => r.json()).then((d) => {
+        if (d && typeof d.orders === "number") setSeen(d);
+      });
     }
   }, [status, session, router]);
 
@@ -180,6 +197,29 @@ export default function AdminPage() {
     }
   }, [section, analyticsData]);
 
+  // Mark current section as read
+  const markSectionRead = useCallback(async () => {
+    const seenKey = SECTION_SEEN_KEY[section];
+    if (!seenKey || !stats) return;
+    const rawCount = seenKey === "orders" ? (stats.pendingOrders ?? 0)
+      : seenKey === "comments" ? (stats.pendingReviews ?? 0)
+      : (stats.pendingBlogPosts ?? 0);
+    setMarkingRead(true);
+    try {
+      await fetch("/api/admin/notifications/seen", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ section: seenKey, count: rawCount }),
+      });
+      setSeen((prev) => ({ ...prev, [seenKey]: rawCount }));
+      showAdminToast("success", "همه موارد به عنوان خوانده‌شده علامت‌گذاری شدند");
+    } catch {
+      showAdminToast("error", "خطا در ثبت وضعیت");
+    } finally {
+      setMarkingRead(false);
+    }
+  }, [section, stats, showAdminToast]);
+
   // Reload products list after returning from product form
   const handleProductFormSuccess = useCallback(() => {
     setSection("products");
@@ -188,7 +228,16 @@ export default function AdminPage() {
 
   if (status === "loading") return <div style={{ textAlign: "center", padding: "5rem" }}>در حال بارگذاری...</div>;
 
-  const navGroups = buildNavGroups(stats);
+  const navGroups = buildNavGroups(stats, seen);
+
+  // Badge count for current section (to show in mark-read button)
+  const currentSeenKey = SECTION_SEEN_KEY[section];
+  const currentRawCount = currentSeenKey === "orders" ? (stats?.pendingOrders ?? 0)
+    : currentSeenKey === "comments" ? (stats?.pendingReviews ?? 0)
+    : currentSeenKey === "blog" ? (stats?.pendingBlogPosts ?? 0)
+    : 0;
+  const currentUnseenCount = Math.max(0, currentRawCount - (currentSeenKey ? seen[currentSeenKey] : 0));
+  const showMarkRead = !!currentSeenKey && currentUnseenCount > 0;
 
   const titleMap: Record<string, string> = {
     analytics: "آمار و گزارشات", users: "مدیریت کاربران", products: "محصولات",
@@ -260,6 +309,23 @@ export default function AdminPage() {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {showMarkRead && (
+              <button
+                onClick={markSectionRead}
+                disabled={markingRead}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  background: "var(--accent)", color: "#fff",
+                  border: "none", borderRadius: "var(--radius-sm)",
+                  padding: "6px 14px", fontFamily: "Vazirmatn",
+                  fontSize: 12, fontWeight: 700, cursor: markingRead ? "not-allowed" : "pointer",
+                  opacity: markingRead ? 0.7 : 1,
+                }}
+              >
+                <i className="ti ti-checks" style={{ fontSize: 14 }} />
+                {markingRead ? "در حال ثبت..." : `علامت‌گذاری همه به عنوان خوانده‌شده (${currentUnseenCount})`}
+              </button>
+            )}
             <div className="hidden md:block" style={{ fontSize: 12, color: "var(--text3)", fontWeight: 700 }}>مدیر سیستم</div>
             <div style={{ width: 34, height: 34, background: "var(--primary)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <i className="ti ti-user" style={{ color: "#fff", fontSize: 16 }} />
