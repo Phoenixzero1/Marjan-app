@@ -183,17 +183,20 @@ export default function AdminPage() {
     if (status === "authenticated") {
       const role = (session.user as { role?: string }).role ?? "";
       if (!["ADMIN", "SUPER_ADMIN"].includes(role)) { router.push("/"); return; }
-      fetch("/api/admin/stats").then((r) => r.json()).then(setStats);
-      fetch("/api/admin/notifications/seen").then((r) => r.json()).then((d) => {
-        if (d && typeof d.orders === "number") setSeen(d);
+      fetch("/api/admin/stats").then((r) => r.text()).then((t) => { try { if (t) setStats(JSON.parse(t)); } catch { /* ignore */ } });
+      fetch("/api/admin/notifications/seen").then((r) => r.text()).then((t) => {
+        try {
+          const d = t ? JSON.parse(t) : {};
+          if (d && typeof d.orders === "number") setSeen(d);
+        } catch { /* ignore */ }
       });
     }
   }, [status, session, router]);
 
   useEffect(() => {
-    if (section === "products") fetch("/api/admin/products").then((r) => r.json()).then((d) => setProducts(d.products ?? []));
+    if (section === "products") fetch("/api/admin/products").then((r) => r.text()).then((t) => { try { const d = t ? JSON.parse(t) : {}; setProducts(d.products ?? []); } catch { /* ignore */ } });
     if (section === "analytics" && !analyticsData) {
-      fetch("/api/admin/analytics").then((r) => r.json()).then(setAnalyticsData);
+      fetch("/api/admin/analytics").then((r) => r.text()).then((t) => { try { if (t) setAnalyticsData(JSON.parse(t)); } catch { /* ignore */ } });
     }
   }, [section, analyticsData]);
 
@@ -223,7 +226,7 @@ export default function AdminPage() {
   // Reload products list after returning from product form
   const handleProductFormSuccess = useCallback(() => {
     setSection("products");
-    fetch("/api/admin/products").then((r) => r.json()).then((d) => setProducts(d.products ?? []));
+    fetch("/api/admin/products").then((r) => r.text()).then((t) => { try { const d = t ? JSON.parse(t) : {}; setProducts(d.products ?? []); } catch { /* ignore */ } });
   }, []);
 
   if (status === "loading") return <div style={{ textAlign: "center", padding: "5rem" }}>در حال بارگذاری...</div>;
