@@ -48,7 +48,9 @@ interface Stats {
   pendingReviews: number; pendingBlogPosts: number;
 }
 
-interface SeenCounts { orders: number; comments: number; blog: number; }
+interface NotifCounts { orders: number; comments: number; returns: number; sessions: number; logs: number; blog: number; }
+interface SeenCounts { orders: number; comments: number; returns: number; sessions: number; logs: number; blog: number; }
+interface ErrorNotif { id: string; message: string; detail: string; timestamp: string; }
 
 interface ChartDay { label: string; value: number; }
 interface ActivityItem {
@@ -62,78 +64,86 @@ interface AnalyticsData {
   ordersChange: number;
 }
 
-function buildNavGroups(stats: Stats | null, seen: SeenCounts) {
-  const badge = (raw: number, seenCount: number) => {
+const ZERO_COUNTS: NotifCounts = { orders: 0, comments: 0, returns: 0, sessions: 0, logs: 0, blog: 0 };
+const ZERO_SEEN: SeenCounts = { orders: 0, comments: 0, returns: 0, sessions: 0, logs: 0, blog: 0 };
+
+interface BadgeInfo { count: string; color: string; }
+
+function buildNavGroups(counts: NotifCounts, seen: SeenCounts) {
+  const badge = (raw: number, seenCount: number, color = "var(--accent)"): BadgeInfo | undefined => {
     const unseen = Math.max(0, raw - seenCount);
-    return unseen > 0 ? String(unseen) : undefined;
+    return unseen > 0 ? { count: String(unseen), color } : undefined;
   };
   return [
-    { label: "داشبورد", items: [{ id: "analytics", icon: "ti-chart-bar", label: "آمار و گزارشات" }] },
-    { label: "کاربران", items: [{ id: "users", icon: "ti-users", label: "مدیریت کاربران" }] },
+    { label: "داشبورد", items: [{ id: "analytics", icon: "ti-chart-bar", label: "آمار و گزارشات", badge: undefined as BadgeInfo | undefined }] },
+    { label: "کاربران", items: [{ id: "users", icon: "ti-users", label: "مدیریت کاربران", badge: undefined as BadgeInfo | undefined }] },
     {
       label: "محتوا", items: [
-        { id: "products", icon: "ti-package", label: "محصولات" },
-        { id: "categories", icon: "ti-category", label: "دسته‌بندی‌ها" },
-        { id: "brands", icon: "ti-building-factory", label: "برندها" },
-        { id: "blog-admin", icon: "ti-news", label: "بلاگ", badge: badge(stats?.pendingBlogPosts ?? 0, seen.blog) },
-        { id: "media", icon: "ti-photo", label: "رسانه‌ها" },
+        { id: "products", icon: "ti-package", label: "محصولات", badge: undefined as BadgeInfo | undefined },
+        { id: "categories", icon: "ti-category", label: "دسته‌بندی‌ها", badge: undefined as BadgeInfo | undefined },
+        { id: "brands", icon: "ti-building-factory", label: "برندها", badge: undefined as BadgeInfo | undefined },
+        { id: "blog-admin", icon: "ti-news", label: "بلاگ", badge: badge(counts.blog, seen.blog) },
+        { id: "media", icon: "ti-photo", label: "رسانه‌ها", badge: undefined as BadgeInfo | undefined },
       ],
     },
     {
       label: "فروش", items: [
-        { id: "orders-admin", icon: "ti-truck-delivery", label: "سفارشات", badge: badge(stats?.pendingOrders ?? 0, seen.orders) },
-        { id: "returns", icon: "ti-arrow-back-up", label: "مرجوعی‌ها" },
-        { id: "finance", icon: "ti-report-money", label: "مالی" },
-        { id: "coupons", icon: "ti-ticket", label: "تخفیف و کوپن" },
+        { id: "orders-admin", icon: "ti-truck-delivery", label: "سفارشات", badge: badge(counts.orders, seen.orders) },
+        { id: "returns", icon: "ti-arrow-back-up", label: "مرجوعی‌ها", badge: badge(counts.returns, seen.returns) },
+        { id: "finance", icon: "ti-report-money", label: "مالی", badge: undefined as BadgeInfo | undefined },
+        { id: "coupons", icon: "ti-ticket", label: "تخفیف و کوپن", badge: undefined as BadgeInfo | undefined },
       ],
     },
     {
       label: "سیستم‌های جانبی", items: [
-        { id: "notifications-admin", icon: "ti-bell", label: "اطلاع‌رسانی" },
-        { id: "comments", icon: "ti-message-circle", label: "نظرات", badge: badge(stats?.pendingReviews ?? 0, seen.comments) },
-        { id: "newsletter", icon: "ti-mail", label: "خبرنامه" },
+        { id: "notifications-admin", icon: "ti-bell", label: "اطلاع‌رسانی", badge: undefined as BadgeInfo | undefined },
+        { id: "comments", icon: "ti-message-circle", label: "نظرات", badge: badge(counts.comments, seen.comments) },
+        { id: "newsletter", icon: "ti-mail", label: "خبرنامه", badge: undefined as BadgeInfo | undefined },
       ],
     },
     {
       label: "تنظیمات", items: [
-        { id: "settings-general", icon: "ti-settings", label: "عمومی" },
-        { id: "settings-payment", icon: "ti-credit-card", label: "درگاه پرداخت" },
-        { id: "settings-seo", icon: "ti-search", label: "سئو" },
-        { id: "settings-security", icon: "ti-lock", label: "امنیت" },
-        { id: "backup", icon: "ti-database", label: "پشتیبان‌گیری" },
-        { id: "logs", icon: "ti-terminal-2", label: "لاگ سیستم" },
-        { id: "sessions", icon: "ti-device-laptop", label: "نشست‌ها" },
+        { id: "settings-general", icon: "ti-settings", label: "عمومی", badge: undefined as BadgeInfo | undefined },
+        { id: "settings-payment", icon: "ti-credit-card", label: "درگاه پرداخت", badge: undefined as BadgeInfo | undefined },
+        { id: "settings-seo", icon: "ti-search", label: "سئو", badge: undefined as BadgeInfo | undefined },
+        { id: "settings-security", icon: "ti-lock", label: "امنیت", badge: undefined as BadgeInfo | undefined },
+        { id: "backup", icon: "ti-database", label: "پشتیبان‌گیری", badge: undefined as BadgeInfo | undefined },
+        { id: "logs", icon: "ti-terminal-2", label: "لاگ سیستم", badge: badge(counts.logs, seen.logs, "#c0392b") },
+        { id: "sessions", icon: "ti-device-laptop", label: "نشست‌ها", badge: badge(counts.sessions, seen.sessions) },
       ],
     },
     {
       label: "دسترسی", items: [
-        { id: "roles", icon: "ti-shield-half-filled", label: "نقش‌ها و دسترسی" },
+        { id: "roles", icon: "ti-shield-half-filled", label: "نقش‌ها و دسترسی", badge: undefined as BadgeInfo | undefined },
       ],
     },
     {
       label: "سطل زباله", items: [
-        { id: "trash", icon: "ti-trash", label: "آیتم‌های حذف‌شده" },
+        { id: "trash", icon: "ti-trash", label: "آیتم‌های حذف‌شده", badge: undefined as BadgeInfo | undefined },
       ],
     },
     {
       label: "مدیریت محتوا", items: [
-        { id: "cms", icon: "ti-layout-cms", label: "صفحات / بنرها / منوها" },
+        { id: "cms", icon: "ti-layout-cms", label: "صفحات / بنرها / منوها", badge: undefined as BadgeInfo | undefined },
       ],
     },
     {
       label: "ابزار مدیر ارشد", items: [
-        { id: "maintenance", icon: "ti-tools", label: "حالت تعمیرات" },
-        { id: "migration", icon: "ti-package-export", label: "انتقال سایت" },
+        { id: "maintenance", icon: "ti-tools", label: "حالت تعمیرات", badge: undefined as BadgeInfo | undefined },
+        { id: "migration", icon: "ti-package-export", label: "انتقال سایت", badge: undefined as BadgeInfo | undefined },
       ],
     },
   ];
 }
 
-// Maps section id → seen API key
+// Maps section id → seen/counts key
 const SECTION_SEEN_KEY: Partial<Record<AdminSection, keyof SeenCounts>> = {
   "orders-admin": "orders",
   "comments": "comments",
   "blog-admin": "blog",
+  "returns": "returns",
+  "sessions": "sessions",
+  "logs": "logs",
 };
 
 export default function AdminPage() {
@@ -141,9 +151,11 @@ export default function AdminPage() {
   const router = useRouter();
   const [section, setSection] = useState<AdminSection>("analytics");
   const [stats, setStats] = useState<Stats | null>(null);
-  const [seen, setSeen] = useState<SeenCounts>({ orders: 0, comments: 0, blog: 0 });
+  const [counts, setCounts] = useState<NotifCounts>(ZERO_COUNTS);
+  const [seen, setSeen] = useState<SeenCounts>(ZERO_SEEN);
   const [markingRead, setMarkingRead] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [errorNotifs, setErrorNotifs] = useState<ErrorNotif[]>([]);
 
   // Hide site Topbar, Megamenu, and Footer while on admin page
   useEffect(() => {
@@ -160,6 +172,37 @@ export default function AdminPage() {
   const showAdminToast = useCallback((type: "success" | "error", msg: string) => {
     setAdminToast({ type, msg });
     setTimeout(() => setAdminToast(null), 4000);
+  }, []);
+
+  const addErrorNotif = useCallback((message: string, detail: string) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const timestamp = new Date().toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    setErrorNotifs((prev) => [...prev.slice(-9), { id, message, detail, timestamp }]);
+  }, []);
+
+  const dismissError = useCallback((id: string) => {
+    setErrorNotifs((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
+  // Unhandled promise rejections → show error notification
+  useEffect(() => {
+    const handler = (e: PromiseRejectionEvent) => {
+      addErrorNotif("خطای ناشناخته در پنل", e.reason?.message ?? String(e.reason ?? "unknown"));
+    };
+    window.addEventListener("unhandledrejection", handler);
+    return () => window.removeEventListener("unhandledrejection", handler);
+  }, [addErrorNotif]);
+
+  const loadCounts = useCallback(() => {
+    fetch("/api/admin/notifications/counts")
+      .then((r) => r.text())
+      .then((t) => {
+        try {
+          const d = t ? JSON.parse(t) : {};
+          if (d && typeof d.orders === "number") setCounts(d);
+        } catch { /* ignore */ }
+      })
+      .catch(() => { /* counts are non-critical background refresh */ });
   }, []);
 
   const handleDeleteProduct = useCallback(async (id: string, name: string) => {
@@ -183,7 +226,11 @@ export default function AdminPage() {
     if (status === "authenticated") {
       const role = (session.user as { role?: string }).role ?? "";
       if (!["ADMIN", "SUPER_ADMIN"].includes(role)) { router.push("/"); return; }
+
       fetch("/api/admin/stats").then((r) => r.text()).then((t) => { try { if (t) setStats(JSON.parse(t)); } catch { /* ignore */ } });
+
+      loadCounts();
+
       fetch("/api/admin/notifications/seen").then((r) => r.text()).then((t) => {
         try {
           const d = t ? JSON.parse(t) : {};
@@ -191,37 +238,61 @@ export default function AdminPage() {
         } catch { /* ignore */ }
       });
     }
-  }, [status, session, router]);
+  }, [status, session, router, loadCounts]);
+
+  // Auto-refresh badge counts every 60 seconds
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const interval = setInterval(loadCounts, 60_000);
+    return () => clearInterval(interval);
+  }, [status, loadCounts]);
 
   useEffect(() => {
-    if (section === "products") fetch("/api/admin/products").then((r) => r.text()).then((t) => { try { const d = t ? JSON.parse(t) : {}; setProducts(d.products ?? []); } catch { /* ignore */ } });
-    if (section === "analytics" && !analyticsData) {
-      fetch("/api/admin/analytics").then((r) => r.text()).then((t) => { try { if (t) setAnalyticsData(JSON.parse(t)); } catch { /* ignore */ } });
+    if (section === "products") {
+      fetch("/api/admin/products")
+        .then((r) => r.text())
+        .then((t) => {
+          try {
+            const d = t ? JSON.parse(t) : {};
+            setProducts(d.products ?? []);
+          } catch {
+            addErrorNotif("خطا در دریافت داده محصولات", "GET /api/admin/products");
+          }
+        })
+        .catch(() => addErrorNotif("خطا در اتصال به سرور", "GET /api/admin/products"));
     }
-  }, [section, analyticsData]);
+    if (section === "analytics" && !analyticsData) {
+      fetch("/api/admin/analytics")
+        .then((r) => r.text())
+        .then((t) => { try { if (t) setAnalyticsData(JSON.parse(t)); } catch { addErrorNotif("خطا در دریافت داده آمار", "GET /api/admin/analytics"); } })
+        .catch(() => addErrorNotif("خطا در اتصال به سرور", "GET /api/admin/analytics"));
+    }
+  }, [section, analyticsData, addErrorNotif]);
 
   // Mark current section as read
   const markSectionRead = useCallback(async () => {
     const seenKey = SECTION_SEEN_KEY[section];
-    if (!seenKey || !stats) return;
-    const rawCount = seenKey === "orders" ? (stats.pendingOrders ?? 0)
-      : seenKey === "comments" ? (stats.pendingReviews ?? 0)
-      : (stats.pendingBlogPosts ?? 0);
+    if (!seenKey) return;
+    const rawCount = counts[seenKey] ?? 0;
     setMarkingRead(true);
     try {
-      await fetch("/api/admin/notifications/seen", {
+      const res = await fetch("/api/admin/notifications/seen", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ section: seenKey, count: rawCount }),
       });
-      setSeen((prev) => ({ ...prev, [seenKey]: rawCount }));
-      showAdminToast("success", "همه موارد به عنوان خوانده‌شده علامت‌گذاری شدند");
+      if (!res.ok) {
+        addErrorNotif("خطا در ثبت وضعیت خوانده‌شده", `PUT /api/admin/notifications/seen → ${res.status}`);
+      } else {
+        setSeen((prev) => ({ ...prev, [seenKey]: rawCount }));
+        showAdminToast("success", "همه موارد به عنوان خوانده‌شده علامت‌گذاری شدند");
+      }
     } catch {
-      showAdminToast("error", "خطا در ثبت وضعیت");
+      addErrorNotif("خطا در اتصال به سرور", "PUT /api/admin/notifications/seen");
     } finally {
       setMarkingRead(false);
     }
-  }, [section, stats, showAdminToast]);
+  }, [section, counts, addErrorNotif, showAdminToast]);
 
   // Reload products list after returning from product form
   const handleProductFormSuccess = useCallback(() => {
@@ -231,14 +302,11 @@ export default function AdminPage() {
 
   if (status === "loading") return <div style={{ textAlign: "center", padding: "5rem" }}>در حال بارگذاری...</div>;
 
-  const navGroups = buildNavGroups(stats, seen);
+  const navGroups = buildNavGroups(counts, seen);
 
   // Badge count for current section (to show in mark-read button)
   const currentSeenKey = SECTION_SEEN_KEY[section];
-  const currentRawCount = currentSeenKey === "orders" ? (stats?.pendingOrders ?? 0)
-    : currentSeenKey === "comments" ? (stats?.pendingReviews ?? 0)
-    : currentSeenKey === "blog" ? (stats?.pendingBlogPosts ?? 0)
-    : 0;
+  const currentRawCount = currentSeenKey ? (counts[currentSeenKey] ?? 0) : 0;
   const currentUnseenCount = Math.max(0, currentRawCount - (currentSeenKey ? seen[currentSeenKey] : 0));
   const showMarkRead = !!currentSeenKey && currentUnseenCount > 0;
 
@@ -252,6 +320,7 @@ export default function AdminPage() {
     maintenance: "حالت تعمیرات",
     migration: "انتقال سایت",
     cms: "مدیریت محتوا",
+    returns: "مرجوعی‌ها",
   };
 
   return (
@@ -280,8 +349,10 @@ export default function AdminPage() {
               >
                 <i className={`ti ${item.icon}`} style={{ fontSize: 17, flexShrink: 0 }} />
                 {item.label}
-                {"badge" in item && item.badge && (
-                  <span style={{ marginRight: "auto", background: "var(--accent)", color: "#fff", fontSize: 10, fontWeight: 900, padding: "1px 7px", borderRadius: 10 }}>{item.badge}</span>
+                {item.badge && (
+                  <span style={{ marginRight: "auto", background: item.badge.color, color: "#fff", fontSize: 10, fontWeight: 900, padding: "1px 7px", borderRadius: 10 }}>
+                    {item.badge.count}
+                  </span>
                 )}
               </div>
             ))}
@@ -336,7 +407,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Admin-level toast (delete, etc.) */}
+        {/* Admin-level toast (action feedback) */}
         {adminToast && (
           <div style={{
             position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)",
@@ -348,6 +419,39 @@ export default function AdminPage() {
           }}>
             <i className={`ti ${adminToast.type === "success" ? "ti-circle-check" : "ti-circle-x"}`} style={{ fontSize: 18 }} />
             {adminToast.msg}
+          </div>
+        )}
+
+        {/* Global error notifications — persistent, top-left, dismissible */}
+        {errorNotifs.length > 0 && (
+          <div style={{
+            position: "fixed", top: 80, left: 16, zIndex: 99998,
+            display: "flex", flexDirection: "column", gap: 8, maxWidth: 380,
+          }}>
+            {errorNotifs.map((n) => (
+              <div key={n.id} style={{
+                background: "#c0392b", color: "#fff",
+                padding: "10px 12px", borderRadius: 10,
+                boxShadow: "0 4px 20px rgba(0,0,0,.3)",
+                fontFamily: "Vazirmatn", fontSize: 13,
+                display: "flex", gap: 10, alignItems: "flex-start",
+                animation: "fadeIn .2s ease",
+              }}>
+                <i className="ti ti-circle-x" style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 900 }}>{n.message}</div>
+                  <div style={{ fontSize: 11, opacity: 0.85, marginTop: 2, direction: "ltr", wordBreak: "break-all" }}>{n.detail}</div>
+                  <div style={{ fontSize: 10, opacity: 0.7, marginTop: 3 }}>[{n.timestamp}]</div>
+                </div>
+                <button
+                  onClick={() => dismissError(n.id)}
+                  style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer", padding: "2px 4px", flexShrink: 0, fontSize: 14 }}
+                  title="بستن"
+                >
+                  <i className="ti ti-x" />
+                </button>
+              </div>
+            ))}
           </div>
         )}
 

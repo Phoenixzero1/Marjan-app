@@ -3,39 +3,35 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
-const VALID_SECTIONS = ["orders", "comments", "blog"] as const;
+const VALID_SECTIONS = ["orders", "comments", "blog", "returns", "sessions", "logs"] as const;
 type Section = typeof VALID_SECTIONS[number];
 
-// GET /api/admin/notifications/seen
-// Returns { orders: N, comments: N, blog: N } — seenCount per section for this admin
+const FALLBACK = { orders: 0, comments: 0, blog: 0, returns: 0, sessions: 0, logs: 0 };
+
 export async function GET() {
-  const fallback = { orders: 0, comments: 0, blog: 0 };
   try {
     const session = await requireAdmin();
     if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
     const userId = (session.user as { id?: string }).id;
-    if (!userId) return NextResponse.json(fallback);
+    if (!userId) return NextResponse.json(FALLBACK);
 
     const rows = await prisma.adminSeenSection.findMany({
       where: { userId },
       select: { section: true, seenCount: true },
     });
 
-    const result: Record<string, number> = { ...fallback };
+    const result: Record<string, number> = { ...FALLBACK };
     for (const row of rows) {
       if (row.section in result) result[row.section] = row.seenCount;
     }
 
     return NextResponse.json(result);
   } catch {
-    return NextResponse.json(fallback);
+    return NextResponse.json(FALLBACK);
   }
 }
 
-// PUT /api/admin/notifications/seen
-// Body: { section: "orders" | "comments" | "blog", count: N }
-// Sets seenCount = count so badge = max(0, rawCount - count) = 0
 export async function PUT(req: NextRequest) {
   try {
     const session = await requireAdmin();
