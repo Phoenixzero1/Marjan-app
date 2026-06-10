@@ -21,6 +21,7 @@ const orderSchema = z.object({
   couponCode: z.string().optional(),
   notes: z.string().optional(),
   shippingMethod: z.string().optional(),
+  paymentMethod: z.enum(["gateway", "wallet"]).optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -130,6 +131,35 @@ export async function POST(req: NextRequest) {
         }),
       ]);
       return NextResponse.json({ success: true, order: { ...order, status: "PROCESSING" }, isFree: true }, { status: 201 });
+    }
+
+    // Wallet payment
+    if (data.paymentMethod === "wallet") {
+      const wallet = await prisma.wallet.findUnique({ where: { userId: session.user.id } });
+      if (!wallet || wallet.balance < totalAmount) {
+        await prisma.order.delete({ where: { id: order.id } });
+        return NextResponse.json({ error: "موجودی کیف پول کافی نیست" }, { status: 400 });
+      }
+      await prisma.$transaction([
+        prisma.wallet.update({
+          where: { userId: session.user.id },
+          data: { balance: { decrement: totalAmount } },
+        }),
+        prisma.walletTx.create({
+          data: {
+            walletId: wallet.id,
+            amount: -totalAmount,
+            type: "purchase",
+            description: `پرداخت سفارش ${order.orderNumber}`,
+            refId: order.id,
+          },
+        }),
+        prisma.order.update({ where: { id: order.id }, data: { status: "PROCESSING" } }),
+        prisma.payment.create({
+          data: { orderId: order.id, amount: totalAmount, status: "PAID", gateway: "wallet", paidAt: new Date() },
+        }),
+      ]);
+      return NextResponse.json({ success: true, order: { ...order, status: "PROCESSING" }, isWalletPaid: true }, { status: 201 });
     }
 
     return NextResponse.json({ success: true, order }, { status: 201 });

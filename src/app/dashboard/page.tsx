@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { formatPrice, getStatusLabel } from "@/lib/utils";
 import Link from "next/link";
 
-type DashTab = "overview" | "profile" | "orders" | "addresses" | "wishlist" | "notifications" | "settings";
+type DashTab = "overview" | "profile" | "orders" | "addresses" | "wishlist" | "notifications" | "settings" | "wallet";
 
 interface Order {
   id: string; orderNumber: string; status: string; totalAmount: number;
@@ -41,6 +41,12 @@ interface WishlistItem {
   id: string;
   product: { id: string; name: string; slug: string; price: number; images: { url: string }[]; brand: { name: string } | null };
 }
+
+interface WalletTx {
+  id: string; amount: number; type: string;
+  description: string | null; refId: string | null; createdAt: string;
+}
+interface WalletData { balance: number; transactions: WalletTx[]; }
 
 const inp: React.CSSProperties = {
   border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)",
@@ -84,6 +90,16 @@ export default function DashboardPage() {
   const [returnReqs, setReturnReqs] = useState<Record<string, ReturnReq | null>>({});
   const [returnForm, setReturnForm] = useState<Record<string, { reason: string; description: string }>>({});
   const [returnLoading, setReturnLoading] = useState<string | null>(null);
+  const [walletData, setWalletData] = useState<WalletData | null>(null);
+  const [walletLoaded, setWalletLoaded] = useState(false);
+
+  // Read ?tab= from URL on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const t = new URLSearchParams(window.location.search).get("tab") as DashTab | null;
+    const valid: DashTab[] = ["overview","profile","orders","addresses","wishlist","notifications","settings","wallet"];
+    if (t && valid.includes(t)) setTab(t);
+  }, []);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/");
@@ -151,11 +167,23 @@ export default function DashboardPage() {
     });
   }, [wishLoaded]);
 
+  const loadWallet = useCallback(() => {
+    if (walletLoaded) return;
+    fetch("/api/user/wallet").then((r) => r.json()).then((d) => {
+      setWalletData({ balance: d.balance ?? 0, transactions: d.transactions ?? [] });
+      setWalletLoaded(true);
+    }).catch(() => {
+      setWalletData({ balance: 0, transactions: [] });
+      setWalletLoaded(true);
+    });
+  }, [walletLoaded]);
+
   useEffect(() => {
     if (tab === "addresses") loadAddresses();
     if (tab === "wishlist") loadWishlist();
     if (tab === "notifications") loadNotifications();
-  }, [tab, loadAddresses, loadWishlist, loadNotifications]);
+    if (tab === "wallet") loadWallet();
+  }, [tab, loadAddresses, loadWishlist, loadNotifications, loadWallet]);
 
   async function markAllRead() {
     await fetch("/api/user/notifications", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ all: true }) });
@@ -296,6 +324,7 @@ export default function DashboardPage() {
     { id: "orders", icon: "ti-package", label: "سفارش‌ها" },
     { id: "addresses", icon: "ti-map-pin", label: "آدرس‌ها" },
     { id: "wishlist", icon: "ti-heart", label: "علاقه‌مندی‌ها" },
+    { id: "wallet", icon: "ti-wallet", label: "کیف پول" },
     { id: "notifications", icon: "ti-bell", label: "اعلان‌ها", badge: stats.unreadNotifs || undefined },
     { id: "settings", icon: "ti-settings", label: "تنظیمات" },
   ];
@@ -849,6 +878,129 @@ export default function DashboardPage() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── WALLET ── */}
+        {tab === "wallet" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            {/* Balance card */}
+            <div
+              style={{
+                background: "linear-gradient(135deg, var(--primary-dark) 0%, #1a3d7c 100%)",
+                borderRadius: 16,
+                padding: "2rem 2.5rem",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 20,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,.65)", fontWeight: 700, marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                  <i className="ti ti-wallet" /> موجودی کیف پول
+                </div>
+                <div style={{ fontSize: 36, fontWeight: 900, color: "#fff" }}>
+                  {walletLoaded
+                    ? (walletData?.balance ?? 0).toLocaleString("fa-IR")
+                    : "..."}
+                  <span style={{ fontSize: 16, marginRight: 6, opacity: 0.7 }}>تومان</span>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <div
+                  style={{
+                    background: "rgba(255,255,255,.12)",
+                    border: "1px solid rgba(255,255,255,.2)",
+                    color: "rgba(255,255,255,.6)",
+                    padding: "10px 20px",
+                    borderRadius: 8,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "not-allowed",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                  title="این قابلیت به زودی فعال می‌شود"
+                >
+                  <i className="ti ti-plus" /> افزایش موجودی
+                </div>
+              </div>
+            </div>
+
+            {/* Transactions */}
+            <div style={cardStyle}>
+              <h3 style={{ fontSize: 15, fontWeight: 900, color: "var(--primary)", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: 8 }}>
+                <i className="ti ti-arrows-exchange" /> تاریخچه تراکنش‌ها
+              </h3>
+              {!walletLoaded ? (
+                <div style={{ textAlign: "center", padding: "2rem", color: "var(--text3)" }}>در حال بارگذاری...</div>
+              ) : !walletData || walletData.transactions.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
+                  <i className="ti ti-receipt-off" style={{ fontSize: 40, display: "block", marginBottom: 10 }} />
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>هنوز تراکنشی انجام نشده</div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  {walletData.transactions.map((tx, i) => {
+                    const isCredit = tx.amount > 0;
+                    const typeIcon = tx.type === "purchase" ? "ti-shopping-cart"
+                      : tx.type === "charge" ? "ti-wallet"
+                      : tx.type === "refund" ? "ti-arrow-back-up"
+                      : "ti-arrows-exchange";
+                    const typeColor = isCredit ? "#1a7a4a" : "#c0392b";
+                    return (
+                      <div
+                        key={tx.id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 12,
+                          padding: "14px 0",
+                          borderBottom: i < walletData.transactions.length - 1 ? "1px solid var(--border)" : "none",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: "50%",
+                            background: `${typeColor}18`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <i className={`ti ${typeIcon}`} style={{ fontSize: 18, color: typeColor }} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>
+                            {tx.description ?? (tx.type === "purchase" ? "خرید" : tx.type === "charge" ? "شارژ کیف پول" : tx.type === "refund" ? "استرداد" : "تراکنش")}
+                          </div>
+                          <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 2 }}>
+                            {new Date(tx.createdAt).toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 900,
+                            color: typeColor,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {isCredit ? "+" : "−"}{Math.abs(tx.amount).toLocaleString("fa-IR")} تومان
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

@@ -5,14 +5,22 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ balance: 0 });
+  if (!session?.user?.id) return NextResponse.json({ balance: 0, transactions: [] });
   try {
     const wallet = await prisma.wallet.findUnique({
       where: { userId: session.user.id },
-      select: { balance: true },
+      include: {
+        transactions: {
+          orderBy: { createdAt: "desc" },
+          take: 50,
+        },
+      },
     });
-    return NextResponse.json({ balance: wallet?.balance ?? 0 });
+    return NextResponse.json({
+      balance: wallet?.balance ?? 0,
+      transactions: wallet?.transactions ?? [],
+    });
   } catch {
-    return NextResponse.json({ balance: 0 });
+    return NextResponse.json({ balance: 0, transactions: [] });
   }
 }

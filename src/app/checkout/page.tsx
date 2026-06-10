@@ -52,6 +52,8 @@ function CheckoutContent() {
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"gateway" | "wallet">("gateway");
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
   // New address form
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -74,6 +76,10 @@ function CheckoutContent() {
           const def = d.addresses?.find((a: Address) => a.isDefault);
           if (def) setSelectedAddressId(def.id);
         });
+      fetch("/api/user/wallet")
+        .then((r) => r.json())
+        .then((d) => setWalletBalance(d.balance ?? 0))
+        .catch(() => setWalletBalance(0));
     }
   }, [session, status, router]);
 
@@ -166,6 +172,7 @@ function CheckoutContent() {
         couponCode: coupon?.code ?? null,
         shippingMethod,
         notes,
+        paymentMethod,
       }),
     });
 
@@ -177,8 +184,8 @@ function CheckoutContent() {
       return;
     }
 
-    // 100% discount — order is free, skip payment gateway
-    if (data.isFree) {
+    // Free (100% discount) or wallet payment — skip gateway
+    if (data.isFree || data.isWalletPaid) {
       clearCart();
       router.replace(`/dashboard/orders?success=${data.order.orderNumber}`);
       return;
@@ -470,6 +477,59 @@ function CheckoutContent() {
             </div>
           </div>
 
+          {/* Payment method */}
+          <div style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius)", overflow: "hidden" }}>
+            <div style={{ background: "var(--bg)", padding: "12px 16px", borderBottom: "1px solid var(--border)" }}>
+              <h2 style={{ fontSize: 14, fontWeight: 900, display: "flex", alignItems: "center", gap: 8 }}>
+                <i className="ti ti-credit-card" style={{ color: "var(--primary)" }} />
+                روش پرداخت
+              </h2>
+            </div>
+            <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+              {/* Gateway */}
+              <label
+                style={{
+                  display: "flex", gap: 12, alignItems: "center", padding: "11px 14px",
+                  border: `1.5px solid ${paymentMethod === "gateway" ? "var(--primary)" : "var(--border)"}`,
+                  borderRadius: "var(--radius-sm)", cursor: "pointer",
+                  background: paymentMethod === "gateway" ? "#f0f5ff" : "#fff",
+                }}
+              >
+                <input type="radio" name="payment" value="gateway" checked={paymentMethod === "gateway"} onChange={() => setPaymentMethod("gateway")} />
+                <i className="ti ti-credit-card" style={{ fontSize: 18, color: "var(--primary)", flexShrink: 0 }} />
+                <span style={{ fontSize: 13, fontWeight: 700 }}>درگاه پرداخت آنلاین</span>
+              </label>
+
+              {/* Wallet */}
+              <label
+                style={{
+                  display: "flex", gap: 12, alignItems: "center", padding: "11px 14px",
+                  border: `1.5px solid ${paymentMethod === "wallet" ? "var(--accent)" : "var(--border)"}`,
+                  borderRadius: "var(--radius-sm)", cursor: walletBalance !== null && walletBalance > 0 ? "pointer" : "not-allowed",
+                  background: paymentMethod === "wallet" ? "#fff8ee" : "#fff",
+                  opacity: walletBalance !== null && walletBalance > 0 ? 1 : 0.5,
+                }}
+              >
+                <input
+                  type="radio" name="payment" value="wallet"
+                  checked={paymentMethod === "wallet"}
+                  disabled={!walletBalance || walletBalance <= 0}
+                  onChange={() => setPaymentMethod("wallet")}
+                />
+                <i className="ti ti-wallet" style={{ fontSize: 18, color: "var(--accent)", flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700 }}>کیف پول</span>
+                  <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 1 }}>
+                    موجودی: {walletBalance !== null ? `${walletBalance.toLocaleString("fa-IR")} تومان` : "..."}
+                  </div>
+                </div>
+                {paymentMethod === "wallet" && walletBalance !== null && walletBalance < total && (
+                  <span style={{ fontSize: 10, color: "#c0392b", fontWeight: 700 }}>موجودی کافی نیست</span>
+                )}
+              </label>
+            </div>
+          </div>
+
           {submitError && (
             <div style={{ background: "#fdecea", color: "#c0392b", padding: "10px 14px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 700 }}>
               {submitError}
@@ -478,16 +538,17 @@ function CheckoutContent() {
 
           <button
             onClick={handlePlaceOrder}
-            disabled={submitting}
+            disabled={submitting || (paymentMethod === "wallet" && (walletBalance ?? 0) < total)}
             style={{
-              background: "var(--primary)", color: "#fff", border: "none",
+              background: paymentMethod === "wallet" ? "var(--accent)" : "var(--primary)", color: "#fff", border: "none",
               padding: "14px", borderRadius: "var(--radius-sm)", fontSize: 15, fontWeight: 900,
               fontFamily: "Vazirmatn", cursor: submitting ? "not-allowed" : "pointer",
-              opacity: submitting ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              opacity: (submitting || (paymentMethod === "wallet" && (walletBalance ?? 0) < total)) ? 0.6 : 1,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}
           >
-            <i className="ti ti-credit-card" />
-            {submitting ? "در حال پردازش..." : "پرداخت و ثبت سفارش"}
+            <i className={`ti ${paymentMethod === "wallet" ? "ti-wallet" : "ti-credit-card"}`} />
+            {submitting ? "در حال پردازش..." : paymentMethod === "wallet" ? "پرداخت با کیف پول" : "پرداخت و ثبت سفارش"}
           </button>
 
           <p style={{ fontSize: 11, color: "var(--text3)", textAlign: "center" }}>

@@ -175,7 +175,14 @@
   - Brands horizontal row with logos/fallback icons
   - Blog cards now show post thumbnail image
   - Admin sidebar: مرجان تایم under محتوا group
-- [ ] Part 3: User Account Dropdown Redesign
+- [x] Part 3: User Account Dropdown Redesign
+  - Avatar circle (first letter), name + email header on dark gradient background
+  - Menu items with icons + tinted icon backgrounds: ویرایش مشخصات, سفارش‌های من, علاقه‌مندی‌ها, کیف پول
+  - Wallet balance badge fetched lazily (GET /api/user/wallet) on first dropdown open
+  - Admin link shown only for ADMIN/SUPER_ADMIN
+  - Logout with red accent hover + icon box
+  - Mobile nav: added wallet + wishlist links
+  - New API: GET /api/user/wallet
 - [ ] Part 4: Wallet Tab in User Dashboard
 - [ ] Part 5: Organizational Purchase (خرید سازمانی)
 
