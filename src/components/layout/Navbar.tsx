@@ -94,6 +94,19 @@ export default function Navbar() {
 
   const count = mounted ? totalItems() : 0;
   const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes((session?.user as { role?: string })?.role ?? "");
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [walletLoading, setWalletLoading] = useState(false);
+
+  // Fetch wallet balance the first time the dropdown opens
+  useEffect(() => {
+    if (!userMenuOpen || !session?.user || walletBalance !== null) return;
+    setWalletLoading(true);
+    fetch("/api/user/wallet")
+      .then((r) => r.json())
+      .then((d) => { setWalletBalance(d.balance ?? 0); })
+      .catch(() => { setWalletBalance(0); })
+      .finally(() => setWalletLoading(false));
+  }, [userMenuOpen, session?.user, walletBalance]);
 
   return (
     <>
@@ -197,32 +210,301 @@ export default function Navbar() {
             {/* User menu */}
             {session?.user ? (
               <div ref={menuRef} style={{ position: "relative" }}>
+                {/* Trigger button — avatar circle */}
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  style={{ background: "rgba(255,255,255,.15)", border: "1px solid rgba(255,255,255,.3)", color: "#fff", padding: "8px 10px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, minHeight: 44 }}
+                  style={{
+                    background: userMenuOpen ? "rgba(255,255,255,.25)" : "rgba(255,255,255,.15)",
+                    border: "1px solid rgba(255,255,255,.3)",
+                    color: "#fff",
+                    padding: "6px 10px",
+                    borderRadius: "var(--radius-sm)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    minHeight: 44,
+                    transition: "background .15s",
+                  }}
                 >
-                  <i className="ti ti-user" />
-                  <span className="hidden md:inline">{session.user.name?.split(" ")[0]}</span>
+                  {/* Avatar */}
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      background: "var(--accent)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 13,
+                      fontWeight: 900,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {(session.user.name ?? "U")[0].toUpperCase()}
+                  </div>
+                  <span className="hidden md:inline" style={{ maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {session.user.name?.split(" ")[0]}
+                  </span>
+                  <i className={`ti ti-chevron-${userMenuOpen ? "up" : "down"} hidden md:inline`} style={{ fontSize: 12, opacity: 0.7 }} />
                 </button>
+
+                {/* Dropdown panel */}
                 {userMenuOpen && (
-                  <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)", minWidth: 180, zIndex: 100, overflow: "hidden" }}>
-                    <Link href="/dashboard" onClick={() => setUserMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", fontSize: 13, fontWeight: 700, color: "var(--text2)", minHeight: 44 }}>
-                      <i className="ti ti-layout-dashboard" style={{ color: "var(--primary)" }} /> داشبورد
-                    </Link>
-                    <Link href="/dashboard/orders" onClick={() => setUserMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", fontSize: 13, fontWeight: 700, color: "var(--text2)", minHeight: 44 }}>
-                      <i className="ti ti-package" style={{ color: "var(--primary)" }} /> سفارش‌ها
-                    </Link>
-                    {isAdmin && (
-                      <Link href="/admin" onClick={() => setUserMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", fontSize: 13, fontWeight: 700, color: "var(--accent)", minHeight: 44 }}>
-                        <i className="ti ti-shield-lock" /> پنل ادمین
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 10px)",
+                      left: 0,
+                      background: "#fff",
+                      borderRadius: "var(--radius)",
+                      boxShadow: "0 8px 40px rgba(0,0,0,.18)",
+                      minWidth: 265,
+                      zIndex: 200,
+                      overflow: "hidden",
+                      border: "1px solid var(--border)",
+                      animation: "fadeIn .15s ease",
+                    }}
+                  >
+                    {/* User header */}
+                    <div
+                      style={{
+                        padding: "16px 18px",
+                        background: "linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 46,
+                          height: 46,
+                          borderRadius: "50%",
+                          background: "var(--accent)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 20,
+                          fontWeight: 900,
+                          color: "#fff",
+                          flexShrink: 0,
+                          border: "2px solid rgba(255,255,255,.3)",
+                        }}
+                      >
+                        {(session.user.name ?? "U")[0].toUpperCase()}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 900,
+                            color: "#fff",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {session.user.name}
+                        </div>
+                        {session.user.email && (
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: "rgba(255,255,255,.6)",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              marginTop: 2,
+                              direction: "ltr",
+                            }}
+                          >
+                            {session.user.email}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Main links */}
+                    <div style={{ padding: "6px 0" }}>
+                      {[
+                        { href: "/dashboard",          icon: "ti-user-circle",    label: "ویرایش مشخصات",   iconColor: "var(--primary)" },
+                        { href: "/dashboard/orders",   icon: "ti-package",        label: "سفارش‌های من",    iconColor: "#1a7a4a" },
+                        { href: "/wishlist",           icon: "ti-heart",          label: "علاقه‌مندی‌ها",  iconColor: "#e74c3c" },
+                      ].map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setUserMenuOpen(false)}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            padding: "11px 18px",
+                            fontSize: 13,
+                            fontWeight: 700,
+                            color: "var(--text)",
+                            textDecoration: "none",
+                            transition: "background .12s",
+                          }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg)"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                        >
+                          <div
+                            style={{
+                              width: 34,
+                              height: 34,
+                              borderRadius: 8,
+                              background: `${item.iconColor}18`,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <i className={`ti ${item.icon}`} style={{ fontSize: 16, color: item.iconColor }} />
+                          </div>
+                          {item.label}
+                          <i className="ti ti-arrow-left" style={{ marginRight: "auto", fontSize: 12, color: "var(--text3)" }} />
+                        </Link>
+                      ))}
+
+                      {/* Wallet row — shows balance */}
+                      <Link
+                        href="/dashboard?tab=wallet"
+                        onClick={() => setUserMenuOpen(false)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 12,
+                          padding: "11px 18px",
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: "var(--text)",
+                          textDecoration: "none",
+                          transition: "background .12s",
+                        }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg)"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                      >
+                        <div
+                          style={{
+                            width: 34,
+                            height: 34,
+                            borderRadius: 8,
+                            background: "rgba(232,146,10,.12)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <i className="ti ti-wallet" style={{ fontSize: 16, color: "var(--accent)" }} />
+                        </div>
+                        <span style={{ flex: 1 }}>کیف پول</span>
+                        <span
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 900,
+                            color: walletLoading ? "var(--text3)" : "var(--accent)",
+                            background: "var(--accent-light)",
+                            padding: "2px 8px",
+                            borderRadius: 20,
+                          }}
+                        >
+                          {walletLoading
+                            ? "..."
+                            : walletBalance !== null
+                            ? `${walletBalance.toLocaleString("fa-IR")} ت`
+                            : "—"}
+                        </span>
                       </Link>
+                    </div>
+
+                    {/* Admin link */}
+                    {isAdmin && (
+                      <>
+                        <div style={{ height: 1, background: "var(--border)", margin: "0 12px" }} />
+                        <div style={{ padding: "6px 0" }}>
+                          <Link
+                            href="/admin"
+                            onClick={() => setUserMenuOpen(false)}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 12,
+                              padding: "11px 18px",
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color: "var(--text)",
+                              textDecoration: "none",
+                              transition: "background .12s",
+                            }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg)"; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                          >
+                            <div
+                              style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 8,
+                                background: "rgba(232,146,10,.12)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                              }}
+                            >
+                              <i className="ti ti-shield-lock" style={{ fontSize: 16, color: "var(--accent)" }} />
+                            </div>
+                            پنل ادمین
+                            <i className="ti ti-arrow-left" style={{ marginRight: "auto", fontSize: 12, color: "var(--text3)" }} />
+                          </Link>
+                        </div>
+                      </>
                     )}
-                    <div style={{ borderTop: "1px solid var(--border)" }}>
+
+                    {/* Logout */}
+                    <div style={{ height: 1, background: "var(--border)", margin: "0 12px" }} />
+                    <div style={{ padding: "6px 0 8px" }}>
                       <button
                         onClick={() => { signOut({ callbackUrl: "/" }); setUserMenuOpen(false); }}
-                        style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", fontSize: 13, fontWeight: 700, color: "#c0392b", background: "none", border: "none", width: "100%", textAlign: "right", minHeight: 44 }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 12,
+                          padding: "11px 18px",
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: "#c0392b",
+                          background: "none",
+                          border: "none",
+                          width: "100%",
+                          textAlign: "right",
+                          cursor: "pointer",
+                          fontFamily: "Vazirmatn",
+                          transition: "background .12s",
+                        }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#fff0f0"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                       >
-                        <i className="ti ti-logout" /> خروج
+                        <div
+                          style={{
+                            width: 34,
+                            height: 34,
+                            borderRadius: 8,
+                            background: "rgba(192,57,43,.1)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <i className="ti ti-logout" style={{ fontSize: 16, color: "#c0392b" }} />
+                        </div>
+                        خروج از حساب
                       </button>
                     </div>
                   </div>
@@ -289,8 +571,10 @@ export default function Navbar() {
           {session?.user && (
             <div style={{ borderBottom: "1px solid rgba(255,255,255,.1)" }}>
               {[
-                { href: "/dashboard",        icon: "ti-layout-dashboard", label: "داشبورد" },
-                { href: "/dashboard/orders", icon: "ti-package",          label: "سفارش‌ها" },
+                { href: "/dashboard",           icon: "ti-user-circle",  label: "ویرایش مشخصات" },
+                { href: "/dashboard/orders",    icon: "ti-package",      label: "سفارش‌های من" },
+                { href: "/dashboard?tab=wallet",icon: "ti-wallet",       label: "کیف پول" },
+                { href: "/wishlist",            icon: "ti-heart",        label: "علاقه‌مندی‌ها" },
                 ...(isAdmin ? [{ href: "/admin", icon: "ti-shield-lock", label: "پنل ادمین" }] : []),
               ].map((item) => (
                 <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)}
