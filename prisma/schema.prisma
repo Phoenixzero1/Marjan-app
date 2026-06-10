@@ -754,6 +754,25 @@ model UserPermission {
   @@index([userId])
 }
 
+model OrgRequest {
+  id              String   @id @default(cuid())
+  companyName     String
+  contactName     String
+  phone           String
+  email           String?
+  nationalCode    String?
+  category        String?
+  estimatedAmount String?
+  description     String   @db.Text
+  status          String   @default("PENDING")
+  adminNote       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
 model AdminSeenSection {
   id        String   @id @default(cuid())
   userId    String

@@ -28,6 +28,7 @@ import CmsManager from "@/components/admin/CmsManager";
 import BrandManager from "@/components/admin/BrandManager";
 import SliderManager from "@/components/admin/SliderManager";
 import FlashDealManager from "@/components/admin/FlashDealManager";
+import OrgRequestManager from "@/components/admin/OrgRequestManager";
 
 interface ProductRow {
   id: string; name: string; sku: string | null; price: number;
@@ -42,7 +43,7 @@ type AdminSection =
   | "media" | "notifications-admin" | "comments" | "newsletter"
   | "settings-general" | "settings-payment" | "settings-seo"
   | "settings-security" | "backup" | "logs" | "sessions"
-  | "roles" | "trash" | "returns" | "maintenance" | "migration" | "cms" | "brands" | "slider" | "flashdeal" | "product-form";
+  | "roles" | "trash" | "returns" | "maintenance" | "migration" | "cms" | "brands" | "slider" | "flashdeal" | "orgrequests" | "product-form";
 
 interface Stats {
   totalOrders: number; monthOrders: number; totalUsers: number; todayUsers: number;
@@ -96,6 +97,7 @@ function buildNavGroups(counts: NotifCounts, seen: SeenCounts) {
         { id: "returns", icon: "ti-arrow-back-up", label: "مرجوعی‌ها", badge: badge(counts.returns, seen.returns) },
         { id: "finance", icon: "ti-report-money", label: "مالی", badge: undefined as BadgeInfo | undefined },
         { id: "coupons", icon: "ti-ticket", label: "تخفیف و کوپن", badge: undefined as BadgeInfo | undefined },
+        { id: "orgrequests", icon: "ti-building-skyscraper", label: "خرید سازمانی", badge: undefined as BadgeInfo | undefined },
       ],
     },
     {
@@ -327,6 +329,7 @@ export default function AdminPage() {
     returns: "مرجوعی‌ها",
     slider: "مدیریت اسلایدر",
     flashdeal: "مرجان تایم",
+    orgrequests: "خرید سازمانی",
   };
 
   return (
@@ -700,8 +703,10 @@ export default function AdminPage() {
 
           {section === "flashdeal" && <FlashDealManager />}
 
+          {section === "orgrequests" && <OrgRequestManager />}
+
           {/* Generic placeholder for other sections */}
-          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security", "backup", "logs", "sessions", "roles", "trash", "returns", "maintenance", "migration", "cms", "brands", "slider", "flashdeal"].includes(section) && (
+          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security", "backup", "logs", "sessions", "roles", "trash", "returns", "maintenance", "migration", "cms", "brands", "slider", "flashdeal", "orgrequests"].includes(section) && (
             <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "3rem", textAlign: "center", color: "var(--text3)" }}>
               <i className="ti ti-tool" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
               <h3 style={{ fontSize: 18, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>بخش {titleMap[section]}</h3>

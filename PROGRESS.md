@@ -183,8 +183,21 @@
   - Logout with red accent hover + icon box
   - Mobile nav: added wallet + wishlist links
   - New API: GET /api/user/wallet
-- [ ] Part 4: Wallet Tab in User Dashboard
-- [ ] Part 5: Organizational Purchase (خرید سازمانی)
+- [x] Part 4: Wallet Tab in User Dashboard
+  - Dashboard "کیف پول" tab: large balance display, transaction history with icons + amounts
+  - URL param ?tab=wallet opens wallet directly (from navbar dropdown)
+  - Lazy loads wallet data on first visit
+  - Checkout: payment method selector (درگاه پرداخت / کیف پول)
+  - Wallet balance shown in checkout; disabled if zero; warns if insufficient
+  - Orders API: paymentMethod=wallet deducts balance atomically, sets PAID instantly
+  - Wallet API extended: GET returns { balance, transactions[] }
+- [x] Part 5: Organizational Purchase (خرید سازمانی)
+  - OrgRequest model in Prisma schema (db push applied)
+  - Public POST /api/org-request with Zod validation (phone regex, min lengths)
+  - Admin GET/PATCH /api/admin/org-requests (paginated, status filter)
+  - /organizational landing page: hero, 6 benefit cards, request form with success state
+  - Admin OrgRequestManager: status filter tabs, table list, detail drawer, change status + admin note
+  - Admin sidebar: خرید سازمانی under فروش group
 
 ## Starting now:
 Read PROGRESS.md, find first unchecked item, implement it completely, 
