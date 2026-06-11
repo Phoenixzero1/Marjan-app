@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/permissions";
 
@@ -40,6 +41,7 @@ export async function PUT(req: Request) {
       create: { key: KEY, value: JSON.stringify(body), group: "homepage" },
       update: { value: JSON.stringify(body) },
     });
+    revalidatePath("/");
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Save failed" }, { status: 500 });

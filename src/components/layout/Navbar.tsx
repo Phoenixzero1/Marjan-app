@@ -602,6 +602,13 @@ export default function Navbar() {
 
           {/* Secondary links */}
           <div style={{ borderTop: "1px solid rgba(255,255,255,.1)" }}>
+            {/* Organizational — highlighted */}
+            <Link href="/organizational" onClick={() => setMobileMenuOpen(false)}
+              style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 1.25rem", color: "#e8920a", fontSize: 14, fontWeight: 900, minHeight: 48, borderBottom: "1px solid rgba(255,255,255,.1)" }}
+            >
+              <i className="ti ti-building-skyscraper" style={{ fontSize: 18, flexShrink: 0 }} />
+              خرید سازمانی
+            </Link>
             {[
               { href: "/blog",    icon: "ti-news",         label: "وبلاگ" },
               { href: "/about",   icon: "ti-info-circle",  label: "درباره ما" },

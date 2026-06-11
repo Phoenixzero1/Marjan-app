@@ -196,6 +196,26 @@ export default function Megamenu() {
             <i className="ti ti-help" /> FAQ
           </Link>
 
+          {/* Organizational purchase — distinct orange */}
+          <Link
+            href="/organizational"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "12px 15px",
+              color: "#e8920a",
+              fontSize: 13,
+              fontWeight: 900,
+              whiteSpace: "nowrap",
+              borderRight: "1px solid rgba(255,255,255,.12)",
+              borderLeft: "1px solid rgba(255,255,255,.12)",
+            }}
+          >
+            <i className="ti ti-building-skyscraper" style={{ fontSize: 15 }} />
+            خرید سازمانی
+          </Link>
+
           {/* Invoice Builder hover */}
           <div className="mega-item" style={{ position: "relative" }}>
             <span

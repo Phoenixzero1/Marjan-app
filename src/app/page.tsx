@@ -7,6 +7,9 @@ import MarjanTime, { type FlashProduct } from "@/components/home/MarjanTime";
 import CategoryCircle from "@/components/home/CategoryCircle";
 import BrandCard from "@/components/home/BrandCard";
 
+// Always render fresh — flash deal config, sliders and products change via admin
+export const dynamic = "force-dynamic";
+
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://marjan.ir";
 
 export const metadata: Metadata = {
