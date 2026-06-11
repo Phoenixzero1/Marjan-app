@@ -42,7 +42,15 @@ export default function TrashManager() {
     setLoading(true);
     fetch("/api/admin/trash")
       .then((r) => r.json())
-      .then(setData)
+      .then((d) => {
+        setData({
+          products:   Array.isArray(d?.products)   ? d.products   : [],
+          categories: Array.isArray(d?.categories) ? d.categories : [],
+          blogPosts:  Array.isArray(d?.blogPosts)  ? d.blogPosts  : [],
+          orders:     Array.isArray(d?.orders)     ? d.orders     : [],
+        });
+      })
+      .catch(() => setData({ products: [], categories: [], blogPosts: [], orders: [] }))
       .finally(() => setLoading(false));
   };
 
@@ -74,15 +82,15 @@ export default function TrashManager() {
   }
 
   const totalCount = data
-    ? data.products.length + data.categories.length + data.blogPosts.length + data.orders.length
+    ? (data.products?.length ?? 0) + (data.categories?.length ?? 0) + (data.blogPosts?.length ?? 0) + (data.orders?.length ?? 0)
     : 0;
 
   type Section = { entity: string; items: { id: string; label: string; sub: string; deletedAt: string }[] };
   const sections: Section[] = data ? [
-    { entity: "product", items: data.products.map((p) => ({ id: p.id, label: p.name, sub: fmtPrice(p.price), deletedAt: p.deletedAt })) },
-    { entity: "category", items: data.categories.map((c) => ({ id: c.id, label: c.name, sub: c.slug, deletedAt: c.deletedAt })) },
-    { entity: "blogPost", items: data.blogPosts.map((b) => ({ id: b.id, label: b.title, sub: b.slug, deletedAt: b.deletedAt })) },
-    { entity: "order", items: data.orders.map((o) => ({ id: o.id, label: o.orderNumber, sub: fmtPrice(o.totalAmount), deletedAt: o.deletedAt })) },
+    { entity: "product",  items: (data.products  ?? []).map((p) => ({ id: p.id, label: p.name,        sub: fmtPrice(p.price),       deletedAt: p.deletedAt })) },
+    { entity: "category", items: (data.categories ?? []).map((c) => ({ id: c.id, label: c.name,        sub: c.slug,                   deletedAt: c.deletedAt })) },
+    { entity: "blogPost", items: (data.blogPosts  ?? []).map((b) => ({ id: b.id, label: b.title,       sub: b.slug,                   deletedAt: b.deletedAt })) },
+    { entity: "order",    items: (data.orders     ?? []).map((o) => ({ id: o.id, label: o.orderNumber, sub: fmtPrice(o.totalAmount),  deletedAt: o.deletedAt })) },
   ].filter((s) => s.items.length > 0) : [];
 
   return (

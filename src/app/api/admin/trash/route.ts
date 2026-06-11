@@ -6,30 +6,33 @@ import { z } from "zod";// GET — list all soft-deleted items across entities
 export async function GET() {
   if (!(await requirePermission("VIEW_ADMIN"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const [products, categories, blogPosts, orders] = await Promise.all([
-    prisma.product.findMany({
-      where: { deletedAt: { not: null } },
-      select: { id: true, name: true, deletedAt: true, price: true },
-      orderBy: { deletedAt: "desc" },
-    }),
-    prisma.category.findMany({
-      where: { deletedAt: { not: null } },
-      select: { id: true, name: true, slug: true, deletedAt: true },
-      orderBy: { deletedAt: "desc" },
-    }),
-    prisma.blogPost.findMany({
-      where: { deletedAt: { not: null } },
-      select: { id: true, title: true, slug: true, deletedAt: true },
-      orderBy: { deletedAt: "desc" },
-    }),
-    prisma.order.findMany({
-      where: { deletedAt: { not: null } },
-      select: { id: true, orderNumber: true, totalAmount: true, deletedAt: true },
-      orderBy: { deletedAt: "desc" },
-    }),
-  ]);
-
-  return NextResponse.json({ products, categories, blogPosts, orders });
+  try {
+    const [products, categories, blogPosts, orders] = await Promise.all([
+      prisma.product.findMany({
+        where: { deletedAt: { not: null } },
+        select: { id: true, name: true, deletedAt: true, price: true },
+        orderBy: { deletedAt: "desc" },
+      }),
+      prisma.category.findMany({
+        where: { deletedAt: { not: null } },
+        select: { id: true, name: true, slug: true, deletedAt: true },
+        orderBy: { deletedAt: "desc" },
+      }),
+      prisma.blogPost.findMany({
+        where: { deletedAt: { not: null } },
+        select: { id: true, title: true, slug: true, deletedAt: true },
+        orderBy: { deletedAt: "desc" },
+      }),
+      prisma.order.findMany({
+        where: { deletedAt: { not: null } },
+        select: { id: true, orderNumber: true, totalAmount: true, deletedAt: true },
+        orderBy: { deletedAt: "desc" },
+      }),
+    ]);
+    return NextResponse.json({ products, categories, blogPosts, orders });
+  } catch {
+    return NextResponse.json({ products: [], categories: [], blogPosts: [], orders: [] });
+  }
 }
 
 const restoreSchema = z.object({
