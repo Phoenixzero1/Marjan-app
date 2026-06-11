@@ -602,7 +602,7 @@ export default function Navbar() {
 
           {/* Secondary links */}
           <div style={{ borderTop: "1px solid rgba(255,255,255,.1)" }}>
-            {/* Organizational — highlighted */}
+            {/* Organizational — highlighted orange */}
             <Link href="/organizational" onClick={() => setMobileMenuOpen(false)}
               style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 1.25rem", color: "#e8920a", fontSize: 14, fontWeight: 900, minHeight: 48, borderBottom: "1px solid rgba(255,255,255,.1)" }}
             >
@@ -611,6 +611,7 @@ export default function Navbar() {
             </Link>
             {[
               { href: "/blog",    icon: "ti-news",         label: "وبلاگ" },
+              { href: "/invoice", icon: "ti-file-invoice", label: "فاکتورساز" },
               { href: "/about",   icon: "ti-info-circle",  label: "درباره ما" },
               { href: "/contact", icon: "ti-phone",        label: "تماس با ما" },
               { href: "/faq",     icon: "ti-help",         label: "سوالات متداول" },

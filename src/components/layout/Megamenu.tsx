@@ -137,199 +137,66 @@ export default function Megamenu() {
           </div>
         ))}
 
-        {/* Right-side items */}
+        {/* Left-side items — pushed to the left via marginRight: auto */}
         <div style={{ marginRight: "auto", display: "flex", alignItems: "stretch" }}>
+
+          {/* وبلاگ */}
           <Link
             href="/blog"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "12px 15px",
-              color: "rgba(255,255,255,.85)",
-              fontSize: 13,
-              fontWeight: 700,
-            }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", color: "rgba(255,255,255,.85)", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}
           >
-            <i className="ti ti-news" /> وبلاگ
-          </Link>
-          <Link
-            href="/about"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "12px 15px",
-              color: "rgba(255,255,255,.85)",
-              fontSize: 13,
-              fontWeight: 700,
-            }}
-          >
-            <i className="ti ti-info-circle" /> درباره ما
-          </Link>
-          <Link
-            href="/contact"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "12px 15px",
-              color: "rgba(255,255,255,.85)",
-              fontSize: 13,
-              fontWeight: 700,
-            }}
-          >
-            <i className="ti ti-phone" /> تماس
-          </Link>
-          <Link
-            href="/faq"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "12px 15px",
-              color: "rgba(255,255,255,.85)",
-              fontSize: 13,
-              fontWeight: 700,
-            }}
-          >
-            <i className="ti ti-help" /> FAQ
+            <i className="ti ti-news" style={{ fontSize: 15 }} /> وبلاگ
           </Link>
 
-          {/* Organizational purchase — distinct orange */}
+          {/* فاکتورساز dropdown */}
+          <div className="mega-item" style={{ position: "relative" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", color: "rgba(255,255,255,.85)", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+              <i className="ti ti-file-invoice" style={{ fontSize: 15 }} /> فاکتورساز
+              <i className="ti ti-chevron-down" style={{ fontSize: 11 }} />
+            </span>
+            <div className="mega-drop" style={{ minWidth: 300, padding: 16, right: 0, left: "auto" }}>
+              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text3)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 10, paddingBottom: 8, borderBottom: "1px solid var(--border)" }}>
+                نوع فاکتور را انتخاب کنید
+              </div>
+              <Link href="/invoice?type=official" style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: 12, borderRadius: "var(--radius-sm)", border: "1.5px solid var(--border)", marginBottom: 10, textDecoration: "none" }}>
+                <div style={{ width: 40, height: 40, background: "var(--bg)", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <i className="ti ti-file-certificate" style={{ fontSize: 20, color: "var(--primary)" }} />
+                </div>
+                <div>
+                  <strong style={{ display: "block", fontSize: 13, fontWeight: 900 }}>فاکتور فروش</strong>
+                  <span style={{ fontSize: 11, color: "var(--text3)", lineHeight: 1.5 }}>فاکتور کامل با اطلاعات خریدار، مالیات، تخفیف و چاپ رسمی</span>
+                </div>
+              </Link>
+              <Link href="/invoice?type=contractor" style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: 12, borderRadius: "var(--radius-sm)", border: "1.5px solid var(--border)", textDecoration: "none" }}>
+                <div style={{ width: 40, height: 40, background: "var(--bg)", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <i className="ti ti-helmet" style={{ fontSize: 20, color: "var(--primary)" }} />
+                </div>
+                <div>
+                  <strong style={{ display: "block", fontSize: 13, fontWeight: 900 }}>فاکتور مجریان</strong>
+                  <span style={{ fontSize: 11, color: "var(--text3)", lineHeight: 1.5 }}>لیست سریع لوله، اتصالات و شیرآلات با سایزبندی</span>
+                </div>
+              </Link>
+            </div>
+          </div>
+
+          {/* خرید سازمانی — orange, far left, visually separated */}
           <Link
             href="/organizational"
             style={{
               display: "flex",
               alignItems: "center",
               gap: 6,
-              padding: "12px 15px",
+              padding: "12px 16px",
               color: "#e8920a",
               fontSize: 13,
               fontWeight: 900,
               whiteSpace: "nowrap",
-              borderRight: "1px solid rgba(255,255,255,.12)",
-              borderLeft: "1px solid rgba(255,255,255,.12)",
+              borderRight: "1px solid rgba(255,255,255,.15)",
             }}
           >
             <i className="ti ti-building-skyscraper" style={{ fontSize: 15 }} />
             خرید سازمانی
           </Link>
-
-          {/* Invoice Builder hover */}
-          <div className="mega-item" style={{ position: "relative" }}>
-            <span
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "12px 15px",
-                color: "rgba(255,255,255,.85)",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              <i className="ti ti-file-invoice" /> فاکتورساز
-              <i className="ti ti-chevron-down" style={{ fontSize: 11 }} />
-            </span>
-            <div
-              className="mega-drop"
-              style={{ minWidth: 320, padding: 16, right: 0, left: "auto" }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 900,
-                  color: "var(--text3)",
-                  textTransform: "uppercase",
-                  letterSpacing: ".08em",
-                  marginBottom: 10,
-                  paddingBottom: 8,
-                  borderBottom: "1px solid var(--border)",
-                }}
-              >
-                نوع فاکتور را انتخاب کنید
-              </div>
-              <Link
-                href="/invoice?type=official"
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 12,
-                  padding: 12,
-                  borderRadius: "var(--radius-sm)",
-                  border: "1.5px solid var(--border)",
-                  marginBottom: 10,
-                  textDecoration: "none",
-                }}
-              >
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    background: "var(--bg)",
-                    borderRadius: "var(--radius-sm)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <i
-                    className="ti ti-file-certificate"
-                    style={{ fontSize: 20, color: "var(--primary)" }}
-                  />
-                </div>
-                <div>
-                  <strong style={{ display: "block", fontSize: 13, fontWeight: 900 }}>
-                    فاکتور فروش
-                  </strong>
-                  <span style={{ fontSize: 11, color: "var(--text3)", lineHeight: 1.5 }}>
-                    فاکتور کامل با اطلاعات خریدار، مالیات، تخفیف و چاپ رسمی
-                  </span>
-                </div>
-              </Link>
-              <Link
-                href="/invoice?type=contractor"
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 12,
-                  padding: 12,
-                  borderRadius: "var(--radius-sm)",
-                  border: "1.5px solid var(--border)",
-                  textDecoration: "none",
-                }}
-              >
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    background: "var(--bg)",
-                    borderRadius: "var(--radius-sm)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <i
-                    className="ti ti-helmet"
-                    style={{ fontSize: 20, color: "var(--primary)" }}
-                  />
-                </div>
-                <div>
-                  <strong style={{ display: "block", fontSize: 13, fontWeight: 900 }}>
-                    فاکتور مجریان
-                  </strong>
-                  <span style={{ fontSize: 11, color: "var(--text3)", lineHeight: 1.5 }}>
-                    لیست سریع لوله، اتصالات و شیرآلات با سایزبندی
-                  </span>
-                </div>
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>
