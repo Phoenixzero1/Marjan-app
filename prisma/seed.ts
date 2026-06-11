@@ -245,16 +245,51 @@ async function main() {
   }
   console.log("✅ Products created:", products.length);
 
-  // FAQs
-  const faqs = [
-    { question: "آیا محصولات شما دارای گارانتی هستند؟", answer: "بله، تمامی محصولات ما از برندهای معتبر با گارانتی اصالت تامین می‌شوند.", sortOrder: 1 },
-    { question: "زمان ارسال سفارش‌ها چقدر است؟", answer: "برای سفارش‌های با موجودی کافی، زمان ارسال ۲۴ تا ۷۲ ساعت کاری است.", sortOrder: 2 },
-    { question: "آیا می‌توانم سفارش خود را مرجوع کنم؟", answer: "محصولات سالم و بدون استفاده را تا ۷ روز پس از دریافت می‌توانید مرجوع نمایید.", sortOrder: 3 },
-  ];
-  for (const faq of faqs) {
-    await prisma.faq.create({ data: faq });
+  // FAQs — skip if already exist (no unique field to upsert on)
+  const existingFaqs = await prisma.faq.count();
+  if (existingFaqs === 0) {
+    await prisma.faq.createMany({
+      data: [
+        { question: "آیا محصولات شما دارای گارانتی هستند؟", answer: "بله، تمامی محصولات ما از برندهای معتبر با گارانتی اصالت تامین می‌شوند.", sortOrder: 1 },
+        { question: "زمان ارسال سفارش‌ها چقدر است؟", answer: "برای سفارش‌های با موجودی کافی، زمان ارسال ۲۴ تا ۷۲ ساعت کاری است.", sortOrder: 2 },
+        { question: "آیا می‌توانم سفارش خود را مرجوع کنم؟", answer: "محصولات سالم و بدون استفاده را تا ۷ روز پس از دریافت می‌توانید مرجوع نمایید.", sortOrder: 3 },
+      ],
+    });
+    console.log("✅ FAQs created");
+  } else {
+    console.log(`⏭️  FAQs already exist (${existingFaqs}), skipping`);
   }
-  console.log("✅ FAQs created");
+
+  // Test coupon
+  await prisma.coupon.upsert({
+    where: { code: "TEST" },
+    update: { isActive: true },
+    create: {
+      code: "TEST",
+      description: "کوپن تست - تخفیف ۱۰۰٪",
+      discountType: "percent",
+      discountValue: 100,
+      minOrderAmount: 0,
+      maxUsageCount: 100,
+      isActive: true,
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+    },
+  });
+  await prisma.coupon.upsert({
+    where: { code: "MARJAN10" },
+    update: { isActive: true },
+    create: {
+      code: "MARJAN10",
+      description: "تخفیف ۱۰ درصدی مرجان",
+      discountType: "percent",
+      discountValue: 10,
+      minOrderAmount: 500000,
+      maxUsageCount: 500,
+      isActive: true,
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+    },
+  });
+  console.log("✅ Coupons created");
 
   // Blog categories
   const blogCats = [
