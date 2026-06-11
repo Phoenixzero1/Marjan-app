@@ -4,6 +4,8 @@ import Link from "next/link";
 import ProductCard from "@/components/shop/ProductCard";
 import HeroSlider, { type SliderSettings } from "@/components/home/HeroSlider";
 import MarjanTime, { type FlashProduct } from "@/components/home/MarjanTime";
+import CategoryCircle from "@/components/home/CategoryCircle";
+import BrandCard from "@/components/home/BrandCard";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://marjan.ir";
 
@@ -482,71 +484,7 @@ export default async function HomePage() {
           }}
         >
           {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/category/${cat.slug}`}
-              style={{
-                flexShrink: 0,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 10,
-                textDecoration: "none",
-                minWidth: 90,
-              }}
-            >
-              {/* Circle */}
-              <div
-                style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: "50%",
-                  border: "2.5px solid var(--border)",
-                  background: cat.imageUrl
-                    ? `url(${cat.imageUrl}) center/cover no-repeat`
-                    : "linear-gradient(135deg, var(--bg) 0%, var(--bg2) 100%)",
-                  display: cat.imageUrl ? undefined : "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                  transition: "border-color .2s, transform .2s",
-                  flexShrink: 0,
-                }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget as HTMLElement;
-                  el.style.borderColor = "var(--accent)";
-                  el.style.transform = "scale(1.08)";
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget as HTMLElement;
-                  el.style.borderColor = "var(--border)";
-                  el.style.transform = "scale(1)";
-                }}
-              >
-                {!cat.imageUrl && (
-                  <i
-                    className={`ti ${cat.iconClass}`}
-                    style={{ fontSize: 30, color: "var(--primary)" }}
-                  />
-                )}
-              </div>
-              <strong
-                style={{
-                  fontSize: 12,
-                  fontWeight: 900,
-                  color: "var(--text)",
-                  textAlign: "center",
-                  lineHeight: 1.3,
-                }}
-              >
-                {cat.name}
-              </strong>
-              {cat.count && (
-                <span style={{ fontSize: 10, color: "var(--text3)", marginTop: -6 }}>
-                  {cat.count} کالا
-                </span>
-              )}
-            </Link>
+            <CategoryCircle key={cat.id} {...cat} />
           ))}
         </div>
       </div>
@@ -809,56 +747,7 @@ export default async function HomePage() {
               }}
             >
               {brands.map((b) => (
-                <Link
-                  key={b.id}
-                  href={`/brand/${b.slug}`}
-                  style={{
-                    flexShrink: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 8,
-                    textDecoration: "none",
-                    padding: "12px 16px",
-                    borderRadius: "var(--radius-sm)",
-                    border: "1.5px solid var(--border)",
-                    transition: "border-color .2s",
-                    minWidth: 100,
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
-                  }}
-                >
-                  {b.logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={b.logoUrl}
-                      alt={b.name}
-                      style={{ height: 40, width: "auto", maxWidth: 80, objectFit: "contain" }}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        height: 40,
-                        width: 80,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <i
-                        className="ti ti-building-factory"
-                        style={{ fontSize: 28, color: "var(--text3)" }}
-                      />
-                    </div>
-                  )}
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text2)" }}>
-                    {b.name}
-                  </span>
-                </Link>
+                <BrandCard key={b.id} {...b} />
               ))}
             </div>
           </div>
