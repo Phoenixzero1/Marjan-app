@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCart } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
+import WishlistButton from "./WishlistButton";
 
 interface Size {
   id: string;
@@ -108,6 +109,11 @@ export default function ProductCard({
           جدید
         </span>
       )}
+
+      {/* Wishlist */}
+      <div style={{ position: "absolute", top: 10, left: 10, zIndex: 3 }}>
+        <WishlistButton productId={id} size={32} />
+      </div>
 
       {/* Image */}
       <Link href={`/product/${slug}`}>

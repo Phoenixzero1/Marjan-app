@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useCart } from "@/store/cart";
+import WishlistButton from "@/components/shop/WishlistButton";
 
 interface ProductSize {
   id: string;
@@ -364,6 +365,12 @@ export default function ProductDetailPage() {
                 </button>
               );
             })()}
+          </div>
+
+          {/* Wishlist */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <WishlistButton productId={product.id} size={40} />
+            <span style={{ fontSize: 13, color: "var(--text2)", fontWeight: 700 }}>افزودن به علاقه‌مندی‌ها</span>
           </div>
 
           {/* Tags */}
