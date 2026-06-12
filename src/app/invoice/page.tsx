@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
 
@@ -45,6 +45,18 @@ function InvoiceContent() {
   const defaultType = (sp.get("type") as "official" | "contractor") ?? "official";
   const [activeTab, setActiveTab] = useState<"official" | "contractor">(defaultType);
   const [saved, setSaved] = useState(false);
+
+  const [siteName, setSiteName] = useState("Marjan");
+  const [sitePhone, setSitePhone] = useState("۰۲۱-۴۴۵۵۶۶۷۷");
+  useEffect(() => {
+    fetch("/api/public/settings")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.site_name) setSiteName(d.site_name);
+        if (d.site_phone) setSitePhone(d.site_phone);
+      })
+      .catch(() => {});
+  }, []);
 
   // Official invoice state
   const [buyer, setBuyer] = useState("");
@@ -159,8 +171,8 @@ function InvoiceContent() {
                 <i className="ti ti-building" /> اطلاعات فروشنده
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-                <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>نام فروشنده</label><input style={inputStyle} defaultValue="Marjan — فروشگاه لوازم ساختمانی" /></div>
-                <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>شماره تماس</label><input style={inputStyle} defaultValue="۰۲۱-۴۴۵۵۶۶۷۷" /></div>
+                <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>نام فروشنده</label><input style={inputStyle} defaultValue={`${siteName} — فروشگاه لوازم ساختمانی`} /></div>
+                <div><label style={{ fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5 }}>شماره تماس</label><input style={inputStyle} defaultValue={sitePhone} /></div>
               </div>
 
               {/* Buyer */}
@@ -244,7 +256,7 @@ function InvoiceContent() {
               <div style={{ background: "var(--primary)", color: "#fff", padding: "1.25rem", borderRadius: "var(--radius-sm)", marginBottom: "1rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div><h4 style={{ fontSize: 18, fontWeight: 900, marginBottom: 2 }}>فاکتور فروش</h4><p style={{ fontSize: 12, color: "rgba(255,255,255,.65)" }}>شماره: {invNum}</p></div>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: "var(--accent)" }}>Marjan</div>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: "var(--accent)" }}>{siteName}</div>
                 </div>
                 <div style={{ marginTop: ".75rem", fontSize: 12, color: "rgba(255,255,255,.75)" }}>تاریخ: {invDate}</div>
               </div>

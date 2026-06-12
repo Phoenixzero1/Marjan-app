@@ -26,7 +26,12 @@ const mobileCategories = [
   { href: "/category/hardware", icon: "ti-tool",          label: "یراق‌آلات" },
 ];
 
-export default function Navbar() {
+interface NavbarProps {
+  siteName: string;
+  siteLogo: string;
+}
+
+export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const { totalItems, toggleCart } = useCart();
@@ -124,8 +129,13 @@ export default function Navbar() {
           </button>
 
           {/* Logo */}
-          <Link href="/" style={{ fontSize: 22, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", flexShrink: 0 }}>
-            Marjan<span style={{ color: "var(--accent)" }}>.</span>
+          <Link href="/" style={{ fontSize: 22, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center" }}>
+            {siteLogo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={siteLogo} alt={siteName} style={{ height: 36, maxWidth: 120, objectFit: "contain" }} />
+            ) : (
+              <>{siteName}<span style={{ color: "var(--accent)" }}>.</span></>
+            )}
           </Link>
 
           {/* Search — desktop only */}
@@ -530,7 +540,12 @@ export default function Navbar() {
       <div className={`mobile-nav-panel ${mobileMenuOpen ? "open" : ""}`}>
         {/* Panel header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,.1)", flexShrink: 0 }}>
-          <span style={{ fontSize: 20, fontWeight: 900, color: "#fff" }}>Marjan<span style={{ color: "var(--accent)" }}>.</span></span>
+          {siteLogo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={siteLogo} alt={siteName} style={{ height: 30, maxWidth: 100, objectFit: "contain" }} />
+          ) : (
+            <span style={{ fontSize: 20, fontWeight: 900, color: "#fff" }}>{siteName}<span style={{ color: "var(--accent)" }}>.</span></span>
+          )}
           <button onClick={() => setMobileMenuOpen(false)} style={{ background: "transparent", border: "none", color: "#fff", fontSize: 22, minWidth: 44, minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <i className="ti ti-x" />
           </button>

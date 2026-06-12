@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 type SettingsTab = "general" | "payment" | "seo" | "security";
 
@@ -72,6 +72,28 @@ export default function SettingsManager({ tab }: Props) {
   const set = (key: string, value: string) => setVals(prev => ({ ...prev, [key]: value }));
   const get = (key: string, fallback = "") => vals[key] ?? fallback;
 
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+
+  async function uploadLogo(file: File) {
+    setLogoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", "logos");
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        set("site_logo", data.url);
+        showToast("لوگو آپلود شد");
+      } else {
+        showToast(data.error ?? "خطا در آپلود لوگو", false);
+      }
+    } finally {
+      setLogoUploading(false);
+    }
+  }
+
   async function save(groupName: string, keys: string[]) {
     setSaving(true);
     try {
@@ -120,14 +142,54 @@ export default function SettingsManager({ tab }: Props) {
           <Section title="اطلاعات فروشگاه" icon="ti-building-store">
             <Row>
               <div>
-                <label style={lbl}>نام فروشگاه</label>
+                <label style={lbl}>نام تجاری (برند)</label>
                 <input value={get("site_name")} onChange={e => set("site_name", e.target.value)} style={inp} />
+                <p style={hint}>این نام در نوار بالا، فوتر، عنوان مرورگر، فاکتورها و همه‌جا نمایش داده می‌شود</p>
               </div>
               <div>
                 <label style={lbl}>ایمیل</label>
                 <input value={get("site_email")} onChange={e => set("site_email", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
               </div>
             </Row>
+            {/* Logo upload */}
+            <div>
+              <label style={lbl}>لوگوی سایت</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                {get("site_logo") ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={get("site_logo")} alt="logo" style={{ height: 44, maxWidth: 140, objectFit: "contain", borderRadius: "var(--radius-sm)", border: "1.5px solid var(--border)", padding: 4, background: "#fff" }} />
+                ) : (
+                  <div style={{ height: 44, width: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--surface)", border: "1.5px dashed var(--border)", borderRadius: "var(--radius-sm)", fontSize: 12, color: "var(--text3)" }}>بدون لوگو</div>
+                )}
+                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    style={{ display: "none" }}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) uploadLogo(f); e.target.value = ""; }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={logoUploading}
+                    style={{ background: "var(--primary)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "8px 16px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+                  >
+                    {logoUploading ? <><i className="ti ti-loader-2" /> در حال آپلود...</> : <><i className="ti ti-upload" /> آپلود لوگو</>}
+                  </button>
+                  {get("site_logo") && (
+                    <button
+                      type="button"
+                      onClick={() => set("site_logo", "")}
+                      style={{ background: "transparent", color: "#ef4444", border: "1.5px solid #ef4444", borderRadius: "var(--radius-sm)", padding: "8px 12px", fontFamily: "Vazirmatn", fontSize: 12, cursor: "pointer" }}
+                    >
+                      <i className="ti ti-trash" /> حذف
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p style={hint}>فرمت‌های مجاز: JPG، PNG، WebP — حداکثر ۵ مگابایت</p>
+            </div>
             <Row>
               <div>
                 <label style={lbl}>تلفن</label>
@@ -146,7 +208,7 @@ export default function SettingsManager({ tab }: Props) {
               <label style={lbl}>درباره ما (خلاصه)</label>
               <textarea value={get("site_about", "")} onChange={e => set("site_about", e.target.value)} rows={3} style={{ ...inp, resize: "vertical", lineHeight: 1.7 }} />
             </div>
-            <SaveBtn groupName="general" keys={["site_name", "site_email", "site_phone", "site_city", "site_address", "site_about"]} />
+            <SaveBtn groupName="general" keys={["site_name", "site_logo", "site_email", "site_phone", "site_city", "site_address", "site_about"]} />
           </Section>
 
           <Section title="اطلاعات تماس و فوتر" icon="ti-phone">
