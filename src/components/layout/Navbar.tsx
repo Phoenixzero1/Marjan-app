@@ -17,6 +17,12 @@ interface SearchResult {
   images?: { url: string }[];
 }
 
+interface CategoryResult {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 const mobileCategories = [
   { href: "/category/valves",   icon: "ti-circle-dotted", label: "شیرآلات" },
   { href: "/category/pipes",    icon: "ti-minus",         label: "لوله‌ها" },
@@ -37,6 +43,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   const { items, totalItems, toggleCart, totalPrice } = useCart();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [catResults, setCatResults] = useState<CategoryResult[]>([]);
   const [dropOpen, setDropOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -62,12 +69,13 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   }, [userMenuOpen]);
 
   useEffect(() => {
-    if (query.length < 2) { setResults([]); setDropOpen(false); return; }
+    if (query.length < 2) { setResults([]); setCatResults([]); setDropOpen(false); return; }
     const t = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search/suggestions?q=${encodeURIComponent(query)}`);
         const data = await res.json();
         setResults(data.suggestions ?? []);
+        setCatResults(data.categories ?? []);
         setDropOpen(true);
       } catch {
         setDropOpen(false);
@@ -166,34 +174,52 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
               </button>
             </form>
 
-            {dropOpen && results.length > 0 && (
+            {dropOpen && (results.length > 0 || catResults.length > 0) && (
               <div className="search-dropdown open">
-                <div style={{ fontSize: 10, fontWeight: 900, color: "var(--text3)", letterSpacing: ".08em", textTransform: "uppercase", padding: "10px 14px 4px" }}>محصولات</div>
-                {results.map((r) => (
-                  <div
-                    key={r.id}
-                    onMouseDown={() => { router.push(`/product/${r.slug}`); setDropOpen(false); }}
-                    style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", cursor: "pointer" }}
-                    className="search-result-item"
-                  >
-                    <div style={{ width: 36, height: 36, background: "var(--bg2)", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      {r.images?.[0] ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={r.images[0].url} alt={r.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      ) : (
-                        <i className="ti ti-package" style={{ fontSize: 18, color: "var(--primary)" }} />
-                      )}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text)" }}>{r.name}</div>
-                      <div style={{ fontSize: 11, color: "var(--text3)" }}>{r.category}</div>
-                    </div>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: "var(--primary)", whiteSpace: "nowrap" }}>{formatPrice(r.price)}</div>
-                  </div>
-                ))}
+                {results.length > 0 && (
+                  <>
+                    <div className="search-section-title">محصولات</div>
+                    {results.map((r) => (
+                      <div
+                        key={r.id}
+                        onMouseDown={() => { router.push(`/product/${r.slug}`); setDropOpen(false); }}
+                        className="search-result-item"
+                      >
+                        <div className="search-result-icon">
+                          <i className="ti ti-package" />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="search-result-name">{r.name}</div>
+                          {r.category && <div className="search-result-meta">{r.category}</div>}
+                        </div>
+                        <div className="search-result-price">{formatPrice(r.price)}</div>
+                      </div>
+                    ))}
+                  </>
+                )}
+                {catResults.length > 0 && (
+                  <>
+                    <div className="search-section-title">دسته‌بندی‌ها</div>
+                    {catResults.map((c) => (
+                      <div
+                        key={c.id}
+                        onMouseDown={() => { router.push(`/category/${c.slug}`); setDropOpen(false); }}
+                        className="search-result-item"
+                      >
+                        <div className="search-result-icon">
+                          <i className="ti ti-category" />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div className="search-result-name">{c.name}</div>
+                        </div>
+                        <i className="ti ti-chevron-left" style={{ fontSize: 13, color: "var(--text3)" }} />
+                      </div>
+                    ))}
+                  </>
+                )}
                 <div
                   onMouseDown={() => { router.push(`/products?q=${encodeURIComponent(query)}`); setDropOpen(false); }}
-                  style={{ padding: "10px 14px", borderTop: "1px solid var(--border)", textAlign: "center", fontSize: 12, fontWeight: 900, color: "var(--primary)", cursor: "pointer" }}
+                  className="search-footer"
                 >
                   مشاهده همه نتایج <i className="ti ti-arrow-left" />
                 </div>

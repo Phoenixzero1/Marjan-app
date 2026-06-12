@@ -174,10 +174,10 @@ export default async function BlogPostPage({
               {post.title}
             </h1>
             <div style={{ display: "flex", gap: 16, fontSize: 12, color: "rgba(255,255,255,.65)", flexWrap: "wrap" }}>
-              {dateStr && <span><i className="ti ti-calendar" style={{ marginLeft: 4 }} />{dateStr}</span>}
-              <span><i className="ti ti-eye" style={{ marginLeft: 4 }} />{post.viewCount} بازدید</span>
+              {dateStr && <span style={{ display: "flex", alignItems: "center", gap: 4 }}><i className="ti ti-calendar" />{dateStr}</span>}
+              <span style={{ display: "flex", alignItems: "center", gap: 4 }}><i className="ti ti-eye" />{post.viewCount} بازدید</span>
               {post.comments.length > 0 && (
-                <span><i className="ti ti-message" style={{ marginLeft: 4 }} />{post.comments.length} نظر</span>
+                <span style={{ display: "flex", alignItems: "center", gap: 4 }}><i className="ti ti-message" />{post.comments.length} نظر</span>
               )}
             </div>
           </div>
@@ -220,8 +220,8 @@ export default async function BlogPostPage({
                   {post.title}
                 </h1>
                 <div style={{ display: "flex", gap: 16, fontSize: 12, color: "var(--text3)", flexWrap: "wrap" }}>
-                  {dateStr && <span><i className="ti ti-calendar" style={{ marginLeft: 4 }} />{dateStr}</span>}
-                  <span><i className="ti ti-eye" style={{ marginLeft: 4 }} />{post.viewCount} بازدید</span>
+                  {dateStr && <span style={{ display: "flex", alignItems: "center", gap: 4 }}><i className="ti ti-calendar" />{dateStr}</span>}
+                  <span style={{ display: "flex", alignItems: "center", gap: 4 }}><i className="ti ti-eye" />{post.viewCount} بازدید</span>
                 </div>
               </div>
             )}
@@ -340,7 +340,7 @@ export default async function BlogPostPage({
                       <div>
                         <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text)" }}>{c.authorName}</div>
                         <div style={{ fontSize: 11, color: "var(--text3)" }}>
-                          {c.createdAt.toLocaleDateString("fa-IR")}
+                          {c.createdAt.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" })}
                         </div>
                       </div>
                     </div>
@@ -419,7 +419,7 @@ export default async function BlogPostPage({
                     </Link>
                     {p.publishedAt && (
                       <span style={{ fontSize: 11, color: "var(--text3)" }}>
-                        {p.publishedAt.toLocaleDateString("fa-IR")}
+                        {p.publishedAt.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" })}
                       </span>
                     )}
                   </div>

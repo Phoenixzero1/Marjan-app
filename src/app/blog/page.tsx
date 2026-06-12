@@ -73,7 +73,7 @@ export default async function BlogPage({
           id: p.id,
           title: p.title,
           cat: p.category?.name ?? "عمومی",
-          date: p.publishedAt?.toLocaleDateString("fa-IR") ?? "",
+          date: p.publishedAt?.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" }) ?? "",
           views: String(p.viewCount),
           slug: p.slug,
           imageUrl: p.imageUrl ?? null,
@@ -235,17 +235,13 @@ export default async function BlogPage({
                       >
                         {post.title}
                       </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 12,
-                          fontSize: 11,
-                          color: "var(--text3)",
-                        }}
-                      >
-                        <span><i className="ti ti-calendar" style={{ marginLeft: 3 }} />{post.date}</span>
-                        <span><i className="ti ti-eye" style={{ marginLeft: 3 }} />{post.views}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 11, color: "var(--text3)" }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          <i className="ti ti-calendar" />{post.date}
+                        </span>
+                        <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          <i className="ti ti-eye" />{post.views} بازدید
+                        </span>
                       </div>
                     </div>
                   </Link>

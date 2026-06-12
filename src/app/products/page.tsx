@@ -30,6 +30,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<Filters>({ q: "", sort: "createdAt_desc", minPrice: "", maxPrice: "" });
   const [filterOpen, setFilterOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const load = useCallback(async (p: number, f: Filters) => {
     setLoading(true);
@@ -135,16 +136,45 @@ export default function ProductsPage() {
                   <i className="ti ti-adjustments" /> فیلتر
                 </button>
                 <div style={{ fontSize: 13, color: "var(--text2)", fontWeight: 700 }}>
-                  <span style={{ color: "var(--primary)", fontWeight: 900 }}>{total.toLocaleString("fa")}</span> محصول
+                  {filters.q ? (
+                    <>
+                      <span style={{ color: "var(--primary)", fontWeight: 900 }}>{total.toLocaleString("fa")}</span>
+                      {" نتیجه برای "}
+                      <strong style={{ color: "var(--text)" }}>&laquo;{filters.q}&raquo;</strong>
+                    </>
+                  ) : (
+                    <><span style={{ color: "var(--primary)", fontWeight: 900 }}>{total.toLocaleString("fa")}</span> محصول</>
+                  )}
                 </div>
               </div>
-              <select
-                value={filters.sort}
-                onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
-                style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "6px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", minHeight: 40 }}
-              >
-                {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <select
+                  value={filters.sort}
+                  onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
+                  style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "6px 12px", fontFamily: "Vazirmatn", fontSize: 13, color: "var(--text)", outline: "none", minHeight: 40 }}
+                >
+                  {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+                {/* Grid / List toggle */}
+                <div style={{ display: "flex", gap: 4 }}>
+                  {(["grid", "list"] as const).map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => setViewMode(m)}
+                      title={m === "grid" ? "نمایش شبکه‌ای" : "نمایش لیستی"}
+                      style={{
+                        width: 36, height: 36, border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)",
+                        background: viewMode === m ? "var(--primary)" : "#fff",
+                        color: viewMode === m ? "#fff" : "var(--text3)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        cursor: "pointer", fontSize: 16, transition: "all .15s",
+                      }}
+                    >
+                      <i className={m === "grid" ? "ti ti-layout-grid" : "ti ti-list"} />
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Product grid */}
@@ -156,13 +186,24 @@ export default function ProductsPage() {
                 ))}
               </div>
             ) : products.length === 0 ? (
-              <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "3rem", textAlign: "center", color: "var(--text3)" }}>
-                <i className="ti ti-search" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
-                <p>محصولی با این مشخصات یافت نشد</p>
+              <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "4rem 2rem", textAlign: "center" }}>
+                <i className="ti ti-search-off" style={{ fontSize: 64, color: "var(--border)", display: "block", marginBottom: 16 }} />
+                <h3 style={{ fontSize: 18, fontWeight: 900, color: "var(--text)", marginBottom: 8 }}>نتیجه‌ای یافت نشد</h3>
+                <p style={{ fontSize: 14, color: "var(--text3)", marginBottom: 20 }}>
+                  {filters.q ? `جستجوی دیگری امتحان کنید یا فیلترها را کم کنید` : "محصولی با این مشخصات یافت نشد"}
+                </p>
+                <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+                  <button
+                    onClick={() => { setFilters({ q: "", sort: "createdAt_desc", minPrice: "", maxPrice: "" }); setPage(1); }}
+                    style={{ background: "var(--accent)", color: "#fff", border: "none", padding: "10px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 900, fontFamily: "Vazirmatn", cursor: "pointer" }}
+                  >
+                    پاک کردن فیلترها
+                  </button>
+                </div>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" : "flex flex-col gap-4"}>
                   {products.map((p) => (
                     <ProductCard key={p.id} {...p} />
                   ))}
