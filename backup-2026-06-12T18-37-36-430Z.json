@@ -1,0 +1,1407 @@
+{
+  "user": [
+    {
+      "id": "cmpvo6i570001f4wdoxjgpeb4",
+      "firstName": "علی",
+      "lastName": "رضایی",
+      "email": "user@example.com",
+      "phone": "09129876543",
+      "passwordHash": "$2b$12$KCNh5H2LzLqCHDfvzjbDp.A5yd.ouEmzdLGbIvFwzpq9Tq6Ah1xpq",
+      "role": "CUSTOMER",
+      "status": "ACTIVE",
+      "avatarUrl": null,
+      "points": 0,
+      "level": "برنز",
+      "emailVerified": "2026-06-01T20:37:14.200Z",
+      "phoneVerified": null,
+      "defaultAddress": null,
+      "city": null,
+      "postalCode": null,
+      "nationalCode": null,
+      "companyName": null,
+      "createdAt": "2026-06-01T20:37:14.203Z",
+      "updatedAt": "2026-06-12T12:47:46.666Z",
+      "lastLoginAt": null
+    },
+    {
+      "id": "cmpvo6hyd0000f4wdt3yml9v0",
+      "firstName": "مدیر",
+      "lastName": "سیستم",
+      "email": "admin@marjan.ir",
+      "phone": "09121234567",
+      "passwordHash": "$2b$12$ViBFBoFloT9C3.XrY8GbSOeZS9tu4/7N/rEbfJ49uaHRThCm0GRNS",
+      "role": "SUPER_ADMIN",
+      "status": "ACTIVE",
+      "avatarUrl": null,
+      "points": 0,
+      "level": "برنز",
+      "emailVerified": "2026-06-01T20:37:13.809Z",
+      "phoneVerified": null,
+      "defaultAddress": null,
+      "city": null,
+      "postalCode": null,
+      "nationalCode": null,
+      "companyName": null,
+      "createdAt": "2026-06-01T20:37:13.957Z",
+      "updatedAt": "2026-06-12T12:47:46.393Z",
+      "lastLoginAt": "2026-06-12T00:56:22.417Z"
+    }
+  ],
+  "product": [
+    {
+      "id": "cmpvo6i6y000hf4wdr3daha6e",
+      "name": "لوله پلیکا PVC ۱۱۰ میلیمتر",
+      "slug": "pvc-pipe-110mm",
+      "sku": "PVC-110",
+      "brandId": "cmpvo6i5f0004f4wdl6h4rcot",
+      "categoryId": "cmpvo6i5p0008f4wdtxsvs0ew",
+      "status": "PUBLISHED",
+      "description": "لوله پلیکا PVC ۱۱۰ میلیمتر ۶ متری، مناسب برای سیستم‌های فاضلاب ساختمانی.",
+      "shortDesc": null,
+      "price": 850000,
+      "comparePrice": null,
+      "taxPercent": 10,
+      "stockQty": 200,
+      "lowStockAlert": 5,
+      "weight": null,
+      "isFeatured": true,
+      "isNew": false,
+      "viewCount": 0,
+      "saleCount": 0,
+      "metaTitle": null,
+      "metaDesc": null,
+      "tags": [
+        "لوله",
+        "پلیکا",
+        "PVC",
+        "۱۱۰"
+      ],
+      "createdAt": "2026-06-01T20:37:14.266Z",
+      "updatedAt": "2026-06-01T20:37:14.266Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i81000kf4wdaanikmhr",
+      "name": "لوله پنج‌لایه ۲۰ میلیمتر",
+      "slug": "multilayer-pipe-20mm",
+      "sku": "ML-20",
+      "brandId": "cmpvo6i5f0004f4wdl6h4rcot",
+      "categoryId": "cmpvo6i5p0008f4wdtxsvs0ew",
+      "status": "PUBLISHED",
+      "description": "لوله پنج‌لایه آلومینیوم ۲۰ میلیمتر، مناسب برای سیستم‌های گرمایش از کف و لوله‌کشی.",
+      "shortDesc": null,
+      "price": 125000,
+      "comparePrice": null,
+      "taxPercent": 10,
+      "stockQty": 300,
+      "lowStockAlert": 5,
+      "weight": null,
+      "isFeatured": false,
+      "isNew": true,
+      "viewCount": 0,
+      "saleCount": 0,
+      "metaTitle": null,
+      "metaDesc": null,
+      "tags": [
+        "لوله",
+        "پنج‌لایه",
+        "آلومینیوم",
+        "۲۰mm"
+      ],
+      "createdAt": "2026-06-01T20:37:14.305Z",
+      "updatedAt": "2026-06-01T20:37:14.305Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpxi0ma60002q4wdr15b2q4b",
+      "name": "tset",
+      "slug": "tset-1780456814248",
+      "sku": "test",
+      "brandId": "cmpvo6i5i0006f4wds9dq7n6t",
+      "categoryId": "cmpxhzbmb0001q4wdj82j3ex7",
+      "status": "PUBLISHED",
+      "description": "tset",
+      "shortDesc": "test",
+      "price": 9999999,
+      "comparePrice": null,
+      "taxPercent": 10,
+      "stockQty": 999,
+      "lowStockAlert": 5,
+      "weight": null,
+      "isFeatured": true,
+      "isNew": false,
+      "viewCount": 28,
+      "saleCount": 0,
+      "metaTitle": null,
+      "metaDesc": null,
+      "tags": [
+        "tset"
+      ],
+      "createdAt": "2026-06-03T03:20:14.286Z",
+      "updatedAt": "2026-06-12T18:24:23.952Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i6d000gf4wdi7n63aka",
+      "name": "شیر توپی برنجی ۱ اینچ",
+      "slug": "ball-valve-brass-1inch",
+      "sku": "TB-V100",
+      "brandId": "cmpvo6i5b0002f4wdzgdw6kdt",
+      "categoryId": "cmpvo6i5n0007f4wd193yukt4",
+      "status": "PUBLISHED",
+      "description": "شیر توپی برنجی کامل با بدنه برنجی ۱ اینچ، مناسب برای سیستم‌های آب گرم و سرد، فشار کاری ۱۶ بار.",
+      "shortDesc": null,
+      "price": 1394000,
+      "comparePrice": 1650000,
+      "taxPercent": 10,
+      "stockQty": 150,
+      "lowStockAlert": 5,
+      "weight": null,
+      "isFeatured": true,
+      "isNew": false,
+      "viewCount": 6,
+      "saleCount": 0,
+      "metaTitle": null,
+      "metaDesc": null,
+      "tags": [
+        "شیر",
+        "توپی",
+        "برنجی",
+        "۱ اینچ"
+      ],
+      "createdAt": "2026-06-01T20:37:14.245Z",
+      "updatedAt": "2026-06-12T13:38:12.312Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i8e000mf4wdu4akcjvi",
+      "name": "شیر مخلوط دوش استیل",
+      "slug": "shower-mixer-steel",
+      "sku": "SM-ST-001",
+      "brandId": "cmpvo6i5e0003f4wdebigrjjj",
+      "categoryId": "cmpvo6i5u000bf4wd7cfqw1mh",
+      "status": "PUBLISHED",
+      "description": "شیر مخلوط دوش استیل با طراحی مدرن، مناسب برای حمام.",
+      "shortDesc": null,
+      "price": 4500000,
+      "comparePrice": 5200000,
+      "taxPercent": 10,
+      "stockQty": 45,
+      "lowStockAlert": 5,
+      "weight": null,
+      "isFeatured": true,
+      "isNew": true,
+      "viewCount": 16,
+      "saleCount": 0,
+      "metaTitle": null,
+      "metaDesc": null,
+      "tags": [
+        "شیر مخلوط",
+        "دوش",
+        "استیل",
+        "بهداشتی"
+      ],
+      "createdAt": "2026-06-01T20:37:14.318Z",
+      "updatedAt": "2026-06-08T19:50:44.081Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i7g000jf4wd7p8ina29",
+      "name": "شیر سوزنی استیل ۱ اینچ",
+      "slug": "needle-valve-steel-1inch",
+      "sku": "NV-ST-100",
+      "brandId": "cmpvo6i5b0002f4wdzgdw6kdt",
+      "categoryId": "cmpvo6i5n0007f4wd193yukt4",
+      "status": "PUBLISHED",
+      "description": "شیر سوزنی استیل ۳۱۶ ۱ اینچ، مناسب برای سیستم‌های صنعتی با فشار بالا.",
+      "shortDesc": null,
+      "price": 2150000,
+      "comparePrice": 2400000,
+      "taxPercent": 10,
+      "stockQty": 75,
+      "lowStockAlert": 5,
+      "weight": null,
+      "isFeatured": true,
+      "isNew": false,
+      "viewCount": 2,
+      "saleCount": 0,
+      "metaTitle": null,
+      "metaDesc": null,
+      "tags": [
+        "شیر",
+        "سوزنی",
+        "استیل",
+        "صنعتی"
+      ],
+      "createdAt": "2026-06-01T20:37:14.284Z",
+      "updatedAt": "2026-06-12T12:59:05.244Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i8n000nf4wd4fbkma70",
+      "name": "بوشن گالوانیزه ۱ اینچ",
+      "slug": "coupling-galvanized-1inch",
+      "sku": "CP-GV-100",
+      "brandId": "cmpvo6i5f0004f4wdl6h4rcot",
+      "categoryId": "cmpvo6i5r0009f4wdxb71lp50",
+      "status": "PUBLISHED",
+      "description": "بوشن گالوانیزه ۱ اینچ با کیفیت مناسب برای اتصال لوله‌های گالوانیزه.",
+      "shortDesc": null,
+      "price": 185000,
+      "comparePrice": null,
+      "taxPercent": 10,
+      "stockQty": 300,
+      "lowStockAlert": 5,
+      "weight": null,
+      "isFeatured": false,
+      "isNew": false,
+      "viewCount": 4,
+      "saleCount": 0,
+      "metaTitle": null,
+      "metaDesc": null,
+      "tags": [
+        "بوشن",
+        "گالوانیزه",
+        "۱ اینچ"
+      ],
+      "createdAt": "2026-06-01T20:37:14.327Z",
+      "updatedAt": "2026-06-12T18:24:20.718Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i71000if4wdqa97uumb",
+      "name": "زانو ۹۰ درجه پلیمری ۱/۲ اینچ",
+      "slug": "elbow-90-polymer-half-inch",
+      "sku": "EL-90-05",
+      "brandId": "cmpvo6i5e0003f4wdebigrjjj",
+      "categoryId": "cmpvo6i5r0009f4wdxb71lp50",
+      "status": "PUBLISHED",
+      "description": "زانو ۹۰ درجه پلیمری ۱/۲ اینچ، جنس PP، مناسب برای لوله‌کشی آب سرد.",
+      "shortDesc": null,
+      "price": 45000,
+      "comparePrice": null,
+      "taxPercent": 10,
+      "stockQty": 500,
+      "lowStockAlert": 5,
+      "weight": null,
+      "isFeatured": true,
+      "isNew": true,
+      "viewCount": 2,
+      "saleCount": 0,
+      "metaTitle": null,
+      "metaDesc": null,
+      "tags": [
+        "زانو",
+        "۹۰ درجه",
+        "پلیمری",
+        "۱/۲ اینچ"
+      ],
+      "createdAt": "2026-06-01T20:37:14.269Z",
+      "updatedAt": "2026-06-06T19:54:00.749Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i84000lf4wd74gwy40p",
+      "name": "سه‌راهی برنجی ۱ اینچ",
+      "slug": "tee-brass-1inch",
+      "sku": "TEE-BR-100",
+      "brandId": "cmpvo6i5b0002f4wdzgdw6kdt",
+      "categoryId": "cmpvo6i5r0009f4wdxb71lp50",
+      "status": "PUBLISHED",
+      "description": "سه‌راهی برنجی ۱ اینچ با کیفیت عالی، مناسب برای تقسیم آب.",
+      "shortDesc": null,
+      "price": 680000,
+      "comparePrice": 780000,
+      "taxPercent": 10,
+      "stockQty": 120,
+      "lowStockAlert": 5,
+      "weight": null,
+      "isFeatured": true,
+      "isNew": false,
+      "viewCount": 2,
+      "saleCount": 0,
+      "metaTitle": null,
+      "metaDesc": null,
+      "tags": [
+        "سه‌راهی",
+        "برنجی",
+        "۱ اینچ"
+      ],
+      "createdAt": "2026-06-01T20:37:14.308Z",
+      "updatedAt": "2026-06-06T08:17:00.486Z",
+      "deletedAt": null
+    }
+  ],
+  "category": [
+    {
+      "id": "cmpvo6i5n0007f4wd193yukt4",
+      "name": "شیرآلات",
+      "slug": "valves",
+      "parentId": null,
+      "description": null,
+      "iconClass": "ti-circle-dotted",
+      "imageUrl": null,
+      "sortOrder": 1,
+      "isActive": true,
+      "metaTitle": null,
+      "metaDesc": null,
+      "createdAt": "2026-06-01T20:37:14.219Z",
+      "updatedAt": "2026-06-01T20:37:14.219Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i5p0008f4wdtxsvs0ew",
+      "name": "لوله‌ها",
+      "slug": "pipes",
+      "parentId": null,
+      "description": null,
+      "iconClass": "ti-minus",
+      "imageUrl": null,
+      "sortOrder": 2,
+      "isActive": true,
+      "metaTitle": null,
+      "metaDesc": null,
+      "createdAt": "2026-06-01T20:37:14.221Z",
+      "updatedAt": "2026-06-01T20:37:14.221Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i5r0009f4wdxb71lp50",
+      "name": "اتصالات",
+      "slug": "fittings",
+      "parentId": null,
+      "description": null,
+      "iconClass": "ti-git-merge",
+      "imageUrl": null,
+      "sortOrder": 3,
+      "isActive": true,
+      "metaTitle": null,
+      "metaDesc": null,
+      "createdAt": "2026-06-01T20:37:14.223Z",
+      "updatedAt": "2026-06-01T20:37:14.223Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i5t000af4wdlhna6e5i",
+      "name": "پمپ‌ها",
+      "slug": "pumps",
+      "parentId": null,
+      "description": null,
+      "iconClass": "ti-activity",
+      "imageUrl": null,
+      "sortOrder": 4,
+      "isActive": true,
+      "metaTitle": null,
+      "metaDesc": null,
+      "createdAt": "2026-06-01T20:37:14.225Z",
+      "updatedAt": "2026-06-01T20:37:14.225Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i5u000bf4wd7cfqw1mh",
+      "name": "لوازم بهداشتی",
+      "slug": "sanitary",
+      "parentId": null,
+      "description": null,
+      "iconClass": "ti-droplet",
+      "imageUrl": null,
+      "sortOrder": 5,
+      "isActive": true,
+      "metaTitle": null,
+      "metaDesc": null,
+      "createdAt": "2026-06-01T20:37:14.226Z",
+      "updatedAt": "2026-06-01T20:37:14.226Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i5v000cf4wda3kxycmo",
+      "name": "یراق‌آلات",
+      "slug": "hardware",
+      "parentId": null,
+      "description": null,
+      "iconClass": "ti-tool",
+      "imageUrl": null,
+      "sortOrder": 6,
+      "isActive": true,
+      "metaTitle": null,
+      "metaDesc": null,
+      "createdAt": "2026-06-01T20:37:14.227Z",
+      "updatedAt": "2026-06-01T20:37:14.227Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i5z000df4wdr868loyp",
+      "name": "شیر توپی",
+      "slug": "ball-valve",
+      "parentId": "cmpvo6i5n0007f4wd193yukt4",
+      "description": null,
+      "iconClass": null,
+      "imageUrl": null,
+      "sortOrder": 1,
+      "isActive": true,
+      "metaTitle": null,
+      "metaDesc": null,
+      "createdAt": "2026-06-01T20:37:14.231Z",
+      "updatedAt": "2026-06-01T20:37:14.231Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i60000ef4wdryekfvtf",
+      "name": "شیر سوزنی",
+      "slug": "needle-valve",
+      "parentId": "cmpvo6i5n0007f4wd193yukt4",
+      "description": null,
+      "iconClass": null,
+      "imageUrl": null,
+      "sortOrder": 2,
+      "isActive": true,
+      "metaTitle": null,
+      "metaDesc": null,
+      "createdAt": "2026-06-01T20:37:14.232Z",
+      "updatedAt": "2026-06-01T20:37:14.232Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpvo6i62000ff4wdvch0xu3r",
+      "name": "شیر یک‌طرفه",
+      "slug": "check-valve",
+      "parentId": "cmpvo6i5n0007f4wd193yukt4",
+      "description": null,
+      "iconClass": null,
+      "imageUrl": null,
+      "sortOrder": 3,
+      "isActive": true,
+      "metaTitle": null,
+      "metaDesc": null,
+      "createdAt": "2026-06-01T20:37:14.234Z",
+      "updatedAt": "2026-06-01T20:37:14.234Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmpxhzbmb0001q4wdj82j3ex7",
+      "name": "test",
+      "slug": "test",
+      "parentId": null,
+      "description": "test",
+      "iconClass": null,
+      "imageUrl": null,
+      "sortOrder": 0,
+      "isActive": true,
+      "metaTitle": null,
+      "metaDesc": null,
+      "createdAt": "2026-06-03T03:19:13.811Z",
+      "updatedAt": "2026-06-03T03:19:13.811Z",
+      "deletedAt": null
+    }
+  ],
+  "brand": [
+    {
+      "id": "cmpvo6i5b0002f4wdzgdw6kdt",
+      "name": "تبریز",
+      "slug": "tabriz",
+      "logoUrl": null,
+      "description": null,
+      "country": "ایران",
+      "isActive": true,
+      "createdAt": "2026-06-01T20:37:14.207Z"
+    },
+    {
+      "id": "cmpvo6i5e0003f4wdebigrjjj",
+      "name": "لگریس",
+      "slug": "legris",
+      "logoUrl": null,
+      "description": null,
+      "country": "فرانسه",
+      "isActive": true,
+      "createdAt": "2026-06-01T20:37:14.210Z"
+    },
+    {
+      "id": "cmpvo6i5f0004f4wdl6h4rcot",
+      "name": "پیوند",
+      "slug": "peyond",
+      "logoUrl": null,
+      "description": null,
+      "country": "ایران",
+      "isActive": true,
+      "createdAt": "2026-06-01T20:37:14.211Z"
+    },
+    {
+      "id": "cmpvo6i5h0005f4wdp6qqb0d7",
+      "name": "ویر",
+      "slug": "weir",
+      "logoUrl": null,
+      "description": null,
+      "country": "آلمان",
+      "isActive": true,
+      "createdAt": "2026-06-01T20:37:14.213Z"
+    },
+    {
+      "id": "cmpvo6i5i0006f4wds9dq7n6t",
+      "name": "کی‌پلاست",
+      "slug": "kiplast",
+      "logoUrl": null,
+      "description": null,
+      "country": "ایران",
+      "isActive": true,
+      "createdAt": "2026-06-01T20:37:14.214Z"
+    },
+    {
+      "id": "cmq0us3fi000rfowdmsx0lure",
+      "name": "E2E Del Brand 1780659650142",
+      "slug": "e2e-del-brand-1780659650142",
+      "logoUrl": null,
+      "description": null,
+      "country": null,
+      "isActive": false,
+      "createdAt": "2026-06-05T11:40:50.142Z"
+    },
+    {
+      "id": "cmq0u8rrs000rxgwd7hld38li",
+      "name": "E2E Del Brand 1780658748568",
+      "slug": "e2e-del-brand-1780658748568",
+      "logoUrl": null,
+      "description": null,
+      "country": null,
+      "isActive": false,
+      "createdAt": "2026-06-05T11:25:48.568Z"
+    },
+    {
+      "id": "cmq0tw4x5000rpkwd1rj093nd",
+      "name": "E2E Del Brand 1780658159080",
+      "slug": "e2e-del-brand-1780658159080",
+      "logoUrl": null,
+      "description": null,
+      "country": null,
+      "isActive": false,
+      "createdAt": "2026-06-05T11:15:59.081Z"
+    }
+  ],
+  "order": [
+    {
+      "id": "cmq6z8s3p001f1478w1tq4yo5",
+      "orderNumber": "ORD-202606-92810",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "addressId": "cmq2nf8dl000aiduvi5kqwzzj",
+      "status": "PROCESSING",
+      "subtotal": 9999999,
+      "discountAmount": 9999999,
+      "shippingCost": 0,
+      "taxAmount": 0,
+      "totalAmount": 0,
+      "couponCode": "TEST",
+      "notes": "",
+      "trackingCode": null,
+      "shippingMethod": "standard",
+      "estimatedDelivery": null,
+      "deliveredAt": null,
+      "createdAt": "2026-06-09T18:32:24.134Z",
+      "updatedAt": "2026-06-09T18:32:24.155Z",
+      "deletedAt": null
+    },
+    {
+      "id": "cmq5mqi0j000h1478kia7awpd",
+      "orderNumber": "ORD-202606-47135",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "addressId": null,
+      "status": "RETURNED",
+      "subtotal": 799999920,
+      "discountAmount": 799999920,
+      "shippingCost": 0,
+      "taxAmount": 0,
+      "totalAmount": 0,
+      "couponCode": "TEST",
+      "notes": "",
+      "trackingCode": "123123123",
+      "shippingMethod": "standard",
+      "estimatedDelivery": null,
+      "deliveredAt": "2026-06-08T20:16:24.742Z",
+      "createdAt": "2026-06-08T19:54:29.684Z",
+      "updatedAt": "2026-06-08T20:52:09.000Z",
+      "deletedAt": null
+    }
+  ],
+  "orderItem": [
+    {
+      "id": "cmq5mqi0j000j147879xwiw5f",
+      "orderId": "cmq5mqi0j000h1478kia7awpd",
+      "productId": "cmpxi0ma60002q4wdr15b2q4b",
+      "sizeLabel": "1 1/2\"",
+      "quantity": 10,
+      "unitPrice": 9999999,
+      "totalPrice": 99999990
+    },
+    {
+      "id": "cmq5mqi0j000k1478lflon46p",
+      "orderId": "cmq5mqi0j000h1478kia7awpd",
+      "productId": "cmpxi0ma60002q4wdr15b2q4b",
+      "sizeLabel": "1 1/4\"",
+      "quantity": 10,
+      "unitPrice": 9999999,
+      "totalPrice": 99999990
+    },
+    {
+      "id": "cmq5mqi0j000l1478tsq2dgku",
+      "orderId": "cmq5mqi0j000h1478kia7awpd",
+      "productId": "cmpxi0ma60002q4wdr15b2q4b",
+      "sizeLabel": "1\"",
+      "quantity": 10,
+      "unitPrice": 9999999,
+      "totalPrice": 99999990
+    },
+    {
+      "id": "cmq5mqi0j000m1478bhxnos03",
+      "orderId": "cmq5mqi0j000h1478kia7awpd",
+      "productId": "cmpxi0ma60002q4wdr15b2q4b",
+      "sizeLabel": "1/2\"",
+      "quantity": 10,
+      "unitPrice": 9999999,
+      "totalPrice": 99999990
+    },
+    {
+      "id": "cmq5mqi0j000n1478s7lgft1v",
+      "orderId": "cmq5mqi0j000h1478kia7awpd",
+      "productId": "cmpxi0ma60002q4wdr15b2q4b",
+      "sizeLabel": "1/4\"",
+      "quantity": 10,
+      "unitPrice": 9999999,
+      "totalPrice": 99999990
+    },
+    {
+      "id": "cmq5mqi0j000o14789mx0b9c4",
+      "orderId": "cmq5mqi0j000h1478kia7awpd",
+      "productId": "cmpxi0ma60002q4wdr15b2q4b",
+      "sizeLabel": "2\"",
+      "quantity": 10,
+      "unitPrice": 9999999,
+      "totalPrice": 99999990
+    },
+    {
+      "id": "cmq5mqi0j000p1478qewukhjz",
+      "orderId": "cmq5mqi0j000h1478kia7awpd",
+      "productId": "cmpxi0ma60002q4wdr15b2q4b",
+      "sizeLabel": "3/4\"",
+      "quantity": 10,
+      "unitPrice": 9999999,
+      "totalPrice": 99999990
+    },
+    {
+      "id": "cmq5mqi0j000q1478z1mvheqf",
+      "orderId": "cmq5mqi0j000h1478kia7awpd",
+      "productId": "cmpxi0ma60002q4wdr15b2q4b",
+      "sizeLabel": "3/8\"",
+      "quantity": 10,
+      "unitPrice": 9999999,
+      "totalPrice": 99999990
+    },
+    {
+      "id": "cmq6z8s3p001h147815umqd75",
+      "orderId": "cmq6z8s3p001f1478w1tq4yo5",
+      "productId": "cmpxi0ma60002q4wdr15b2q4b",
+      "sizeLabel": "1\"",
+      "quantity": 1,
+      "unitPrice": 9999999,
+      "totalPrice": 9999999
+    }
+  ],
+  "address": [
+    {
+      "id": "cmq2nf8dl000aiduvi5kqwzzj",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "label": "خانه",
+      "fullName": "test",
+      "phone": "09130000130",
+      "province": "اصفهان",
+      "city": "test",
+      "address": "testsiefhsiolefhoizheklgjfihosrhgbhsKLI Hdfiojsklehfjioujsiopjerg",
+      "postalCode": "1234567891",
+      "isDefault": true,
+      "createdAt": "2026-06-06T17:50:25.066Z"
+    }
+  ],
+  "wallet": [
+    {
+      "id": "cmq5osn8a00171478wx0g7zbx",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "balance": 99999,
+      "createdAt": "2026-06-08T20:52:08.987Z",
+      "updatedAt": "2026-06-08T20:52:08.987Z"
+    }
+  ],
+  "walletTx": [
+    {
+      "id": "cmq5osn8h00191478i51hlt1o",
+      "walletId": "cmq5osn8a00171478wx0g7zbx",
+      "amount": 99999,
+      "type": "REFUND",
+      "description": "بازپرداخت مرجوعی — درخواست #uar994",
+      "refId": "cmq5mqi0j000h1478kia7awpd",
+      "createdAt": "2026-06-08T20:52:08.994Z"
+    }
+  ],
+  "coupon": [
+    {
+      "id": "cmpxijtbj0000dcwdd1fev9rl",
+      "code": "TEST",
+      "description": "test",
+      "discountType": "percent",
+      "discountValue": 100,
+      "minOrderAmount": null,
+      "maxUsageCount": null,
+      "usedCount": 2,
+      "maxUsagePerUser": null,
+      "isActive": true,
+      "startsAt": null,
+      "expiresAt": null,
+      "createdAt": "2026-06-03T03:35:09.871Z"
+    },
+    {
+      "id": "cmqa23t1n0010fs76hi1smxm9",
+      "code": "MARJAN10",
+      "description": "تخفیف ۱۰ درصدی مرجان",
+      "discountType": "percent",
+      "discountValue": 10,
+      "minOrderAmount": 500000,
+      "maxUsageCount": 500,
+      "usedCount": 0,
+      "maxUsagePerUser": null,
+      "isActive": true,
+      "startsAt": null,
+      "expiresAt": "2027-06-11T22:15:49.451Z",
+      "createdAt": "2026-06-11T22:15:49.452Z"
+    }
+  ],
+  "review": [],
+  "blogPost": [
+    {
+      "id": "cmpxhxuks0000q4wdl5adh55p",
+      "title": "test-test",
+      "slug": "test-test",
+      "excerpt": "test",
+      "content": "test",
+      "categoryId": "cmpvo6i90000rf4wdsm2lw8p4",
+      "authorId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "imageUrl": null,
+      "isPublished": true,
+      "viewCount": 3,
+      "metaTitle": "tset",
+      "metaDesc": "test",
+      "tags": [
+        "test"
+      ],
+      "publishedAt": "2026-06-03T03:18:05.055Z",
+      "createdAt": "2026-06-03T03:18:05.068Z",
+      "updatedAt": "2026-06-12T14:08:26.628Z",
+      "deletedAt": null
+    }
+  ],
+  "systemLog": [
+    {
+      "id": "cmq2n9hn40001iduv2igy2l3l",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "PRODUCT_DELETE",
+      "details": {
+        "entity": "Product",
+        "entityId": "cmpxi0ma60002q4wdr15b2q4b",
+        "oldValue": {
+          "name": "tset",
+          "price": 9999999
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-06T17:45:57.136Z"
+    },
+    {
+      "id": "cmq2nat7z0004iduvmszjcwpy",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "MEDIA_UPLOAD",
+      "details": {
+        "entity": "Media",
+        "entityId": "cmq2nat7w0002iduv5h2k4e4n",
+        "newValue": {
+          "url": "/products/f511f752-6a7c-46b3-be80-ea200d81e772.png",
+          "size": 12854,
+          "folder": "products",
+          "filename": "f511f752-6a7c-46b3-be80-ea200d81e772.png",
+          "originalName": "toilet-wc-icon.png"
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-06T17:46:58.799Z"
+    },
+    {
+      "id": "cmq2nav6g0008iduvjh8huaht",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "PRODUCT_UPDATE",
+      "details": {
+        "entity": "Product",
+        "entityId": "cmpvo6i8e000mf4wdu4akcjvi",
+        "newValue": {
+          "sku": "SM-ST-001",
+          "name": "شیر مخلوط دوش استیل",
+          "tags": [
+            "شیر مخلوط",
+            "دوش",
+            "استیل",
+            "بهداشتی"
+          ],
+          "isNew": true,
+          "price": 4500000,
+          "status": "PUBLISHED",
+          "brandId": "cmpvo6i5e0003f4wdebigrjjj",
+          "stockQty": 45,
+          "shortDesc": null,
+          "categoryId": "cmpvo6i5u000bf4wd7cfqw1mh",
+          "isFeatured": true,
+          "description": "شیر مخلوط دوش استیل با طراحی مدرن، مناسب برای حمام.",
+          "comparePrice": 5200000
+        },
+        "oldValue": {
+          "name": "شیر مخلوط دوش استیل",
+          "price": 4500000,
+          "status": "PUBLISHED"
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-06T17:47:01.337Z"
+    },
+    {
+      "id": "cmq54glhs00021478c0as8zmz",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "PRODUCT_UPDATE",
+      "details": {
+        "entity": "Product",
+        "entityId": "cmpxi0ma60002q4wdr15b2q4b",
+        "newValue": {
+          "sku": "test",
+          "name": "tset",
+          "tags": [
+            "tset"
+          ],
+          "isNew": false,
+          "price": 9999999,
+          "status": "PUBLISHED",
+          "brandId": "cmpvo6i5i0006f4wds9dq7n6t",
+          "stockQty": 999,
+          "shortDesc": "test",
+          "categoryId": "cmpxhzbmb0001q4wdj82j3ex7",
+          "isFeatured": true,
+          "description": "tset",
+          "comparePrice": null
+        },
+        "oldValue": {
+          "name": "tset",
+          "price": 9999999,
+          "status": "PUBLISHED"
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-08T11:22:54.543Z"
+    },
+    {
+      "id": "cmq5mmziu00051478kdeh7jdj",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "PRODUCT_UPDATE",
+      "details": {
+        "entity": "Product",
+        "entityId": "cmpxi0ma60002q4wdr15b2q4b",
+        "newValue": {
+          "sku": "test",
+          "name": "tset",
+          "tags": [
+            "tset"
+          ],
+          "isNew": false,
+          "price": 9999999,
+          "status": "PUBLISHED",
+          "brandId": "cmpvo6i5i0006f4wds9dq7n6t",
+          "stockQty": 999,
+          "shortDesc": "test",
+          "categoryId": "cmpxhzbmb0001q4wdj82j3ex7",
+          "isFeatured": true,
+          "description": "tset",
+          "comparePrice": null
+        },
+        "oldValue": {
+          "name": "tset",
+          "price": 9999999,
+          "status": "PUBLISHED"
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-08T19:51:45.750Z"
+    },
+    {
+      "id": "cmq5nenb9000u1478h2cbdhu8",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "ORDER_STATUS_CHANGE",
+      "details": {
+        "entity": "Order",
+        "entityId": "cmq5mqi0j000h1478kia7awpd",
+        "newValue": {
+          "status": "SHIPPED"
+        },
+        "oldValue": {
+          "status": "PROCESSING",
+          "trackingCode": null
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-08T20:13:16.293Z"
+    },
+    {
+      "id": "cmq5netz2000w1478ijyoxd89",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "ORDER_TRACKING_UPDATE",
+      "details": {
+        "entity": "Order",
+        "entityId": "cmq5mqi0j000h1478kia7awpd",
+        "newValue": {
+          "status": "SHIPPED",
+          "trackingCode": "123123123"
+        },
+        "oldValue": {
+          "status": "SHIPPED",
+          "trackingCode": null
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-08T20:13:24.926Z"
+    },
+    {
+      "id": "cmq5nf0zw000y14784b2tp3al",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "ORDER_STATUS_CHANGE",
+      "details": {
+        "entity": "Order",
+        "entityId": "cmq5mqi0j000h1478kia7awpd",
+        "newValue": {
+          "status": "SHIPPED",
+          "trackingCode": "123123123"
+        },
+        "oldValue": {
+          "status": "SHIPPED",
+          "trackingCode": "123123123"
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-08T20:13:34.028Z"
+    },
+    {
+      "id": "cmq5nioq2001014784q1skpsg",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "ORDER_STATUS_CHANGE",
+      "details": {
+        "entity": "Order",
+        "entityId": "cmq5mqi0j000h1478kia7awpd",
+        "newValue": {
+          "status": "DELIVERED",
+          "trackingCode": "123123123"
+        },
+        "oldValue": {
+          "status": "SHIPPED",
+          "trackingCode": "123123123"
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-08T20:16:24.746Z"
+    },
+    {
+      "id": "cmq5oxoxi001d1478lm7yxy3m",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "MEDIA_DELETE",
+      "details": {
+        "entity": "Media",
+        "entityId": "cmpxi1kgy0003q4wdob6w320i",
+        "oldValue": {
+          "url": "/uploads/1780456858590-f78gd5.png",
+          "size": 12854,
+          "filename": "1780456858590-f78gd5.png"
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-08T20:56:04.470Z"
+    },
+    {
+      "id": "cmqa0wbko0003g5z5jxm1zafe",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "MEDIA_UPLOAD",
+      "details": {
+        "entity": "Media",
+        "entityId": "cmqa0wbgr0001g5z5gnz9tv58",
+        "newValue": {
+          "url": "/uploads/76c3d078-6222-4890-b040-6d0461a0e10c.jpg",
+          "size": 40084,
+          "folder": "uploads",
+          "filename": "76c3d078-6222-4890-b040-6d0461a0e10c.jpg",
+          "originalName": "modal_asset2x.jpg"
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-11T21:42:00.600Z"
+    },
+    {
+      "id": "cmqa58j0j00041472e9qelocj",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "USER_ROLE_CHANGE",
+      "details": {
+        "entity": "User",
+        "entityId": "cmpvo6i570001f4wdoxjgpeb4",
+        "newValue": {
+          "role": "CONTRACTOR",
+          "status": "ACTIVE"
+        },
+        "oldValue": {
+          "role": "CUSTOMER",
+          "status": "ACTIVE",
+          "lastName": "رضایی",
+          "firstName": "علی"
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-11T23:43:28.580Z"
+    },
+    {
+      "id": "cmqa58mhy00061472sglu0btp",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "USER_ROLE_CHANGE",
+      "details": {
+        "entity": "User",
+        "entityId": "cmpvo6i570001f4wdoxjgpeb4",
+        "newValue": {
+          "role": "CUSTOMER",
+          "status": "ACTIVE"
+        },
+        "oldValue": {
+          "role": "CONTRACTOR",
+          "status": "ACTIVE",
+          "lastName": "رضایی",
+          "firstName": "علی"
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-11T23:43:33.094Z"
+    },
+    {
+      "id": "cmqa7zp3v0001d1e1lbrolskh",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "COUPON_UPDATE",
+      "details": {
+        "entity": "Coupon",
+        "entityId": "cmqa23t1n0010fs76hi1smxm9",
+        "newValue": {
+          "isActive": false,
+          "discountType": "percent"
+        },
+        "oldValue": {
+          "code": "MARJAN10",
+          "isActive": true,
+          "discountValue": 10
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-12T01:00:35.419Z"
+    },
+    {
+      "id": "cmqa7zpn60003d1e18d1vgfon",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "COUPON_UPDATE",
+      "details": {
+        "entity": "Coupon",
+        "entityId": "cmqa23t1n0010fs76hi1smxm9",
+        "newValue": {
+          "isActive": true,
+          "discountType": "percent"
+        },
+        "oldValue": {
+          "code": "MARJAN10",
+          "isActive": false,
+          "discountValue": 10
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-12T01:00:36.115Z"
+    },
+    {
+      "id": "cmqa7zq0x0005d1e1enf0tzj2",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "COUPON_UPDATE",
+      "details": {
+        "entity": "Coupon",
+        "entityId": "cmqa23t1n0010fs76hi1smxm9",
+        "newValue": {
+          "isActive": false,
+          "discountType": "percent"
+        },
+        "oldValue": {
+          "code": "MARJAN10",
+          "isActive": true,
+          "discountValue": 10
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-12T01:00:36.609Z"
+    },
+    {
+      "id": "cmqa7zqun0007d1e1iw6s6ia6",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "COUPON_UPDATE",
+      "details": {
+        "entity": "Coupon",
+        "entityId": "cmqa23t1n0010fs76hi1smxm9",
+        "newValue": {
+          "isActive": true,
+          "discountType": "percent"
+        },
+        "oldValue": {
+          "code": "MARJAN10",
+          "isActive": false,
+          "discountValue": 10
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-12T01:00:37.679Z"
+    },
+    {
+      "id": "cmqaumuce0008tnjdvz7lrtpx",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "level": "INFO",
+      "action": "SETTINGS_UPDATE",
+      "details": {
+        "entity": "SiteSettings",
+        "newValue": {
+          "seo_ga_id": "",
+          "seo_keywords": "شیرآلات، لوله، اتصالات، نیوپایپ، مروارید، اذران",
+          "seo_default_desc": "بیش از ۱۲,۰۰۰ محصول از برترین برندهای شیرآلات، لوله و اتصالات...",
+          "seo_canonical_url": "https://test.ir",
+          "seo_default_title": "Marjan | فروشگاه لوازم ساختمانی و بهداشتی"
+        },
+        "oldValue": {
+          "seo_ga_id": "",
+          "seo_keywords": "test",
+          "seo_default_desc": "test",
+          "seo_canonical_url": "https://test.ir",
+          "seo_default_title": "TEST SEO"
+        }
+      },
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+      "createdAt": "2026-06-12T11:34:26.847Z"
+    }
+  ],
+  "notification": [
+    {
+      "id": "cmq5osn8l001b14784cwau636",
+      "userId": "cmpvo6hyd0000f4wdt3yml9v0",
+      "type": "PAYMENT",
+      "title": "مرجوعی تأیید شد",
+      "body": "مبلغ ۹۹٬۹۹۹ تومان به کیف پول شما واریز شد.",
+      "isRead": true,
+      "link": null,
+      "createdAt": "2026-06-08T20:52:08.997Z"
+    }
+  ],
+  "siteSettings": [
+    {
+      "id": "cmpxj8s2b0000a0wd571pljhe",
+      "key": "max_login_attempts",
+      "value": "",
+      "group": "security",
+      "updatedAt": "2026-06-03T03:55:36.709Z"
+    },
+    {
+      "id": "cmpxj8s2b0001a0wdefq0fe8o",
+      "key": "lockout_duration_min",
+      "value": "",
+      "group": "security",
+      "updatedAt": "2026-06-03T03:55:36.710Z"
+    },
+    {
+      "id": "cmpxj8s2b0002a0wdz4uwhbnd",
+      "key": "email_verify_ttl_hours",
+      "value": "",
+      "group": "security",
+      "updatedAt": "2026-06-03T03:55:36.710Z"
+    },
+    {
+      "id": "cmpxj8s2b0003a0wdk4dkdhur",
+      "key": "password_reset_ttl_min",
+      "value": "",
+      "group": "security",
+      "updatedAt": "2026-06-03T03:55:36.710Z"
+    },
+    {
+      "id": "cmpxj8s2c0005a0wdba9fynti",
+      "key": "allow_google_login",
+      "value": "false",
+      "group": "security",
+      "updatedAt": "2026-06-03T03:55:36.710Z"
+    },
+    {
+      "id": "cmpxj8s2b0004a0wd4gjigl73",
+      "key": "require_email_verify",
+      "value": "false",
+      "group": "security",
+      "updatedAt": "2026-06-03T03:55:36.710Z"
+    },
+    {
+      "id": "cmpxj8s2c0006a0wdmw29fhzg",
+      "key": "allow_guest_checkout",
+      "value": "false",
+      "group": "security",
+      "updatedAt": "2026-06-03T03:55:36.710Z"
+    },
+    {
+      "id": "cmqa0x3so0004g5z5wr23le5u",
+      "key": "marjan_time_config",
+      "value": "{\"isActive\":true,\"title\":\"مرجان تایم\",\"endTime\":null,\"productIds\":[\"cmpxi0ma60002q4wdr15b2q4b\",\"cmpvo6i8n000nf4wd4fbkma70\",\"cmpvo6i6d000gf4wdi7n63aka\",\"cmpvo6i84000lf4wd74gwy40p\",\"cmpvo6i8e000mf4wdu4akcjvi\",\"cmpvo6i7g000jf4wd7p8ina29\",\"cmpvo6i81000kf4wdaanikmhr\",\"cmpvo6i71000if4wdqa97uumb\",\"cmpvo6i6y000hf4wdr3daha6e\"],\"discountPct\":20}",
+      "group": "homepage",
+      "updatedAt": "2026-06-11T22:30:41.907Z"
+    },
+    {
+      "id": "cmqa8f1to000542yvji672ah2",
+      "key": "default_shipping_cost",
+      "value": "50000",
+      "group": "shipping",
+      "updatedAt": "2026-06-12T01:12:31.741Z"
+    },
+    {
+      "id": "cmqa8f1to000842yvtg81ahb1",
+      "key": "shipping_days",
+      "value": "24 تا 72 ساعت",
+      "group": "shipping",
+      "updatedAt": "2026-06-12T01:12:31.741Z"
+    },
+    {
+      "id": "cmqa8f1tl000442yvfwhjzk9y",
+      "key": "seo_default_title",
+      "value": "Marjan | فروشگاه لوازم ساختمانی و بهداشتی",
+      "group": "seo",
+      "updatedAt": "2026-06-12T11:34:26.716Z"
+    },
+    {
+      "id": "cmqa8f1pv000042yvdrhvbdbm",
+      "key": "seo_default_desc",
+      "value": "بیش از ۱۲,۰۰۰ محصول از برترین برندهای شیرآلات، لوله و اتصالات...",
+      "group": "seo",
+      "updatedAt": "2026-06-12T11:34:26.716Z"
+    },
+    {
+      "id": "cmpzndhch0009u4wd559tokrx",
+      "key": "maintenance_mode",
+      "value": "false",
+      "group": "maintenance",
+      "updatedAt": "2026-06-05T11:40:49.883Z"
+    },
+    {
+      "id": "cmqa8f1qw000242yvautrad0n",
+      "key": "seo_keywords",
+      "value": "شیرآلات، لوله، اتصالات، نیوپایپ، مروارید، اذران",
+      "group": "seo",
+      "updatedAt": "2026-06-12T11:34:26.716Z"
+    },
+    {
+      "id": "cmq0hg34a000o4owd2xh7j1r0",
+      "key": "registration_closed",
+      "value": "false",
+      "group": "status",
+      "updatedAt": "2026-06-05T11:40:50.124Z"
+    },
+    {
+      "id": "cmq2njgk20002of1u0ltey3ep",
+      "key": "last_backup_at",
+      "value": "2026-06-06T17:53:49.094Z",
+      "group": "system",
+      "updatedAt": "2026-06-06T17:53:49.096Z"
+    },
+    {
+      "id": "cmqa8f1qx000342yvqjg9uhq7",
+      "key": "seo_canonical_url",
+      "value": "https://test.ir",
+      "group": "seo",
+      "updatedAt": "2026-06-12T11:34:26.716Z"
+    },
+    {
+      "id": "cmqa8f1qs000142yvmhfi1sq5",
+      "key": "seo_ga_id",
+      "value": "",
+      "group": "seo",
+      "updatedAt": "2026-06-12T11:34:26.716Z"
+    },
+    {
+      "id": "cmpvo6i97000vf4wd0gdac68k",
+      "key": "site_name",
+      "value": "Marjan",
+      "group": "general",
+      "updatedAt": "2026-06-12T12:47:46.811Z"
+    },
+    {
+      "id": "cmpvo6i9b000wf4wdwkgl8cs7",
+      "key": "site_phone",
+      "value": "021-44556677",
+      "group": "general",
+      "updatedAt": "2026-06-12T12:47:46.812Z"
+    },
+    {
+      "id": "cmpvo6i9b000xf4wdu79ey32h",
+      "key": "site_email",
+      "value": "info@marjan.ir",
+      "group": "general",
+      "updatedAt": "2026-06-12T12:47:46.812Z"
+    },
+    {
+      "id": "cmpvo6i9c000yf4wd9jzjbbim",
+      "key": "site_address",
+      "value": "تهران، ولیعصر، پلاک ۱۲۳",
+      "group": "general",
+      "updatedAt": "2026-06-12T12:47:46.813Z"
+    },
+    {
+      "id": "cmpvo6i9c000zf4wdvt9ku3ny",
+      "key": "free_shipping_threshold",
+      "value": "5000000",
+      "group": "shipping",
+      "updatedAt": "2026-06-12T12:47:46.814Z"
+    },
+    {
+      "id": "cmpvo6i9d0010f4wdmy855n6g",
+      "key": "tax_rate",
+      "value": "10",
+      "group": "finance",
+      "updatedAt": "2026-06-12T12:47:46.814Z"
+    }
+  ]
+}
