@@ -45,18 +45,18 @@ Reference file for "original prototype" design: `marjan (5).html` (project root)
 
 ## Section F: Content Pages
 
-- [ ] **F1** — درباره ما: restore top section original design from marjan (5).html (keep bottom section)
-- [ ] **F2** — تماس با ما: restore original design
-- [ ] **F3** — FAQ: restore original design
-- [ ] **F4** — Blog list: fix date formatting (pretty/formatted), add proper spacing between date and view-count icons; apply format to ALL similar listing sections site-wide
-- [ ] **F5** — Search live dropdown + search results page: restore original design
+- [~] **F1** — درباره ما: cancelled
+- [~] **F2** — تماس با ما: cancelled
+- [~] **F3** — FAQ: cancelled
+- [x] **F4** — Blog list: fix date formatting (pretty/formatted), add proper spacing between date and view-count icons; apply format to ALL similar listing sections site-wide
+- [x] **F5** — Search live dropdown + search results page: restore original design
 
 ---
 
 ## Section G: Search
 
-- [ ] **G1** — Live search dropdown: restore original design
-- [ ] **G2** — Search results page: restore original design
+- [x] **G1** — Live search dropdown: restore original design (done with F5)
+- [x] **G2** — Search results page: restore original design (done with F5)
 
 ---
 
