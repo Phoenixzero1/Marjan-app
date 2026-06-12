@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { formatPrice, getStatusLabel } from "@/lib/utils";
@@ -522,8 +522,8 @@ export default function DashboardPage() {
                     const isOpen = expandedOrder === o.id;
                     const detail = orderDetails[o.id];
                     return (
-                      <>
-                        <tr key={o.id} style={{ borderBottom: isOpen ? "none" : "1px solid var(--bg)" }}>
+                      <Fragment key={o.id}>
+                        <tr style={{ borderBottom: isOpen ? "none" : "1px solid var(--bg)" }}>
                           <td style={{ padding: 10, fontWeight: 700 }}>{o.orderNumber}</td>
                           <td style={{ padding: 10, color: "var(--text3)" }}>{new Date(o.createdAt).toLocaleDateString("fa-IR")}</td>
                           <td style={{ padding: 10 }}>{o.items.length} قلم</td>
@@ -649,7 +649,7 @@ export default function DashboardPage() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </Fragment>
                     );
                   })}
                 </tbody>
