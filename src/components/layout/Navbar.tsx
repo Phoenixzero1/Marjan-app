@@ -34,7 +34,7 @@ interface NavbarProps {
 export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   const router = useRouter();
   const { data: session } = useSession();
-  const { totalItems, toggleCart } = useCart();
+  const { items, totalItems, toggleCart, totalPrice } = useCart();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [dropOpen, setDropOpen] = useState(false);
@@ -101,6 +101,17 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes((session?.user as { role?: string })?.role ?? "");
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [walletLoading, setWalletLoading] = useState(false);
+  const [cartHover, setCartHover] = useState(false);
+  const cartHoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cartBtnRef = useRef<HTMLButtonElement>(null);
+
+  function openCartHover() {
+    if (cartHoverTimeout.current) clearTimeout(cartHoverTimeout.current);
+    setCartHover(true);
+  }
+  function closeCartHover() {
+    cartHoverTimeout.current = setTimeout(() => setCartHover(false), 120);
+  }
 
   // Fetch wallet balance the first time the dropdown opens
   useEffect(() => {
@@ -204,18 +215,94 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
               <i className="ti ti-heart" />
             </Link>
 
-            {/* Cart */}
-            <button
-              onClick={toggleCart}
-              style={{ background: "transparent", border: "none", color: "rgba(255,255,255,.8)", fontSize: 22, position: "relative", padding: 8, display: "flex", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44 }}
-            >
-              <i className="ti ti-shopping-cart" />
-              {count > 0 && (
-                <span style={{ position: "absolute", top: 2, right: 2, background: "var(--accent)", color: "#fff", fontSize: 10, fontWeight: 700, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                  {count}
-                </span>
+            {/* Cart — click opens panel, hover shows preview */}
+            <div style={{ position: "relative" }}>
+              <button
+                ref={cartBtnRef}
+                onClick={() => { toggleCart(); setCartHover(false); }}
+                onMouseEnter={openCartHover}
+                onMouseLeave={closeCartHover}
+                style={{ background: "transparent", border: "none", color: "rgba(255,255,255,.8)", fontSize: 22, position: "relative", padding: 8, display: "flex", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44 }}
+              >
+                <i className="ti ti-shopping-cart" />
+                {count > 0 && (
+                  <span style={{ position: "absolute", top: 2, right: 2, background: "var(--accent)", color: "#fff", fontSize: 10, fontWeight: 700, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                    {count}
+                  </span>
+                )}
+              </button>
+
+              {/* Cart hover preview */}
+              {cartHover && mounted && (
+                <div
+                  onMouseEnter={openCartHover}
+                  onMouseLeave={closeCartHover}
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 8px)",
+                    left: 0,
+                    width: 300,
+                    background: "#fff",
+                    borderRadius: "var(--radius)",
+                    boxShadow: "0 8px 40px rgba(0,0,0,.18)",
+                    border: "1px solid var(--border)",
+                    zIndex: 200,
+                    overflow: "hidden",
+                    animation: "fadeIn .12s ease",
+                  }}
+                >
+                  {/* Header */}
+                  <div style={{ background: "var(--primary)", color: "#fff", padding: "10px 14px", fontSize: 13, fontWeight: 900, display: "flex", alignItems: "center", gap: 8 }}>
+                    <i className="ti ti-shopping-cart" />
+                    خلاصه سبد خرید شما
+                    {count > 0 && <span style={{ marginRight: "auto", background: "rgba(255,255,255,.2)", borderRadius: 10, padding: "1px 8px", fontSize: 11 }}>{count} کالا</span>}
+                  </div>
+
+                  {items.length === 0 ? (
+                    <div style={{ padding: "24px 14px", textAlign: "center", color: "var(--text3)", fontSize: 13 }}>
+                      <i className="ti ti-shopping-cart-off" style={{ fontSize: 32, display: "block", marginBottom: 8 }} />
+                      سبد خرید خالی است
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ maxHeight: 200, overflowY: "auto" }}>
+                        {items.slice(0, 4).map(item => (
+                          <div key={`${item.id}-${item.sizeLabel}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", borderBottom: "1px solid var(--border)" }}>
+                            <div style={{ width: 36, height: 36, background: "var(--bg)", borderRadius: "var(--radius-sm)", flexShrink: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              {item.imageUrl
+                                // eslint-disable-next-line @next/next/no-img-element
+                                ? <img src={item.imageUrl} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                : <i className="ti ti-package" style={{ fontSize: 18, color: "var(--border)" }} />}
+                            </div>
+                            <div style={{ flex: 1, overflow: "hidden" }}>
+                              <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
+                              <div style={{ fontSize: 11, color: "var(--text3)" }}>×{item.quantity}</div>
+                            </div>
+                            <div style={{ fontSize: 12, fontWeight: 900, color: "var(--primary)", whiteSpace: "nowrap" }}>{formatPrice(item.price * item.quantity)}</div>
+                          </div>
+                        ))}
+                        {items.length > 4 && (
+                          <div style={{ padding: "6px 14px", fontSize: 11, color: "var(--text3)", textAlign: "center" }}>و {items.length - 4} کالای دیگر...</div>
+                        )}
+                      </div>
+                      {/* Total + CTA */}
+                      <div style={{ padding: "10px 14px", borderTop: "2px solid var(--border)", display: "flex", flexDirection: "column", gap: 8 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 900, color: "var(--primary)" }}>
+                          <span>جمع کل</span>
+                          <span>{formatPrice(totalPrice())}</span>
+                        </div>
+                        <button
+                          onClick={() => { toggleCart(); setCartHover(false); }}
+                          style={{ background: "var(--primary)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "9px 0", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 900, cursor: "pointer", width: "100%" }}
+                        >
+                          مشاهده سبد خرید <i className="ti ti-arrow-left" />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
-            </button>
+            </div>
 
             {/* User menu */}
             {session?.user ? (

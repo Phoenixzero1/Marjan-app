@@ -719,6 +719,7 @@ model Banner {
   targetPage  String?   // home | all | or category slug
   sortOrder   Int       @default(0)
   isActive    Boolean   @default(true)
+  isDefault   Boolean   @default(false)
   startDate   DateTime?
   endDate     DateTime?
   createdAt   DateTime  @default(now())

@@ -34,6 +34,10 @@ export async function DELETE(
 ) {
   if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
   try {
+    const existing = await prisma.banner.findUnique({ where: { id: params.id }, select: { isDefault: true } });
+    if (existing?.isDefault) {
+      return NextResponse.json({ error: "اسلاید پیش‌فرض قابل حذف نیست" }, { status: 403 });
+    }
     await prisma.banner.delete({ where: { id: params.id } });
     return NextResponse.json({ ok: true });
   } catch {

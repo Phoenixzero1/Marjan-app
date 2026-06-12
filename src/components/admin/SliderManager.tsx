@@ -10,6 +10,7 @@ interface Slide {
   buttonText: string | null;
   buttonLink: string | null;
   isActive: boolean;
+  isDefault: boolean;
   startDate: string | null;
   endDate: string | null;
   sortOrder: number;
@@ -432,20 +433,31 @@ export default function SliderManager() {
                 </div>
 
                 {/* Edit / Delete */}
-                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
+                  {slide.isDefault && (
+                    <span title="اسلاید پیش‌فرض — قابل حذف نیست" style={{ fontSize: 11, fontWeight: 700, color: "#b45309", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 6, padding: "4px 8px", display: "flex", alignItems: "center", gap: 3 }}>
+                      <i className="ti ti-star-filled" /> پیش‌فرض
+                    </span>
+                  )}
                   <button
                     onClick={() => openEdit(slide)}
                     style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 6, padding: "6px 12px", fontSize: 12, cursor: "pointer", color: "var(--text2)", fontFamily: "Vazirmatn", display: "flex", alignItems: "center", gap: 4 }}
                   >
                     <i className="ti ti-edit" /> ویرایش
                   </button>
-                  <button
-                    onClick={() => handleDelete(slide.id)}
-                    disabled={deletingId === slide.id}
-                    style={{ background: "#fdecea", border: "1px solid #f5c6cb", borderRadius: 6, padding: "6px 12px", fontSize: 12, cursor: "pointer", color: "#c0392b", fontFamily: "Vazirmatn", display: "flex", alignItems: "center", gap: 4, opacity: deletingId === slide.id ? 0.6 : 1 }}
-                  >
-                    <i className="ti ti-trash" /> {deletingId === slide.id ? "..." : "حذف"}
-                  </button>
+                  {slide.isDefault ? (
+                    <span title="اسلاید پیش‌فرض قابل حذف نیست" style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 6, padding: "6px 12px", fontSize: 12, color: "var(--text3)", fontFamily: "Vazirmatn", display: "flex", alignItems: "center", gap: 4, cursor: "not-allowed" }}>
+                      <i className="ti ti-lock" /> قفل
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => handleDelete(slide.id)}
+                      disabled={deletingId === slide.id}
+                      style={{ background: "#fdecea", border: "1px solid #f5c6cb", borderRadius: 6, padding: "6px 12px", fontSize: 12, cursor: "pointer", color: "#c0392b", fontFamily: "Vazirmatn", display: "flex", alignItems: "center", gap: 4, opacity: deletingId === slide.id ? 0.6 : 1 }}
+                    >
+                      <i className="ti ti-trash" /> {deletingId === slide.id ? "..." : "حذف"}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

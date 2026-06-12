@@ -507,6 +507,26 @@ async function main() {
     console.log(`⏭️  Orders already exist (${existingOrders}), skipping`);
   }
 
+  // Default hero slide (protected — cannot be deleted)
+  const existingDefault = await prisma.banner.findFirst({ where: { type: "hero", isDefault: true } });
+  if (!existingDefault) {
+    await prisma.banner.create({
+      data: {
+        type: "hero",
+        title: "فروشگاه لوازم ساختمانی و تأسیساتی",
+        subtitle: "بیش از ۱۲,۰۰۰ محصول اصل از برترین برندها با ارسال سریع سراسری",
+        buttonText: "مشاهده محصولات",
+        buttonLink: "/products",
+        isActive: true,
+        isDefault: true,
+        sortOrder: 0,
+      },
+    });
+    console.log("✅ Default hero slide created");
+  } else {
+    console.log("⏭️  Default hero slide already exists, skipping");
+  }
+
   console.log("\n✨ Database seeded successfully!");
   console.log("\n📋 Login credentials:");
   console.log("   Admin: admin@marjan.ir / admin123456");
