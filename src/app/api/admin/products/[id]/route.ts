@@ -32,12 +32,12 @@ const updateSchema = z.object({
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await requirePermission("EDIT_PRODUCTS")))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
 
   const product = await prisma.product.findUnique({
     where: { id },
@@ -55,12 +55,12 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requirePermission("EDIT_PRODUCTS");
   if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
 
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
@@ -104,12 +104,12 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requirePermission("DELETE_PRODUCTS");
   if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const before = await prisma.product.findUnique({ where: { id }, select: { name: true, price: true } });

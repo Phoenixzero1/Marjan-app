@@ -10,10 +10,10 @@ const schema = z.object({
   refundAmount: z.number().optional(),
 });
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!(await requirePermission("MANAGE_RETURNS"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
   const body = await req.json();
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });

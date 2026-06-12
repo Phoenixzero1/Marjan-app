@@ -56,6 +56,6 @@ export async function POST(req: NextRequest) {
     })
   ));
 
-  try { revalidateTag(SETTINGS_TAG); } catch { /* cache may not be active */ }
+  try { revalidateTag(SETTINGS_TAG, { expire: 0 }); } catch { /* cache may not be active */ }
   return NextResponse.json({ success: true });
 }

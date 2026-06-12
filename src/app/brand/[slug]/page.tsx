@@ -23,8 +23,8 @@ async function getBrand(slug: string) {
   });
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const { slug } = params;
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
   const brand = await getBrand(slug);
   if (!brand) return { title: "برند یافت نشد" };
   return {
@@ -33,8 +33,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function BrandPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default async function BrandPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const brand = await getBrand(slug);
   if (!brand) notFound();
 

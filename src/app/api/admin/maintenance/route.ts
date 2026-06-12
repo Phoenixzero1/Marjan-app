@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     ...(estimated !== undefined ? [prisma.siteSettings.upsert({ where: { key: "maintenance_estimated" }, update: { value: estimated }, create: { key: "maintenance_estimated", value: estimated, group: "maintenance" } })] : []),
   ]);
 
-  try { revalidateTag(SETTINGS_TAG); } catch { /* cache may not be active */ }
+  try { revalidateTag(SETTINGS_TAG, { expire: 0 }); } catch { /* cache may not be active */ }
 
   audit({
     userId: (session.user as { id: string }).id,

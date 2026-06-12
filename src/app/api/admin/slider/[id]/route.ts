@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
   try {
@@ -21,7 +21,7 @@ export async function PATCH(
     if (body.startDate !== undefined) data.startDate = body.startDate ? new Date(body.startDate) : null;
     if (body.endDate !== undefined) data.endDate = body.endDate ? new Date(body.endDate) : null;
 
-    const slide = await prisma.banner.update({ where: { id: params.id }, data });
+    const slide = await prisma.banner.update({ where: { id: (await params).id }, data });
     return NextResponse.json({ slide });
   } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
@@ -30,15 +30,15 @@ export async function PATCH(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await requireAdmin())) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
   try {
-    const existing = await prisma.banner.findUnique({ where: { id: params.id }, select: { isDefault: true } });
+    const existing = await prisma.banner.findUnique({ where: { id: (await params).id }, select: { isDefault: true } });
     if (existing?.isDefault) {
       return NextResponse.json({ error: "اسلاید پیش‌فرض قابل حذف نیست" }, { status: 403 });
     }
-    await prisma.banner.delete({ where: { id: params.id } });
+    await prisma.banner.delete({ where: { id: (await params).id } });
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });

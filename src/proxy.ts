@@ -5,13 +5,11 @@ import { isRateLimited, getClientIp } from "@/lib/rateLimit";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"];
 
-export default async function middleware(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.AUTH_SECRET });
   const { pathname } = req.nextUrl;
 
   // ── Admin API rate limit ──────────────────────────────────────────────────
-  // Authenticated admins: 2000 req/hour (panel polling + normal usage)
-  // Unauthenticated probes: 20 req/hour (security)
   if (pathname.startsWith("/api/admin")) {
     const ip = getClientIp(req as unknown as Request);
     const isAdmin = ADMIN_ROLES.includes((token as { role?: string } | null)?.role ?? "");
@@ -54,7 +52,7 @@ export default async function middleware(req: NextRequest) {
     }
   }
 
-  // ── Maintenance mode — read cookie set by admin toggle ─────────────────────
+  // ── Maintenance mode ───────────────────────────────────────────────────────
   const isPublicPage =
     !pathname.startsWith("/admin") &&
     !pathname.startsWith("/api/") &&

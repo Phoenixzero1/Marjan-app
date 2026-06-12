@@ -12,11 +12,11 @@ const schema = z.object({
 });
 
 // GET — return request status for an order
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "لطفاً وارد شوید" }, { status: 401 });
 
-  const { id } = params;
+  const { id } = await params;
   const req = await prisma.returnRequest.findFirst({
     where: { orderId: id, userId: session.user.id },
     orderBy: { createdAt: "desc" },
@@ -26,11 +26,11 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 }
 
 // POST — submit a return request
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "لطفاً وارد شوید" }, { status: 401 });
 
-  const { id } = params;
+  const { id } = await params;
 
   const order = await prisma.order.findUnique({
     where: { id, userId: session.user.id },

@@ -8,12 +8,12 @@ const schema = z.object({ question: z.string().min(5, "سوال باید حدا�
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "لطفاً وارد شوید" }, { status: 401 });
 
-  const { slug } = params;
+  const { slug } = await params;
   const product = await prisma.product.findUnique({ where: { slug }, select: { id: true } });
   if (!product) return NextResponse.json({ error: "محصول یافت نشد" }, { status: 404 });
 

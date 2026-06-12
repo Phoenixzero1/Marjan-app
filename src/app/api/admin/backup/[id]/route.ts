@@ -5,10 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { readFile, unlink } from "fs/promises";
 
 // GET — download a backup file
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await requirePermission("MANAGE_BACKUP"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
   const record = await prisma.backupRecord.findUnique({ where: { id } });
   if (!record) return NextResponse.json({ error: "یافت نشد" }, { status: 404 });
   if (record.status !== "completed") return NextResponse.json({ error: "فایل موجود نیست" }, { status: 404 });
@@ -29,10 +29,10 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 }
 
 // DELETE — remove a backup record and its file
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await requirePermission("MANAGE_BACKUP"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
   const record = await prisma.backupRecord.findUnique({ where: { id } });
   if (!record) return NextResponse.json({ error: "یافت نشد" }, { status: 404 });
 
