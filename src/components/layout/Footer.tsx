@@ -32,13 +32,13 @@ export default async function Footer() {
           text-decoration: none;
           transition: color .2s;
         }
-        .footer-link:hover { color: #e8920a; }
+        .footer-link:hover { color: rgba(255,255,255,.95); text-decoration: underline; }
         .footer-bottom-link {
           color: rgba(255,255,255,.5);
           text-decoration: none;
           transition: color .2s;
         }
-        .footer-bottom-link:hover { color: #e8920a; }
+        .footer-bottom-link:hover { color: rgba(255,255,255,.8); }
         .soc-btn {
           width: 36px; height: 36px;
           background: rgba(255,255,255,.1);
@@ -49,7 +49,7 @@ export default async function Footer() {
           text-decoration: none;
           transition: background .2s, color .2s;
         }
-        .soc-btn:hover { background: #e8920a; color: #fff; }
+        .soc-btn:hover { background: rgba(255,255,255,.22); color: #fff; }
       `}</style>
       <div
         style={{

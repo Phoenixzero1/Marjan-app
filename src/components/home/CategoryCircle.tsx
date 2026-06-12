@@ -43,7 +43,7 @@ export default function CategoryCircle({ name, slug, imageUrl, iconClass, count 
         }}
         onMouseEnter={(e) => {
           const el = e.currentTarget as HTMLElement;
-          el.style.borderColor = "var(--accent)";
+          el.style.borderColor = "var(--primary)";
           el.style.transform = "scale(1.08)";
         }}
         onMouseLeave={(e) => {

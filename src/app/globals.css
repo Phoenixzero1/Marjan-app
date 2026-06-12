@@ -107,6 +107,17 @@ button {
 .mega-item:hover .mega-drop {
   display: block;
 }
+/* Neutral hover for megamenu top-level items */
+.mega-item > a:hover,
+.mega-item > span:hover {
+  background: rgba(255,255,255,.1);
+  border-radius: 0;
+}
+/* Neutral hover for mega-drop child links */
+.mega-drop a:hover {
+  background: var(--bg);
+  color: var(--primary);
+}
 
 /* ─── SIZE POPUP ─────────────────────────────────────────────────────────── */
 .size-popup {
@@ -124,6 +135,11 @@ button {
 }
 .product-card:hover .size-popup {
   display: block;
+}
+
+/* ─── SEARCH RESULT ITEM HOVER ───────────────────────────────────────────── */
+.search-result-item:hover {
+  background: var(--bg);
 }
 
 /* ─── SEARCH DROPDOWN ────────────────────────────────────────────────────── */
