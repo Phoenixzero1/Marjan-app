@@ -56,6 +56,6 @@ export async function POST(req: NextRequest) {
     })
   ));
 
-  revalidateTag(SETTINGS_TAG);
+  try { revalidateTag(SETTINGS_TAG); } catch { /* cache may not be active */ }
   return NextResponse.json({ success: true });
 }

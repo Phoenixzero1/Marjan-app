@@ -9,10 +9,15 @@ export default async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.AUTH_SECRET });
   const { pathname } = req.nextUrl;
 
-  // ── Admin API rate limit: 100 requests / hour / IP ─────────────────────────
+  // ── Admin API rate limit ──────────────────────────────────────────────────
+  // Authenticated admins: 2000 req/hour (panel polling + normal usage)
+  // Unauthenticated probes: 20 req/hour (security)
   if (pathname.startsWith("/api/admin")) {
     const ip = getClientIp(req as unknown as Request);
-    if (isRateLimited(`admin-api:${ip}`, 100, 60 * 60_000)) {
+    const isAdmin = ADMIN_ROLES.includes((token as { role?: string } | null)?.role ?? "");
+    const [limit, window] = isAdmin ? [2000, 60 * 60_000] : [20, 60 * 60_000];
+    const key = isAdmin ? `admin-api-auth:${ip}` : `admin-api-unauth:${ip}`;
+    if (isRateLimited(key, limit, window)) {
       return NextResponse.json({ error: "تعداد درخواست‌های شما بیش از حد مجاز است. یک ساعت دیگر تلاش کنید." }, { status: 429 });
     }
   }
