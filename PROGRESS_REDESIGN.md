@@ -6,7 +6,7 @@ Reference file for "original prototype" design: `marjan (5).html` (project root)
 
 ## Section A: Global (highest priority)
 
-- [ ] **A1** — Brand name global field: add "نام تجاری" field in admin → general settings; every "Marjan"/"مرجان"/"ماراجان" site-wide reads from this one setting; logo also editable from settings
+- [x] **A1** — Brand name global field: add "نام تجاری" field in admin → general settings; every "Marjan"/"مرجان"/"ماراجان" site-wide reads from this one setting; logo also editable from settings
 - [ ] **A2** — Remove ALL orange hover effects site-wide; replace with subtle neutral hover
 
 ---
