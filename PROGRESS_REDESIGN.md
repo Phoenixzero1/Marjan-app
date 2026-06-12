@@ -14,16 +14,16 @@ Reference file for "original prototype" design: `marjan (5).html` (project root)
 ## Section B: Homepage
 
 - [x] **B1** — Topbar text editable from CMS (working hours, phone) via admin content manager
-- [ ] **B2** — Hero Slider: convert main banner into a permanent "starred" default slide that cannot be deleted; other slides can be added/removed
+- [x] **B2** — Hero Slider: convert main banner into a permanent "starred" default slide that cannot be deleted; other slides can be added/removed
 
 ---
 
 ## Section C: Cart (restore original behavior)
 
-- [ ] **C1** — Remove the separate cart PAGE entirely
-- [ ] **C2** — Clicking cart icon → opens cart panel (slide from left, RTL)
-- [ ] **C3** — Hovering cart icon → shows preview dropdown: "خلاصه سبد خرید شما - ۲ کالا" with mini product list
-- [ ] **C4** — Checkout flows directly from the cart panel, no separate cart page
+- [x] **C1** — Remove the separate cart PAGE entirely
+- [x] **C2** — Clicking cart icon → opens cart panel (slide from left, RTL)
+- [x] **C3** — Hovering cart icon → shows preview dropdown: "خلاصه سبد خرید شما - ۲ کالا" with mini product list
+- [x] **C4** — Checkout flows directly from the cart panel, no separate cart page
 
 ---
 
