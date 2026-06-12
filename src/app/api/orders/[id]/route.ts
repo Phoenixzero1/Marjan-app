@@ -5,12 +5,12 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "لطفاً وارد شوید" }, { status: 401 });
 
-  const { id } = params;
+  const { id } = await params;
 
   const order = await prisma.order.findFirst({
     where: { id, userId: session.user.id },

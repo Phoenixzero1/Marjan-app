@@ -14,13 +14,14 @@ const sizeSchema = z.object({
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await requirePermission("EDIT_PRODUCTS")))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
+  const { id } = await params;
   const sizes = await prisma.productSize.findMany({
-    where: { productId: params.id },
+    where: { productId: id },
     orderBy: { id: "asc" },
   });
   return NextResponse.json({ sizes });
@@ -28,26 +29,27 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await requirePermission("EDIT_PRODUCTS")))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
+  const { id } = await params;
   try {
     const body = await req.json();
     const sizes = z.array(sizeSchema).parse(body.sizes ?? []);
 
     await prisma.$transaction([
-      prisma.productSize.deleteMany({ where: { productId: params.id } }),
+      prisma.productSize.deleteMany({ where: { productId: id } }),
       ...(sizes.length > 0
         ? [prisma.productSize.createMany({
-            data: sizes.map((s) => ({ ...s, productId: params.id })),
+            data: sizes.map((s) => ({ ...s, productId: id })),
           })]
         : []),
     ]);
 
     const result = await prisma.productSize.findMany({
-      where: { productId: params.id },
+      where: { productId: id },
       orderBy: { id: "asc" },
     });
     return NextResponse.json({ sizes: result });

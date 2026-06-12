@@ -11,12 +11,12 @@ const PACKAGES_DIR = path.join(process.cwd(), "migration-packages");
 // GET — download ZIP
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await requirePermission("MANAGE_BACKUP")))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
   const zipPath = path.join(PACKAGES_DIR, `${id}.zip`);
   if (!zipPath.startsWith(PACKAGES_DIR)) return NextResponse.json({ error: "مسیر نامعتبر" }, { status: 400 });
   if (!existsSync(zipPath)) return NextResponse.json({ error: "یافت نشد" }, { status: 404 });
@@ -38,12 +38,12 @@ export async function GET(
 // DELETE — remove package
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await requirePermission("MANAGE_BACKUP")))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
   const zipPath = path.join(PACKAGES_DIR, `${id}.zip`);
   const metaPath = path.join(PACKAGES_DIR, `${id}.json`);
 
@@ -60,12 +60,12 @@ export async function DELETE(
 // PATCH — verify checksums
 export async function PATCH(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await requirePermission("MANAGE_BACKUP")))
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
   const zipPath = path.join(PACKAGES_DIR, `${id}.zip`);
   const metaPath = path.join(PACKAGES_DIR, `${id}.json`);
 

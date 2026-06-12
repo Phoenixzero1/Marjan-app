@@ -21,11 +21,11 @@ const updateSchema = z.object({
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await requirePermission("MANAGE_BLOG"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
 
   const post = await prisma.blogPost.findUnique({
     where: { id },
@@ -38,12 +38,12 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requirePermission("MANAGE_BLOG");
   if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const body = await req.json();
@@ -79,12 +79,12 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await requirePermission("MANAGE_BLOG");
   if (!session) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const before = await prisma.blogPost.findUnique({ where: { id }, select: { title: true, slug: true, isPublished: true } });

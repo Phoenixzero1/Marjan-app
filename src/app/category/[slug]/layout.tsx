@@ -19,9 +19,9 @@ async function getCategory(slug: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await params;
   const cat = await getCategory(slug);
   if (!cat) return { title: "دسته‌بندی | مارجان" };
 
@@ -48,9 +48,9 @@ export default async function CategoryLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = params;
+  const { slug } = await params;
   const cat = await getCategory(slug);
   if (!cat) return <>{children}</>;
 

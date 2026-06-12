@@ -36,9 +36,9 @@ async function getRelated(categoryId: string | null, excludeId: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await params;
   const post = await getPost(slug);
   if (!post) return { title: "مطلب یافت نشد | مارجان" };
   const url = `${BASE}/blog/${post.slug}`;
@@ -68,9 +68,9 @@ export async function generateMetadata({
 export default async function BlogPostPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = params;
+  const { slug } = await params;
   const post = await getPost(slug);
   if (!post) notFound();
 

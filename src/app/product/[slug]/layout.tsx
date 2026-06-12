@@ -21,9 +21,9 @@ async function getProduct(slug: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await params;
   const p = await getProduct(slug);
   if (!p) return { title: "محصول یافت نشد | مارجان" };
 
@@ -58,9 +58,9 @@ export default async function ProductLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = params;
+  const { slug } = await params;
   const p = await getProduct(slug);
   if (!p) return <>{children}</>;
 

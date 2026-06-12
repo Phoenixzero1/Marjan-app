@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "خطا در ذخیره تنظیمات" }, { status: 500 });
   }
-  try { revalidateTag(SETTINGS_TAG); } catch { /* cache may not be active */ }
+  try { revalidateTag(SETTINGS_TAG, { expire: 0 }); } catch { /* cache may not be active */ }
   audit({ userId: session.user.id, action: "SETTINGS_UPDATE", entity: "SiteSettings", newValue: parsed.data, oldValue: oldMap, ip: getClientIp(req), ua: req.headers.get("user-agent") });
   return NextResponse.json({ success: true });
 }
