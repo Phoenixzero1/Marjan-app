@@ -167,8 +167,8 @@ export default async function BlogPage({
               >
                 <i className="ti ti-article-off" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
                 <div style={{ fontSize: 15, fontWeight: 700 }}>مطلبی یافت نشد</div>
-                <Link href="/blog" style={{ fontSize: 13, color: "var(--primary)", fontWeight: 700 }}>
-                  مشاهده همه مطالب
+                <Link href="/blog" className="sec-link" style={{ marginTop: 8 }}>
+                  مشاهده همه مطالب <i className="ti ti-arrow-left" />
                 </Link>
               </div>
             ) : (
@@ -177,12 +177,12 @@ export default async function BlogPage({
                   <Link
                     key={post.id}
                     href={`/blog/${post.slug}`}
+                    className="hover-card"
                     style={{
                       background: "#fff",
                       borderRadius: "var(--radius)",
                       boxShadow: "var(--shadow)",
                       overflow: "hidden",
-                      transition: "all .25s",
                       display: "block",
                       textDecoration: "none",
                     }}

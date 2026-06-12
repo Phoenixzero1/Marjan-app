@@ -535,7 +535,7 @@ export default function ProductDetailPage() {
                 : 0;
               return (
                 <Link key={p.id} href={`/product/${p.slug}`} style={{ textDecoration: "none" }}>
-                  <div style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius)", overflow: "hidden", background: "#fff", transition: "box-shadow 0.2s" }}>
+                  <div className="hover-card" style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius)", overflow: "hidden", background: "#fff" }}>
                     <div style={{ position: "relative", background: "#fafafa" }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img

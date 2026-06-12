@@ -27,8 +27,8 @@ export default function BrandCard({ name, slug, logoUrl }: Props) {
         minWidth: 100,
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "var(--primary)";
-        (e.currentTarget as HTMLElement).style.background = "var(--bg2)";
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
+        (e.currentTarget as HTMLElement).style.background = "var(--accent-light)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";

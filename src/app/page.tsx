@@ -232,18 +232,7 @@ function SectionHeader({ title, href, linkLabel = "مشاهده همه" }: { tit
         />
         {title}
       </h2>
-      <Link
-        href={href}
-        style={{
-          fontSize: 13,
-          color: "var(--primary)",
-          fontWeight: 700,
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          textDecoration: "none",
-        }}
-      >
+      <Link href={href} className="sec-link">
         {linkLabel} <i className="ti ti-arrow-left" />
       </Link>
     </div>
@@ -778,12 +767,12 @@ export default async function HomePage() {
             <Link
               key={post.id}
               href={`/blog/${post.slug}`}
+              className="hover-card"
               style={{
                 background: "#fff",
                 borderRadius: "var(--radius)",
                 boxShadow: "var(--shadow)",
                 overflow: "hidden",
-                transition: "all .25s",
                 display: "block",
                 textDecoration: "none",
               }}

@@ -226,20 +226,8 @@ export default function ProductCard({
           <button
             onClick={() => handleAddToCart()}
             disabled={stockQty === 0}
-            style={{
-              background: stockQty === 0 ? "var(--bg2)" : "var(--primary)",
-              color: stockQty === 0 ? "var(--text3)" : "#fff",
-              border: "none",
-              width: 36,
-              height: 36,
-              borderRadius: "var(--radius-sm)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 18,
-              cursor: stockQty === 0 ? "not-allowed" : "pointer",
-              transition: "background .2s",
-            }}
+            className="btn-cart"
+            style={stockQty === 0 ? { background: "var(--bg2)", color: "var(--text3)", cursor: "not-allowed" } : undefined}
             title={stockQty === 0 ? "ناموجود" : "افزودن به سبد"}
           >
             <i className={stockQty === 0 ? "ti ti-x" : "ti ti-shopping-cart"} />
