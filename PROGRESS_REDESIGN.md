@@ -29,8 +29,8 @@ Reference file for "original prototype" design: `marjan (5).html` (project root)
 
 ## Section D: User Dashboard
 
-- [ ] **D1** — Wishlist: every product card AND product page has "add to wishlist" (heart) button that saves to wishlist
-- [ ] **D2** — Wallet tab: add کیف پول to dashboard with balance + transaction history (deposits/withdrawals/refunds)
+- [x] **D1** — Wishlist: every product card AND product page has "add to wishlist" (heart) button that saves to wishlist
+- [x] **D2** — Wallet tab: add کیف پول to dashboard with balance + transaction history (deposits/withdrawals/refunds)
 
 ---
 
