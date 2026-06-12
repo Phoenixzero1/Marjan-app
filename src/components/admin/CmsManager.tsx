@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-type CmsTab = "pages" | "banners" | "menus" | "status";
+type CmsTab = "pages" | "banners" | "menus" | "status" | "topbar";
 
 interface Page { id: string; slug: string; title: string; content: string; metaTitle: string | null; metaDesc: string | null; isActive: boolean; }
 interface Banner { id: string; title: string; subtitle: string | null; imageUrl: string | null; buttonText: string | null; buttonLink: string | null; type: string; targetPage: string | null; sortOrder: number; isActive: boolean; startDate: string | null; endDate: string | null; }
@@ -37,12 +37,26 @@ export default function CmsManager() {
   const [status, setStatus] = useState<SiteStatus>({ registrationClosed: false, ordersClosed: false, ordersClosedMessage: "", emergencyBanner: false, emergencyBannerMessage: "" });
   const [savingStatus, setSavingStatus] = useState(false);
 
+  // ── Topbar ──
+  const [topbar, setTopbar] = useState({ site_phone: "", site_hours: "", site_free_shipping_text: "" });
+  const [savingTopbar, setSavingTopbar] = useState(false);
+
   // Load data per tab
   useEffect(() => {
     if (tab === "pages") fetch("/api/admin/cms/pages").then(r => r.json()).then(d => setPages(d.pages ?? []));
     if (tab === "banners") fetch(`/api/admin/cms/banners?type=${bannerType}`).then(r => r.json()).then(d => setBanners(d.banners ?? []));
     if (tab === "menus") fetch(`/api/admin/cms/menus?menu=${menuType}`).then(r => r.json()).then(d => setMenuItems(d.items ?? []));
     if (tab === "status") fetch("/api/admin/cms/status").then(r => r.json()).then(d => setStatus(d));
+    if (tab === "topbar") {
+      fetch("/api/admin/settings?group=contact").then(r => r.json()).then(d => {
+        const m = d.map ?? {};
+        setTopbar({
+          site_phone: m.site_phone ?? "۰۲۱-۴۴۵۵۶۶۷۷",
+          site_hours: m.site_hours ?? "شنبه تا پنجشنبه ۸ تا ۱۷",
+          site_free_shipping_text: m.site_free_shipping_text ?? "ارسال رایگان بالای ۵ میلیون تومان",
+        });
+      });
+    }
   }, [tab, bannerType, menuType]);
 
   // ── Page handlers ──
@@ -124,6 +138,21 @@ export default function CmsManager() {
     finally { setSavingStatus(false); }
   }
 
+  // ── Topbar handler ──
+  async function saveTopbar() {
+    setSavingTopbar(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: topbar, group: "contact" }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      showToast("نوار بالا ذخیره شد");
+    } catch (e) { showToast(String(e), false); }
+    finally { setSavingTopbar(false); }
+  }
+
   const inp = { border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box" as const };
   const lbl = { fontSize: 12, fontWeight: 700, color: "var(--text)", display: "block" as const, marginBottom: 5 };
 
@@ -137,8 +166,8 @@ export default function CmsManager() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", borderBottom: "2px solid var(--border)" }}>
-        {([["pages", "صفحات"], ["banners", "بنرها"], ["menus", "منوها"], ["status", "وضعیت سایت"]] as const).map(([t, l]) => (
+      <div style={{ display: "flex", borderBottom: "2px solid var(--border)", flexWrap: "wrap" }}>
+        {([["pages", "صفحات"], ["banners", "بنرها"], ["menus", "منوها"], ["status", "وضعیت سایت"], ["topbar", "نوار بالا"]] as const).map(([t, l]) => (
           <button key={t} onClick={() => setTab(t)} style={{ background: "none", border: "none", borderBottom: tab === t ? "2px solid var(--primary)" : "2px solid transparent", marginBottom: -2, padding: "10px 20px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, color: tab === t ? "var(--primary)" : "var(--text3)", cursor: "pointer" }}>{l}</button>
         ))}
       </div>
@@ -323,6 +352,63 @@ export default function CmsManager() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── TOPBAR TAB ── */}
+      {tab === "topbar" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1.5rem", display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ fontSize: 14, fontWeight: 900, color: "var(--primary)", display: "flex", alignItems: "center", gap: 8, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
+              <i className="ti ti-layout-navbar" style={{ fontSize: 18 }} /> محتوای نوار بالای سایت
+            </div>
+            <p style={{ fontSize: 12, color: "var(--text3)", margin: 0 }}>
+              این متن‌ها در نوار آبی تیره بالای هر صفحه نمایش داده می‌شوند.
+            </p>
+
+            {/* Live preview */}
+            <div style={{ background: "#071d42", color: "#b8c8e8", fontSize: 12, padding: "7px 16px", borderRadius: "var(--radius-sm)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 5 }}><i className="ti ti-phone" /> {topbar.site_phone || "—"}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 5 }}><i className="ti ti-clock" /> {topbar.site_hours || "—"}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 5 }}><i className="ti ti-truck-delivery" /> {topbar.site_free_shipping_text || "—"}</span>
+            </div>
+
+            <div>
+              <label style={lbl}>شماره تلفن</label>
+              <input
+                style={inp}
+                value={topbar.site_phone}
+                onChange={e => setTopbar(p => ({ ...p, site_phone: e.target.value }))}
+                placeholder="۰۲۱-۴۴۵۵۶۶۷۷"
+              />
+            </div>
+            <div>
+              <label style={lbl}>ساعات کاری</label>
+              <input
+                style={inp}
+                value={topbar.site_hours}
+                onChange={e => setTopbar(p => ({ ...p, site_hours: e.target.value }))}
+                placeholder="شنبه تا پنجشنبه ۸ تا ۱۷"
+              />
+            </div>
+            <div>
+              <label style={lbl}>متن ارسال (راست صفحه)</label>
+              <input
+                style={inp}
+                value={topbar.site_free_shipping_text}
+                onChange={e => setTopbar(p => ({ ...p, site_free_shipping_text: e.target.value }))}
+                placeholder="ارسال رایگان بالای ۵ میلیون تومان"
+              />
+            </div>
+
+            <button
+              onClick={saveTopbar}
+              disabled={savingTopbar}
+              style={{ alignSelf: "flex-start", background: savingTopbar ? "#aaa" : "var(--primary)", color: "#fff", border: "none", borderRadius: 8, padding: "10px 28px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 900, cursor: savingTopbar ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 6 }}
+            >
+              {savingTopbar ? <><i className="ti ti-loader-2" /> در حال ذخیره...</> : <><i className="ti ti-device-floppy" /> ذخیره نوار بالا</>}
+            </button>
+          </div>
         </div>
       )}
 
