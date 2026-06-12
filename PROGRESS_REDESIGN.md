@@ -36,9 +36,9 @@ Reference file for "original prototype" design: `marjan (5).html` (project root)
 
 ## Section E: Auth (restore original design from marjan (5).html)
 
-- [ ] **E1** — Login modal: restore original design
-- [ ] **E2** — Register modal: restore original design
-- [ ] **E3** — Social login buttons (Google/Facebook/Twitter styling)
+- [x] **E1** — Login modal: restore original design
+- [x] **E2** — Register modal: restore original design
+- [x] **E3** — Social login buttons (Google/Facebook/Twitter styling)
 (Keep OTP and password reset as they are)
 
 ---
