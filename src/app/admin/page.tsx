@@ -260,7 +260,8 @@ export default function AdminPage() {
         .then((t) => {
           try {
             const d = t ? JSON.parse(t) : {};
-            setProducts(d.products ?? []);
+            if (Array.isArray(d.products)) setProducts(d.products);
+            else addErrorNotif("خطا در دریافت داده محصولات", "GET /api/admin/products");
           } catch {
             addErrorNotif("خطا در دریافت داده محصولات", "GET /api/admin/products");
           }
@@ -303,7 +304,7 @@ export default function AdminPage() {
   // Reload products list after returning from product form
   const handleProductFormSuccess = useCallback(() => {
     setSection("products");
-    fetch("/api/admin/products").then((r) => r.text()).then((t) => { try { const d = t ? JSON.parse(t) : {}; setProducts(d.products ?? []); } catch { /* ignore */ } });
+    fetch("/api/admin/products").then((r) => r.text()).then((t) => { try { const d = t ? JSON.parse(t) : {}; if (Array.isArray(d.products)) setProducts(d.products); } catch { /* ignore */ } });
   }, []);
 
   if (status === "loading") return <div style={{ textAlign: "center", padding: "5rem" }}>در حال بارگذاری...</div>;
