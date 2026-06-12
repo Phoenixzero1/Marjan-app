@@ -13,7 +13,7 @@ Reference file for "original prototype" design: `marjan (5).html` (project root)
 
 ## Section B: Homepage
 
-- [ ] **B1** — Topbar text editable from CMS (working hours, phone) via admin content manager
+- [x] **B1** — Topbar text editable from CMS (working hours, phone) via admin content manager
 - [ ] **B2** — Hero Slider: convert main banner into a permanent "starred" default slide that cannot be deleted; other slides can be added/removed
 
 ---
