@@ -29,6 +29,8 @@ import BrandManager from "@/components/admin/BrandManager";
 import SliderManager from "@/components/admin/SliderManager";
 import FlashDealManager from "@/components/admin/FlashDealManager";
 import OrgRequestManager from "@/components/admin/OrgRequestManager";
+import WalletManager from "@/components/admin/WalletManager";
+import DbSchemaManager from "@/components/admin/DbSchemaManager";
 
 interface ProductRow {
   id: string; name: string; sku: string | null; price: number;
@@ -43,7 +45,7 @@ type AdminSection =
   | "media" | "notifications-admin" | "comments" | "newsletter"
   | "settings-general" | "settings-payment" | "settings-seo"
   | "settings-security" | "backup" | "logs" | "sessions"
-  | "roles" | "trash" | "returns" | "maintenance" | "migration" | "cms" | "brands" | "slider" | "flashdeal" | "orgrequests" | "product-form";
+  | "roles" | "trash" | "returns" | "maintenance" | "migration" | "cms" | "brands" | "slider" | "flashdeal" | "orgrequests" | "wallet" | "dbschema" | "product-form";
 
 interface Stats {
   totalOrders: number; monthOrders: number; totalUsers: number; todayUsers: number;
@@ -98,6 +100,7 @@ function buildNavGroups(counts: NotifCounts, seen: SeenCounts) {
         { id: "finance", icon: "ti-report-money", label: "مالی", badge: undefined as BadgeInfo | undefined },
         { id: "coupons", icon: "ti-ticket", label: "تخفیف و کوپن", badge: undefined as BadgeInfo | undefined },
         { id: "orgrequests", icon: "ti-building-skyscraper", label: "خرید سازمانی", badge: undefined as BadgeInfo | undefined },
+        { id: "wallet", icon: "ti-wallet", label: "کیف پول", badge: undefined as BadgeInfo | undefined },
       ],
     },
     {
@@ -137,6 +140,7 @@ function buildNavGroups(counts: NotifCounts, seen: SeenCounts) {
       label: "ابزار مدیر ارشد", items: [
         { id: "maintenance", icon: "ti-tools", label: "حالت تعمیرات", badge: undefined as BadgeInfo | undefined },
         { id: "migration", icon: "ti-package-export", label: "انتقال سایت", badge: undefined as BadgeInfo | undefined },
+        { id: "dbschema", icon: "ti-database-export", label: "ساختار پایگاه داده", badge: undefined as BadgeInfo | undefined },
       ],
     },
   ];
@@ -331,6 +335,8 @@ export default function AdminPage() {
     slider: "مدیریت اسلایدر",
     flashdeal: "مرجان تایم",
     orgrequests: "خرید سازمانی",
+    wallet: "کیف پول",
+    dbschema: "ساختار پایگاه داده",
   };
 
   return (
@@ -706,8 +712,12 @@ export default function AdminPage() {
 
           {section === "orgrequests" && <OrgRequestManager />}
 
+          {section === "wallet" && <WalletManager />}
+
+          {section === "dbschema" && <DbSchemaManager />}
+
           {/* Generic placeholder for other sections */}
-          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security", "backup", "logs", "sessions", "roles", "trash", "returns", "maintenance", "migration", "cms", "brands", "slider", "flashdeal", "orgrequests"].includes(section) && (
+          {!["analytics", "users", "products", "product-form", "orders-admin", "categories", "blog-admin", "media", "finance", "coupons", "notifications-admin", "comments", "newsletter", "settings-general", "settings-payment", "settings-seo", "settings-security", "backup", "logs", "sessions", "roles", "trash", "returns", "maintenance", "migration", "cms", "brands", "slider", "flashdeal", "orgrequests", "wallet", "dbschema"].includes(section) && (
             <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "3rem", textAlign: "center", color: "var(--text3)" }}>
               <i className="ti ti-tool" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
               <h3 style={{ fontSize: 18, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>بخش {titleMap[section]}</h3>

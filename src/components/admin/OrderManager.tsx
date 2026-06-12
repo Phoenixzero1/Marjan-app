@@ -301,6 +301,37 @@ export default function OrderManager() {
                   {saving ? <><i className="ti ti-loader-2" /> در حال ذخیره...</> : <><i className="ti ti-device-floppy" /> ذخیره تغییرات</>}
                 </button>
               </section>
+
+              {/* Invoice download */}
+              <section style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1rem 1.25rem" }}>
+                <div style={{ fontSize: 13, fontWeight: 900, color: "var(--primary)", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+                  <i className="ti ti-file-invoice" /> فاکتور و ارسال
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button
+                    onClick={() => {
+                      const w = window.open("", "_blank");
+                      if (!w) return;
+                      w.document.write(`<!DOCTYPE html><html dir="rtl" lang="fa"><head><meta charset="UTF-8"><title>فاکتور ${selected.orderNumber}</title><style>body{font-family:Tahoma,sans-serif;font-size:13px;color:#1a1a2e;direction:rtl;padding:2rem;max-width:700px;margin:auto}h1{font-size:20px;color:#0a2a5e;margin:0 0 4px}.sub{font-size:12px;color:#8892aa;margin-bottom:1.5rem}.hdr{display:flex;justify-content:space-between;border-bottom:2px solid #0a2a5e;padding-bottom:1rem;margin-bottom:1.5rem}.info-row{display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:1.5rem}.info-block{flex:1;min-width:160px}label{font-size:11px;color:#8892aa;display:block}p{font-weight:700;margin:2px 0 10px}table{width:100%;border-collapse:collapse;margin-bottom:1.5rem}th,td{padding:9px 12px;text-align:right;font-size:12px}th{background:#f4f6fb;font-weight:900;color:#4a5578}tr:not(:last-child)td{border-bottom:1px solid #dde3f0}.total{text-align:left;font-size:13px}.total td{padding:5px 12px}.total .grand{font-weight:900;font-size:15px;color:#0a2a5e}@media print{button{display:none}}</style></head><body>
+                      <div class="hdr"><div><h1>فاکتور رسمی</h1><div class="sub">${new Date(selected.createdAt).toLocaleDateString("fa-IR",{year:"numeric",month:"long",day:"numeric"})}</div></div><div style="text-align:left"><strong>شماره: ${selected.orderNumber}</strong></div></div>
+                      <div class="info-row"><div class="info-block"><label>مشتری</label><p>${selected.user ? `${selected.user.firstName} ${selected.user.lastName}` : "—"}</p><label>تماس</label><p>${selected.user?.phone ?? selected.user?.email ?? "—"}</p></div><div class="info-block"><label>آدرس تحویل</label><p>${selected.address ? `${selected.address.province}، ${selected.address.city}` : "—"}</p><label>کد رهگیری</label><p>${selected.trackingCode ?? "—"}</p></div></div>
+                      <table><thead><tr><th>محصول</th><th>سایز</th><th>تعداد</th><th>قیمت واحد</th><th>جمع</th></tr></thead><tbody>${selected.items.map(it=>`<tr><td>${it.product?.name??"-"}</td><td>${it.sizeLabel??"-"}</td><td>${it.quantity}</td><td>${it.unitPrice.toLocaleString("fa-IR")} ریال</td><td>${it.totalPrice.toLocaleString("fa-IR")} ریال</td></tr>`).join("")}</tbody></table>
+                      <table class="total"><tbody><tr><td>جمع جزء</td><td>${selected.subtotal.toLocaleString("fa-IR")} ریال</td></tr>${selected.discountAmount>0?`<tr><td>تخفیف</td><td>- ${selected.discountAmount.toLocaleString("fa-IR")} ریال</td></tr>`:""}<tr><td>مالیات</td><td>${selected.taxAmount.toLocaleString("fa-IR")} ریال</td></tr><tr><td>هزینه ارسال</td><td>${selected.shippingCost>0?selected.shippingCost.toLocaleString("fa-IR")+" ریال":"رایگان"}</td></tr><tr class="grand"><td>مبلغ کل</td><td>${selected.totalAmount.toLocaleString("fa-IR")} ریال</td></tr></tbody></table>
+                      <script>window.print();</script></body></html>`);
+                      w.document.close();
+                    }}
+                    style={{ background: "var(--bg)", color: "var(--text2)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "9px 16px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+                  >
+                    <i className="ti ti-file-invoice" /> چاپ فاکتور
+                  </button>
+                  {selected.trackingCode && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text3)", background: "var(--bg)", padding: "9px 14px", borderRadius: "var(--radius-sm)" }}>
+                      <i className="ti ti-truck-delivery" />
+                      کد رهگیری: <strong style={{ color: "var(--primary)", direction: "ltr" }}>{selected.trackingCode}</strong>
+                    </div>
+                  )}
+                </div>
+              </section>
             </div>
           </div>
         </div>

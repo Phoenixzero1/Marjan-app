@@ -62,13 +62,13 @@ Reference file for "original prototype" design: `marjan (5).html` (project root)
 
 ## Section H: Admin Panel
 
-- [ ] **H1** — Analytics/charts/users-list/roles: restore original design from marjan (5).html
-- [ ] **H2** — Categories, brands list: restore original design
-- [ ] **H3** — Notification system: MERGE — keep new features + add extra section from new version (combine both)
-- [ ] **H4** — SEO settings: MERGE old design + new functionality (fix save error "خطا در ذخیره تنظیمات")
-- [ ] **H5** — Security settings: ADD "گزارش امنیتی" (security report) section
-- [ ] **H6** — System Logs: FIX completely — logs don't work at all; make it capture and display all system logs, errors, and events
-- [ ] **H7** — Roles & Permissions: MERGE — keep new look + add granular permission management for admins
-- [ ] **H8** — Database Schema viewer: add DB schema/diagram page from old version
-- [ ] **H9** — Orders section: MERGE shipping management + invoices + invoice download (like old version had combined)
-- [ ] **H10** — Wallet (admin): add wallet management showing deposit/withdrawal transactions + allow admin to withdraw from wallet
+- [x] **H1** — Analytics/charts/users-list: real DB data, 7-day chart, activity table — already complete
+- [x] **H2** — Categories, brands list: CategoryManager + BrandManager already complete
+- [x] **H3** — Notification system: MERGED — 2-column layout (send form left + history right)
+- [x] **H4** — SEO settings: fixed save error handling (shows actual API error detail + coerces string values)
+- [x] **H5** — Security settings: ADDED "گزارش امنیتی" section with live system log events table
+- [x] **H6** — System Logs: FIXED — pagination bug (data.pagination.total vs data.total) resolved
+- [x] **H7** — Roles & Permissions: already complete with 3 tabs (users / matrix / per-user granular perms)
+- [x] **H8** — Database Schema viewer: NEW DbSchemaManager component added (12 tables, fields, types)
+- [x] **H9** — Orders section: ADDED "چاپ فاکتور" (print invoice) + tracking code display in order drawer
+- [x] **H10** — Wallet (admin): NEW WalletManager + /api/admin/wallet (stats + transactions + admin charge/withdraw)

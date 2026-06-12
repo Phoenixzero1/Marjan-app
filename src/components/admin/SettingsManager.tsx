@@ -34,6 +34,72 @@ function Row({ children }: { children: React.ReactNode }) {
   return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>{children}</div>;
 }
 
+interface SecLog { id: string; level: string; action: string; ipAddress: string | null; createdAt: string; user: { firstName: string; lastName: string } | null; }
+
+function SecurityReport() {
+  const [logs, setLogs] = useState<SecLog[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/logs?limit=20")
+      .then(r => r.json())
+      .then(d => setLogs(d.logs ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const LEVEL_COLOR: Record<string, { bg: string; color: string }> = {
+    INFO: { bg: "#dbeafe", color: "#2563eb" },
+    WARNING: { bg: "#fef9c3", color: "#ca8a04" },
+    ERROR: { bg: "#fee2e2", color: "#dc2626" },
+    CRITICAL: { bg: "#fce7f3", color: "#be185d" },
+  };
+
+  const fmtDate = (s: string) => new Date(s).toLocaleDateString("fa-IR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+
+  return (
+    <Section title="گزارش امنیتی" icon="ti-shield-check">
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "1.5rem", color: "var(--text3)" }}>
+          <i className="ti ti-loader-2" style={{ fontSize: 24, display: "block", marginBottom: 6 }} />در حال بارگذاری...
+        </div>
+      ) : logs.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "1.5rem", color: "var(--text3)" }}>
+          <i className="ti ti-file-off" style={{ fontSize: 32, display: "block", marginBottom: 6 }} />رویداد امنیتی ثبت نشده
+        </div>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <thead>
+              <tr>
+                {["رویداد", "سطح", "IP", "کاربر", "زمان"].map(h => (
+                  <th key={h} style={{ background: "var(--bg)", padding: "8px 10px", fontWeight: 900, color: "var(--text2)", textAlign: "right", borderBottom: "2px solid var(--border)", whiteSpace: "nowrap" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {logs.map((log, i) => {
+                const lc = LEVEL_COLOR[log.level] ?? LEVEL_COLOR.INFO;
+                return (
+                  <tr key={log.id} style={{ borderBottom: i < logs.length - 1 ? "1px solid var(--border)" : "none" }}>
+                    <td style={{ padding: "8px 10px", fontWeight: 700, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{log.action}</td>
+                    <td style={{ padding: "8px 10px" }}>
+                      <span style={{ background: lc.bg, color: lc.color, borderRadius: 6, padding: "2px 7px", fontSize: 10, fontWeight: 900 }}>{log.level}</span>
+                    </td>
+                    <td style={{ padding: "8px 10px", direction: "ltr", fontFamily: "monospace", fontSize: 11, color: "var(--text3)" }}>{log.ipAddress ?? "—"}</td>
+                    <td style={{ padding: "8px 10px", fontSize: 11, color: "var(--text3)" }}>{log.user ? `${log.user.firstName} ${log.user.lastName}` : "ناشناس"}</td>
+                    <td style={{ padding: "8px 10px", fontSize: 11, color: "var(--text3)", whiteSpace: "nowrap" }}>{fmtDate(log.createdAt)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Section>
+  );
+}
+
 export default function SettingsManager({ tab }: Props) {
   const [vals, setVals] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -97,14 +163,15 @@ export default function SettingsManager({ tab }: Props) {
   async function save(groupName: string, keys: string[]) {
     setSaving(true);
     try {
-      const settings = Object.fromEntries(keys.map(k => [k, get(k)]));
+      const settings = Object.fromEntries(keys.map(k => [k, String(get(k) ?? "")]));
       const res = await fetch("/api/admin/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ settings, group: groupName }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) showToast("تنظیمات ذخیره شد");
-      else showToast("خطا در ذخیره تنظیمات", false);
+      else showToast(data.error ?? `خطا در ذخیره (${res.status})`, false);
     } finally {
       setSaving(false);
     }
@@ -443,6 +510,8 @@ export default function SettingsManager({ tab }: Props) {
             </div>
             <SaveBtn groupName="security" keys={["cors_origins", "blocked_ips"]} />
           </Section>
+
+          <SecurityReport />
         </>
       )}
     </div>

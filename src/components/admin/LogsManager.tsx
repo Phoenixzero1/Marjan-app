@@ -55,8 +55,8 @@ export default function LogsManager() {
       const res = await fetch(`/api/admin/logs?${params}`);
       const data = await res.json();
       setLogs(data.logs ?? []);
-      setTotal(data.total ?? 0);
-      setPages(data.pages ?? 1);
+      setTotal(data.pagination?.total ?? data.total ?? 0);
+      setPages(data.pagination?.totalPages ?? data.pages ?? 1);
       setPage(pg);
       if (data.levelCounts) setLevelCounts(data.levelCounts);
     } finally {

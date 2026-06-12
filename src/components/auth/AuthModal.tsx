@@ -23,7 +23,7 @@ const registerSchema = z.object({
   phone: z.string().regex(/^09\d{9}$/, "شماره موبایل معتبر نیست"),
   email: z.string().email("ایمیل معتبر نیست").optional().or(z.literal("")),
   password: z.string().min(6, "رمز عبور حداقل ۶ کاراکتر"),
-  terms: z.literal(true, { errorMap: () => ({ message: "پذیرش قوانین الزامی است" }) }),
+  terms: z.literal(true).refine(v => v === true, { message: "پذیرش قوانین الزامی است" }),
 });
 
 type LoginData = z.infer<typeof loginSchema>;

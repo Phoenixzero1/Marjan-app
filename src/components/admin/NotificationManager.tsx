@@ -48,7 +48,6 @@ export default function NotificationManager() {
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState("");
   const [readFilter, setReadFilter] = useState("");
-  const [tab, setTab] = useState<"list" | "send">("send");
   const [toast, setToast] = useState<Toast | null>(null);
 
   // Send form
@@ -107,7 +106,6 @@ export default function NotificationManager() {
       setSendTitle(""); setSendBody(""); setSendLink("");
       setSendType("SYSTEM"); setSendTarget("all");
       load(1);
-      setTab("list");
     } finally {
       setSending(false);
     }
@@ -143,6 +141,80 @@ export default function NotificationManager() {
 
   const fmtDate = (s: string) => new Date(s).toLocaleDateString("fa-IR", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
+  const NotifList = () => (
+    <>
+      {/* Filters */}
+      <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "10px 14px", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 9px", fontFamily: "Vazirmatn", fontSize: 12, background: "#fff" }}>
+          <option value="">همه انواع</option>
+          {(Object.entries(TYPE_MAP) as [NotifType, { label: string }][]).map(([k, v]) => (
+            <option key={k} value={k}>{v.label}</option>
+          ))}
+        </select>
+        <select value={readFilter} onChange={e => setReadFilter(e.target.value)} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 9px", fontFamily: "Vazirmatn", fontSize: 12, background: "#fff" }}>
+          <option value="">همه وضعیت‌ها</option>
+          <option value="false">خوانده‌نشده</option>
+          <option value="true">خوانده‌شده</option>
+        </select>
+        {summary.total > 0 && (
+          <button onClick={handleDeleteAll} style={{ background: "#fef2f2", color: "#ef4444", border: "1px solid #fca5a5", borderRadius: "var(--radius-sm)", padding: "5px 10px", fontFamily: "Vazirmatn", fontSize: 11, fontWeight: 700, cursor: "pointer", marginRight: "auto" }}>
+            <i className="ti ti-trash" /> حذف همه
+          </button>
+        )}
+      </div>
+
+      {/* List */}
+      <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", overflow: "hidden", flex: 1, minHeight: 0 }}>
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
+            <i className="ti ti-loader-2" style={{ fontSize: 28, display: "block", marginBottom: 8 }} />در حال بارگذاری...
+          </div>
+        ) : notifs.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
+            <i className="ti ti-bell-off" style={{ fontSize: 40, display: "block", marginBottom: 8 }} />اطلاعیه‌ای یافت نشد
+          </div>
+        ) : notifs.map((n, i) => {
+          const t = TYPE_MAP[n.type] ?? TYPE_MAP.SYSTEM;
+          return (
+            <div key={n.id} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px", borderBottom: i < notifs.length - 1 ? "1px solid var(--border)" : "none", background: n.isRead ? "#fff" : "#f0f9ff" }}>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: t.color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <i className={`ti ${t.icon}`} style={{ color: t.color, fontSize: 15 }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6, flexWrap: "wrap" }}>
+                  <div>
+                    <span style={{ fontWeight: 900, fontSize: 12, color: "var(--primary)" }}>{n.title}</span>
+                    {!n.isRead && <span style={{ marginRight: 4, background: "#dbeafe", color: "#2563eb", borderRadius: 10, padding: "1px 6px", fontSize: 9, fontWeight: 700 }}>جدید</span>}
+                  </div>
+                  <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
+                    <span style={{ fontSize: 10, color: "var(--text3)" }}>{fmtDate(n.createdAt)}</span>
+                    <button onClick={() => handleDelete(n.id)} disabled={deleting === n.id} style={{ background: "none", border: "1px solid #fca5a5", borderRadius: 4, padding: "2px 5px", cursor: "pointer", color: "#ef4444" }}>
+                      <i className="ti ti-trash" style={{ fontSize: 11 }} />
+                    </button>
+                  </div>
+                </div>
+                <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 3, lineHeight: 1.5 }}>{n.body}</div>
+                <div style={{ display: "flex", gap: 8, marginTop: 5, alignItems: "center" }}>
+                  <span style={{ fontSize: 10, color: "var(--text2)" }}><i className="ti ti-user" style={{ fontSize: 10 }} /> {n.user.firstName} {n.user.lastName}</span>
+                  <span style={{ background: t.color + "18", color: t.color, borderRadius: 10, padding: "1px 6px", fontSize: 9, fontWeight: 700 }}>{t.label}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Pagination */}
+      {pages > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
+          <button onClick={() => load(page - 1)} disabled={page <= 1} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "6px 12px", fontFamily: "Vazirmatn", fontSize: 12, cursor: "pointer", opacity: page <= 1 ? .5 : 1 }}>قبلی</button>
+          <span style={{ display: "flex", alignItems: "center", fontSize: 12, color: "var(--text2)", padding: "0 6px" }}>{page} از {pages}</span>
+          <button onClick={() => load(page + 1)} disabled={page >= pages} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "6px 12px", fontFamily: "Vazirmatn", fontSize: 12, cursor: "pointer", opacity: page >= pages ? .5 : 1 }}>بعدی</button>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {toast && (
@@ -162,28 +234,15 @@ export default function NotificationManager() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 0, borderBottom: "2px solid var(--border)" }}>
-        {([["send", "ti-send", "ارسال اطلاعیه"], ["list", "ti-bell", "لیست اطلاعیه‌ها"]] as const).map(([id, icon, label]) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            style={{
-              background: "none", border: "none", padding: "10px 20px", fontFamily: "Vazirmatn",
-              fontSize: 13, fontWeight: 700, cursor: "pointer",
-              color: tab === id ? "var(--accent)" : "var(--text3)",
-              borderBottom: tab === id ? "2px solid var(--accent)" : "2px solid transparent",
-              marginBottom: -2, display: "flex", alignItems: "center", gap: 6,
-            }}
-          >
-            <i className={`ti ${icon}`} />{label}
-          </button>
-        ))}
-      </div>
+      {/* 2-column layout: send form left + history right */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" }}>
 
-      {/* Send tab */}
-      {tab === "send" && (
-        <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1.5rem", display: "flex", flexDirection: "column", gap: 16, maxWidth: 560 }}>
+        {/* Left: Send form */}
+        <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1.5rem", display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ fontSize: 14, fontWeight: 900, color: "var(--primary)", display: "flex", alignItems: "center", gap: 8, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
+            <i className="ti ti-send" style={{ fontSize: 17 }} />ارسال اطلاعیه جدید
+          </div>
+
           <div>
             <label style={lbl}>مخاطبان *</label>
             <select value={sendTarget} onChange={e => setSendTarget(e.target.value)} style={inp}>
@@ -191,7 +250,7 @@ export default function NotificationManager() {
             </select>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div>
               <label style={lbl}>نوع اطلاعیه *</label>
               <select value={sendType} onChange={e => setSendType(e.target.value as NotifType)} style={inp}>
@@ -202,7 +261,7 @@ export default function NotificationManager() {
             </div>
             <div>
               <label style={lbl}>لینک (اختیاری)</label>
-              <input value={sendLink} onChange={e => setSendLink(e.target.value)} placeholder="مثال: /products/..." style={{ ...inp, direction: "ltr", textAlign: "left" }} />
+              <input value={sendLink} onChange={e => setSendLink(e.target.value)} placeholder="/products/..." style={{ ...inp, direction: "ltr", textAlign: "left" }} />
             </div>
           </div>
 
@@ -213,131 +272,40 @@ export default function NotificationManager() {
 
           <div>
             <label style={lbl}>متن اطلاعیه *</label>
-            <textarea
-              value={sendBody}
-              onChange={e => setSendBody(e.target.value)}
-              rows={4}
-              placeholder="متن کامل اطلاعیه..."
-              style={{ ...inp, resize: "vertical", lineHeight: 1.7 }}
-            />
+            <textarea value={sendBody} onChange={e => setSendBody(e.target.value)} rows={4} placeholder="متن کامل اطلاعیه..." style={{ ...inp, resize: "vertical", lineHeight: 1.7 }} />
           </div>
 
           {/* Preview */}
           {(sendTitle || sendBody) && (
-            <div style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "12px 14px" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text3)", marginBottom: 6 }}>پیش‌نمایش</div>
-              <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <div style={{ width: 34, height: 34, borderRadius: "50%", background: TYPE_MAP[sendType].color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <i className={`ti ${TYPE_MAP[sendType].icon}`} style={{ color: TYPE_MAP[sendType].color, fontSize: 16 }} />
+            <div style={{ background: "var(--bg)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "10px 12px" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text3)", marginBottom: 6 }}>پیش‌نمایش</div>
+              <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
+                <div style={{ width: 30, height: 30, borderRadius: "50%", background: TYPE_MAP[sendType].color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <i className={`ti ${TYPE_MAP[sendType].icon}`} style={{ color: TYPE_MAP[sendType].color, fontSize: 14 }} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 900, fontSize: 13, color: "var(--primary)" }}>{sendTitle || "عنوان..."}</div>
-                  <div style={{ fontSize: 12, color: "var(--text3)", marginTop: 3, lineHeight: 1.6 }}>{sendBody || "متن..."}</div>
+                  <div style={{ fontWeight: 900, fontSize: 12, color: "var(--primary)" }}>{sendTitle || "عنوان..."}</div>
+                  <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 2, lineHeight: 1.5 }}>{sendBody || "متن..."}</div>
                 </div>
               </div>
             </div>
           )}
 
-          <button
-            onClick={handleSend}
-            disabled={sending}
-            style={{ background: sending ? "#aaa" : "var(--accent)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "13px", fontFamily: "Vazirmatn", fontSize: 14, fontWeight: 900, cursor: sending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-          >
+          <button onClick={handleSend} disabled={sending} style={{ background: sending ? "#aaa" : "var(--accent)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "12px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 900, cursor: sending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             {sending ? <><i className="ti ti-loader-2" /> در حال ارسال...</> : <><i className="ti ti-send" /> ارسال اطلاعیه</>}
           </button>
         </div>
-      )}
 
-      {/* List tab */}
-      {tab === "list" && (
-        <>
-          {/* Filters */}
-          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "12px 16px", display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 10px", fontFamily: "Vazirmatn", fontSize: 13, background: "#fff" }}>
-              <option value="">همه انواع</option>
-              {(Object.entries(TYPE_MAP) as [NotifType, { label: string }][]).map(([k, v]) => (
-                <option key={k} value={k}>{v.label}</option>
-              ))}
-            </select>
-            <select value={readFilter} onChange={e => setReadFilter(e.target.value)} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 10px", fontFamily: "Vazirmatn", fontSize: 13, background: "#fff" }}>
-              <option value="">همه وضعیت‌ها</option>
-              <option value="false">خوانده‌نشده</option>
-              <option value="true">خوانده‌شده</option>
-            </select>
-            <div style={{ marginRight: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-              <span style={{ fontSize: 13, color: "var(--text3)" }}>{total.toLocaleString("fa-IR")} اطلاعیه</span>
-              {summary.total > 0 && (
-                <button onClick={handleDeleteAll} style={{ background: "#fef2f2", color: "#ef4444", border: "1px solid #fca5a5", borderRadius: "var(--radius-sm)", padding: "6px 12px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                  <i className="ti ti-trash" /> حذف همه
-                </button>
-              )}
-            </div>
+        {/* Right: Notification history */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1rem 1.25rem", display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="ti ti-bell" style={{ fontSize: 17, color: "var(--primary)" }} />
+            <span style={{ fontSize: 14, fontWeight: 900, color: "var(--primary)" }}>تاریخچه اطلاعیه‌ها</span>
+            <span style={{ marginRight: "auto", fontSize: 12, color: "var(--text3)" }}>{total.toLocaleString("fa-IR")} مورد</span>
           </div>
-
-          {/* List */}
-          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", overflow: "hidden" }}>
-            {loading ? (
-              <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
-                <i className="ti ti-loader-2" style={{ fontSize: 28, display: "block", marginBottom: 8 }} />در حال بارگذاری...
-              </div>
-            ) : notifs.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
-                <i className="ti ti-bell-off" style={{ fontSize: 40, display: "block", marginBottom: 8 }} />اطلاعیه‌ای یافت نشد
-              </div>
-            ) : notifs.map((n, i) => {
-              const t = TYPE_MAP[n.type] ?? TYPE_MAP.SYSTEM;
-              return (
-                <div
-                  key={n.id}
-                  style={{
-                    display: "flex", alignItems: "flex-start", gap: 14, padding: "14px 16px",
-                    borderBottom: i < notifs.length - 1 ? "1px solid var(--border)" : "none",
-                    background: n.isRead ? "#fff" : "#f0f9ff",
-                  }}
-                >
-                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: t.color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <i className={`ti ${t.icon}`} style={{ color: t.color, fontSize: 16 }} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
-                      <div>
-                        <span style={{ fontWeight: 900, fontSize: 13, color: "var(--primary)" }}>{n.title}</span>
-                        {!n.isRead && <span style={{ marginRight: 6, background: "#dbeafe", color: "#2563eb", borderRadius: 10, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>جدید</span>}
-                      </div>
-                      <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-                        <span style={{ fontSize: 11, color: "var(--text3)" }}>{fmtDate(n.createdAt)}</span>
-                        <button onClick={() => handleDelete(n.id)} disabled={deleting === n.id} style={{ background: "none", border: "1px solid #fca5a5", borderRadius: 4, padding: "3px 7px", cursor: "pointer", color: "#ef4444" }}>
-                          <i className="ti ti-trash" style={{ fontSize: 13 }} />
-                        </button>
-                      </div>
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--text3)", marginTop: 4, lineHeight: 1.6 }}>{n.body}</div>
-                    <div style={{ display: "flex", gap: 12, marginTop: 6, alignItems: "center" }}>
-                      <span style={{ fontSize: 11, color: "var(--text2)" }}>
-                        <i className="ti ti-user" style={{ fontSize: 11 }} /> {n.user.firstName} {n.user.lastName}
-                        {n.user.email && <span style={{ color: "var(--text3)" }}> · {n.user.email}</span>}
-                      </span>
-                      <span style={{ background: t.color + "18", color: t.color, borderRadius: 10, padding: "1px 8px", fontSize: 10, fontWeight: 700 }}>{t.label}</span>
-                      {n.link && <a href={n.link} style={{ fontSize: 11, color: "var(--accent)", textDecoration: "none" }}><i className="ti ti-link" /> {n.link}</a>}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Pagination */}
-          {pages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
-              <button onClick={() => load(page - 1)} disabled={page <= 1} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 14px", fontFamily: "Vazirmatn", fontSize: 13, cursor: "pointer", opacity: page <= 1 ? .5 : 1 }}>قبلی</button>
-              <span style={{ display: "flex", alignItems: "center", fontSize: 13, color: "var(--text2)", padding: "0 8px" }}>
-                {page.toLocaleString("fa-IR")} از {pages.toLocaleString("fa-IR")}
-              </span>
-              <button onClick={() => load(page + 1)} disabled={page >= pages} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 14px", fontFamily: "Vazirmatn", fontSize: 13, cursor: "pointer", opacity: page >= pages ? .5 : 1 }}>بعدی</button>
-            </div>
-          )}
-        </>
-      )}
+          <NotifList />
+        </div>
+      </div>
     </div>
   );
 }
