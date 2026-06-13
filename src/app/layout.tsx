@@ -48,12 +48,14 @@ export default function RootLayout({
       </head>
       <body>
         <SessionProvider>
-          {/* Liquid glass SVG filter — edge refraction via fractal noise displacement */}
+          {/* Liquid Glass SVG filter — applied via backdrop-filter:url(#liquidGlass) */}
           <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden focusable="false">
             <defs>
-              <filter id="lg-edge" x="-30%" y="-30%" width="160%" height="160%" colorInterpolationFilters="sRGB">
-                <feTurbulence type="fractalNoise" baseFrequency="0.85 0.35" numOctaves="2" seed="4" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5" xChannelSelector="R" yChannelSelector="G" />
+              <filter id="liquidGlass" x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.65 0.25" numOctaves="3" seed="4" result="noise" />
+                <feColorMatrix in="noise" type="saturate" values="50" result="colorNoise" />
+                <feDisplacementMap in="SourceGraphic" in2="colorNoise" scale="14" xChannelSelector="R" yChannelSelector="G" result="displaced" />
+                <feComposite in="displaced" in2="SourceGraphic" operator="in" />
               </filter>
             </defs>
           </svg>
