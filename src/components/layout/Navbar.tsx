@@ -151,7 +151,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   return (
     <>
       <nav className={`site-nav${scrolled ? " site-nav--scrolled" : ""}`} style={{ position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ width: "100%", padding: "0 1.5rem", display: "flex", alignItems: "center", height: 72 }}>
+        <div style={{ width: "100%", padding: "0 2rem", display: "flex", alignItems: "center", height: 84 }}>
 
           {/* Hamburger — mobile only */}
           <button
@@ -164,18 +164,18 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
           </button>
 
           {/* Logo — right corner */}
-          <Link href="/" style={{ fontSize: 22, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center", gap: 8, marginLeft: "1.5rem" }}>
+          <Link href="/" style={{ fontSize: 24, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center", gap: 8, marginLeft: "2rem" }}>
             {siteLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={siteLogo} alt={siteName} style={{ height: 36, maxWidth: 120, objectFit: "contain" }} />
+              <img src={siteLogo} alt={siteName} style={{ height: 46, maxWidth: 140, objectFit: "contain" }} />
             ) : (
               <>{siteName}<span style={{ color: "var(--accent)" }}>.</span></>
             )}
           </Link>
 
           {/* Search — desktop only, fixed width, stays right next to logo */}
-          <div ref={searchRef} className="hidden md:block search-wrap" style={{ width: "min(460px, 40vw)", flexShrink: 0, position: "relative", marginLeft: "1.25rem" }}>
-            <form onSubmit={handleSearch} style={{ display: "flex", background: "rgba(255,255,255,.14)", borderRadius: 24, overflow: "hidden", border: "1.5px solid rgba(255,255,255,.25)" }}>
+          <div ref={searchRef} className="hidden md:block search-wrap" style={{ width: "min(520px, 42vw)", flexShrink: 0, position: "relative", marginLeft: "1.5rem" }}>
+            <form onSubmit={handleSearch} style={{ display: "flex", background: "rgba(255,255,255,.15)", borderRadius: 28, overflow: "hidden", border: "1.5px solid rgba(255,255,255,.28)" }}>
               <input
                 type="text"
                 value={query}
@@ -183,9 +183,9 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                 onFocus={() => results.length > 0 && setDropOpen(true)}
                 onBlur={() => setTimeout(() => setDropOpen(false), 200)}
                 placeholder="محصول، برند یا دسته مورد نظرتان را جستجو کنید"
-                style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "11px 18px", color: "#fff", fontFamily: "Vazirmatn", fontSize: 14 }}
+                style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "13px 20px", color: "#fff", fontFamily: "Vazirmatn", fontSize: 14 }}
               />
-              <button type="submit" style={{ background: "var(--accent)", border: "none", padding: "0 20px", color: "#fff", fontSize: 18, borderRadius: "0 24px 24px 0", flexShrink: 0 }}>
+              <button type="submit" style={{ background: "var(--accent)", border: "none", padding: "0 22px", color: "#fff", fontSize: 19, borderRadius: "0 28px 28px 0", flexShrink: 0 }}>
                 <i className="ti ti-search" />
               </button>
             </form>

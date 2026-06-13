@@ -73,7 +73,7 @@ export default function Megamenu() {
         background: "#fff",
         borderBottom: "1px solid var(--border)",
         position: "sticky",
-        top: 72,
+        top: 84,
         zIndex: 49,
         boxShadow: "0 2px 8px rgba(0,0,0,.04)",
       }}
@@ -81,7 +81,7 @@ export default function Megamenu() {
       <div
         style={{
           width: "100%",
-          padding: "0 1.5rem",
+          padding: "0 2rem",
           display: "flex",
           alignItems: "stretch",
         }}
@@ -95,9 +95,9 @@ export default function Megamenu() {
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
-                padding: "12px 14px",
+                padding: "14px 16px",
                 color: "var(--text2)",
-                fontSize: 13,
+                fontSize: 13.5,
                 fontWeight: 700,
                 whiteSpace: "nowrap",
                 cursor: "pointer",
@@ -137,14 +137,14 @@ export default function Megamenu() {
           {/* وبلاگ */}
           <Link
             href="/blog"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", color: "var(--text2)", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "14px 16px", color: "var(--text2)", fontSize: 13.5, fontWeight: 700, whiteSpace: "nowrap" }}
           >
-            <i className="ti ti-news" style={{ fontSize: 14, color: "var(--primary)" }} /> وبلاگ
+            <i className="ti ti-news" style={{ fontSize: 15, color: "var(--primary)" }} /> وبلاگ
           </Link>
 
           {/* فاکتورساز — [جدید] badge */}
           <div className="mega-item" style={{ position: "relative" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", color: "var(--text2)", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, padding: "14px 16px", color: "var(--text2)", fontSize: 13.5, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
               <i className="ti ti-file-invoice" style={{ fontSize: 14, color: "var(--primary)" }} />
               فاکتورساز
               <span style={{ background: "#17a865", color: "#fff", fontSize: 10, fontWeight: 900, padding: "1px 7px", borderRadius: 20, lineHeight: 1.6 }}>
@@ -184,9 +184,9 @@ export default function Megamenu() {
               display: "flex",
               alignItems: "center",
               gap: 6,
-              padding: "12px 16px",
+              padding: "14px 18px",
               color: "var(--accent)",
-              fontSize: 13,
+              fontSize: 13.5,
               fontWeight: 900,
               whiteSpace: "nowrap",
               borderRight: "1px solid var(--border)",
