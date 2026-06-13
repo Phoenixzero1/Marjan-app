@@ -441,6 +441,36 @@ button {
   border-color: var(--primary);
 }
 
+/* ─── GLASS / LIQUID GLASS EFFECTS ───────────────────────────────────────── */
+/* Utility classes — can be applied to any element */
+.glass-light {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 8px 32px rgba(10, 42, 94, 0.12);
+}
+.glass-dark {
+  background: rgba(10, 42, 94, 0.88);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ─── SITE NAV ────────────────────────────────────────────────────────────── */
+.site-nav {
+  background: var(--primary);
+  box-shadow: 0 2px 8px rgba(10, 42, 94, 0.15);
+  transition: background 0.35s var(--ease), box-shadow 0.35s var(--ease), backdrop-filter 0.35s var(--ease);
+}
+.site-nav--scrolled {
+  background: rgba(10, 42, 94, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.22);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* ─── CART PANEL ─────────────────────────────────────────────────────────── */
 .cart-panel {
   position: fixed;
@@ -448,13 +478,16 @@ button {
   top: 0;
   bottom: 0;
   width: 380px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-right: 1px solid rgba(255, 255, 255, 0.6);
   z-index: 200;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 4px 0 40px rgba(10, 42, 94, 0.18);
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s var(--ease);
 }
 .cart-panel.open {
   transform: translateX(0);
@@ -463,7 +496,9 @@ button {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(10, 42, 94, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 190;
 }
 .cart-overlay.open {
@@ -680,7 +715,9 @@ html, body {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(10, 42, 94, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 240;
 }
 .mobile-nav-overlay.open { display: block; }
@@ -692,9 +729,12 @@ html, body {
   bottom: 0;
   width: 85vw;
   max-width: 320px;
-  background: var(--primary-dark);
+  background: rgba(7, 29, 66, 0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
   z-index: 250;
-  transition: right 0.3s ease;
+  transition: right 0.3s var(--ease);
   overflow-y: auto;
   display: flex;
   flex-direction: column;

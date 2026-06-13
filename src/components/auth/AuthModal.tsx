@@ -147,7 +147,9 @@ export default function AuthModal({ onClose }: Props) {
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,.6)",
+        background: "rgba(10,42,94,0.6)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
         zIndex: 600,
         display: "flex",
         alignItems: "center",
@@ -157,11 +159,14 @@ export default function AuthModal({ onClose }: Props) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "#fff",
+          background: "rgba(255,255,255,0.98)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          border: "1px solid rgba(255,255,255,0.7)",
           borderRadius: 16,
           width: 440,
           maxWidth: "95vw",
-          boxShadow: "0 20px 60px rgba(0,0,0,.25)",
+          boxShadow: "0 24px 64px rgba(10,42,94,0.28)",
           overflow: "hidden",
           position: "relative",
         }}
