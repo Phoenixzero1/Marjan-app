@@ -151,7 +151,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   return (
     <>
       <nav className={`site-nav${scrolled ? " site-nav--scrolled" : ""}`} style={{ position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1280, margin: "auto", padding: "0 1rem", display: "flex", alignItems: "center", gap: "0.75rem", height: 64 }}>
+        <div style={{ maxWidth: 1280, margin: "auto", padding: "0 1.5rem", display: "flex", alignItems: "center", height: 68 }}>
 
           {/* Hamburger — mobile only */}
           <button
@@ -163,8 +163,8 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             <i className="ti ti-menu-2" />
           </button>
 
-          {/* Logo */}
-          <Link href="/" style={{ fontSize: 22, fontWeight: 900, color: "var(--primary)", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center" }}>
+          {/* Logo — flush to right edge */}
+          <Link href="/" style={{ fontSize: 22, fontWeight: 900, color: "var(--primary)", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center", marginLeft: "1rem" }}>
             {siteLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={siteLogo} alt={siteName} style={{ height: 36, maxWidth: 120, objectFit: "contain" }} />
@@ -173,8 +173,8 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             )}
           </Link>
 
-          {/* Search — desktop only */}
-          <div ref={searchRef} className="hidden md:block search-wrap" style={{ flex: 1, position: "relative" }}>
+          {/* Search — desktop only, fills middle */}
+          <div ref={searchRef} className="hidden md:block search-wrap" style={{ flex: 1, position: "relative", margin: "0 1rem" }}>
             <form onSubmit={handleSearch} style={{ display: "flex", background: "var(--bg)", borderRadius: "var(--radius-sm)", overflow: "hidden", border: "1px solid var(--border)" }}>
               <input
                 type="text"
@@ -246,7 +246,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
           {/* Spacer on mobile to push actions to the left */}
           <div className="flex-1 md:hidden" />
 
-          {/* Actions */}
+          {/* Actions — left edge (search flex:1 pushes them there) */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
 
             {/* Cart — hover mini-cart, click goes to /cart */}
