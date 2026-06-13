@@ -204,10 +204,35 @@ button {
   justify-content: center;
   min-width: 44px;
   min-height: 44px;
-  transition: color .15s;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color .15s, background .15s;
 }
 .nav-icon-btn:hover {
   color: #fff;
+  background: rgba(255, 255, 255, .18);
+}
+
+/* Homepage section card wrapper */
+.section-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 1.75rem 2rem;
+}
+
+/* Section badge pill (orange accent) */
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 4px;
 }
 
 /* Section "see all" links */

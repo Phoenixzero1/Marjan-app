@@ -53,6 +53,7 @@ export default function MarjanTime({ title, endTime, discountPct, products }: Pr
     <div
       style={{
         background: "linear-gradient(135deg, var(--primary-dark) 0%, #1a3a6e 100%)",
+        borderRadius: 16,
         padding: "2.5rem 0",
         overflow: "hidden",
       }}

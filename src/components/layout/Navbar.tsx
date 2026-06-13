@@ -233,8 +233,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             {/* Wishlist — desktop only */}
             <Link
               href="/wishlist"
-              className="hidden md:flex"
-              style={{ color: "rgba(255,255,255,.8)", fontSize: 22, position: "relative", padding: 8, alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44 }}
+              className="nav-icon-btn hidden md:flex"
             >
               <i className="ti ti-heart" />
             </Link>
@@ -242,9 +241,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             {/* Cart — click navigates to cart page */}
             <button
               onClick={() => router.push("/cart")}
-              style={{ background: "transparent", border: "none", color: "rgba(255,255,255,.8)", fontSize: 22, position: "relative", padding: 8, display: "flex", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44, transition: "color .15s", cursor: "pointer" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#fff"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,.8)"; }}
+              className="nav-icon-btn"
             >
               <i className="ti ti-shopping-cart" />
               {count > 0 && (

@@ -213,28 +213,27 @@ const FALLBACK_CATEGORIES = [
 
 // ─── Section Header ─────────────────────────────────────────────────────────
 
-function SectionHeader({ title, href, linkLabel = "مشاهده همه" }: { title: string; href: string; linkLabel?: string }) {
+function SectionHeader({
+  title, href, linkLabel = "مشاهده همه", badge,
+}: {
+  title: string; href: string; linkLabel?: string; badge?: { icon: string; text: string };
+}) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-      <h2
-        style={{
-          fontSize: 20,
-          fontWeight: 900,
-          color: "var(--primary)",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          margin: 0,
-        }}
-      >
-        <span
-          style={{ display: "block", width: 5, height: 24, background: "var(--accent)", borderRadius: 3, flexShrink: 0 }}
-        />
-        {title}
-      </h2>
-      <Link href={href} className="sec-link">
-        {linkLabel} <i className="ti ti-arrow-left" />
-      </Link>
+    <div style={{ marginBottom: "1.5rem" }}>
+      {badge && (
+        <span className="section-badge" style={{ marginBottom: 8 }}>
+          <i className={`ti ${badge.icon}`} /> {badge.text}
+        </span>
+      )}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h2 style={{ fontSize: 20, fontWeight: 900, color: "var(--primary)", display: "flex", alignItems: "center", gap: 10, margin: 0 }}>
+          <span style={{ display: "block", width: 5, height: 24, background: "var(--accent)", borderRadius: 3, flexShrink: 0 }} />
+          {title}
+        </h2>
+        <Link href={href} className="sec-link">
+          {linkLabel} <i className="ti ti-arrow-left" />
+        </Link>
+      </div>
     </div>
   );
 }
@@ -463,281 +462,141 @@ export default async function HomePage() {
       </div>
 
       {/* ── CATEGORY CIRCLES ─────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1280, margin: "2.5rem auto", padding: "0 2rem" }}>
-        <SectionHeader title="دسته‌بندی محصولات" href="/products" linkLabel="همه دسته‌ها" />
-        <div
-          style={{
-            display: "flex",
-            gap: 16,
-            overflowX: "auto",
-            paddingBottom: 12,
-            scrollbarWidth: "thin",
-            scrollbarColor: "var(--border) transparent",
-          }}
-        >
-          {categories.map((cat) => (
-            <CategoryCircle key={cat.id} {...cat} />
-          ))}
+      <div style={{ maxWidth: 1280, margin: "1.5rem auto 1rem", padding: "0 1rem" }}>
+        <div className="section-card">
+          <SectionHeader title="دسته‌بندی محصولات" href="/products" linkLabel="همه دسته‌ها" />
+          <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8, scrollbarWidth: "thin", scrollbarColor: "var(--border) transparent" }}>
+            {categories.map((cat) => (
+              <CategoryCircle key={cat.id} {...cat} />
+            ))}
+          </div>
         </div>
       </div>
 
       {/* ── مرجان تایم FLASH DEALS ────────────────────────────────────── */}
       {flashDeal && (
-        <MarjanTime
-          title={flashDeal.title}
-          endTime={flashDeal.endTime}
-          discountPct={flashDeal.discountPct}
-          products={flashDeal.products}
-        />
+        <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
+          <MarjanTime
+            title={flashDeal.title}
+            endTime={flashDeal.endTime}
+            discountPct={flashDeal.discountPct}
+            products={flashDeal.products}
+          />
+        </div>
       )}
 
       {/* ── BESTSELLERS ──────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1280, margin: "3rem auto", padding: "0 2rem" }}>
-        <SectionHeader title="پرفروش‌ترین محصولات" href="/products" />
-        {bestsellers.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "3rem",
-              color: "var(--text3)",
-              background: "#fff",
-              borderRadius: "var(--radius)",
-              boxShadow: "var(--shadow)",
-            }}
-          >
-            <i className="ti ti-package" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
-            <p>پس از افزودن محصول توسط ادمین اینجا نمایش داده می‌شود.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {bestsellers.map((p) => (
-              <ProductCard
-                key={p.id}
-                id={p.id}
-                name={p.name}
-                slug={p.slug}
-                price={p.price}
-                comparePrice={p.comparePrice}
-                brand={p.brand}
-                images={p.images}
-                sizes={p.sizes.map((s) => ({ ...s, price: s.price ?? null }))}
-                isNew={p.isNew}
-                isFeatured={p.isFeatured}
-                stockQty={p.stockQty}
-              />
-            ))}
-          </div>
-        )}
+      <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
+        <div className="section-card">
+          <SectionHeader
+            title="پرفروش‌ترین محصولات"
+            href="/products"
+            badge={{ icon: "ti-flame", text: "پرفروش" }}
+          />
+          {bestsellers.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
+              <i className="ti ti-package" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
+              <p>پس از افزودن محصول توسط ادمین اینجا نمایش داده می‌شود.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {bestsellers.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  id={p.id}
+                  name={p.name}
+                  slug={p.slug}
+                  price={p.price}
+                  comparePrice={p.comparePrice}
+                  brand={p.brand}
+                  images={p.images}
+                  sizes={p.sizes.map((s) => ({ ...s, price: s.price ?? null }))}
+                  isNew={p.isNew}
+                  isFeatured={p.isFeatured}
+                  stockQty={p.stockQty}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── PROMO BANNERS ────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1280, margin: "2rem auto", padding: "0 2rem" }}>
-        {promoBanners.length > 0 ? (
-          <div className="grid banner-grid gap-5">
-            {promoBanners.map((b) => (
-              <div
-                key={b.id}
-                style={{
-                  borderRadius: "var(--radius)",
-                  position: "relative",
-                  minHeight: 180,
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "2rem",
-                  background: b.imageUrl
-                    ? `url(${b.imageUrl}) center/cover no-repeat`
-                    : "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))",
-                  overflow: "hidden",
-                }}
-              >
-                {b.imageUrl && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background: "rgba(0,0,0,.4)",
-                      borderRadius: "var(--radius)",
-                    }}
-                  />
+      <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
+        <div className="grid banner-grid gap-4">
+          {(promoBanners.length > 0 ? promoBanners.map((b) => ({
+            key: b.id,
+            bg: b.imageUrl
+              ? `url(${b.imageUrl}) center/cover no-repeat`
+              : "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))",
+            overlay: !!b.imageUrl,
+            title: b.title,
+            subtitle: b.subtitle,
+            btnText: b.buttonText,
+            btnLink: b.buttonLink,
+            btnColor: "var(--primary)",
+            icon: "ti-tag",
+          })) : [
+            { key: "promo1", bg: "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))", overlay: false, title: "خرید عمده با بهترین قیمت", subtitle: "برای پروژه‌های بزرگ و پیمانکاران، قیمت ویژه عمده داریم.", btnText: "استعلام عمده", btnLink: "/invoice?type=contractor", btnColor: "var(--primary)", icon: "ti-building" },
+            { key: "promo2", bg: "linear-gradient(135deg,#b54a00,var(--accent))", overlay: false, title: "فاکتور آنلاین رایگان", subtitle: "همین الان فاکتور حرفه‌ای بسازید.", btnText: "ساخت فاکتور", btnLink: "/invoice", btnColor: "var(--accent)", icon: "ti-file-invoice" },
+          ]).map((b) => (
+            <div
+              key={b.key}
+              style={{ borderRadius: 16, position: "relative", minHeight: 180, display: "flex", alignItems: "center", padding: "2rem", background: b.bg, overflow: "hidden" }}
+            >
+              {b.overlay && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.4)", borderRadius: 16 }} />}
+              <div style={{ position: "relative" }}>
+                {b.title && <h3 style={{ fontSize: 20, fontWeight: 900, color: "#fff", marginBottom: 6 }}>{b.title}</h3>}
+                {b.subtitle && <p style={{ fontSize: 13, color: "rgba(255,255,255,.8)", marginBottom: "1rem" }}>{b.subtitle}</p>}
+                {b.btnText && b.btnLink && (
+                  <Link href={b.btnLink} style={{ background: "#fff", color: b.btnColor, padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 900, display: "inline-block", textDecoration: "none" }}>
+                    {b.btnText}
+                  </Link>
                 )}
-                <div style={{ position: "relative" }}>
-                  {b.title && (
-                    <h3 style={{ fontSize: 20, fontWeight: 900, color: "#fff", marginBottom: 6 }}>
-                      {b.title}
-                    </h3>
-                  )}
-                  {b.subtitle && (
-                    <p style={{ fontSize: 13, color: "rgba(255,255,255,.8)", marginBottom: "1rem" }}>
-                      {b.subtitle}
-                    </p>
-                  )}
-                  {b.buttonText && b.buttonLink && (
-                    <Link
-                      href={b.buttonLink}
-                      style={{
-                        background: "#fff",
-                        color: "var(--primary)",
-                        padding: "9px 20px",
-                        borderRadius: "var(--radius-sm)",
-                        fontSize: 13,
-                        fontWeight: 900,
-                        display: "inline-block",
-                        textDecoration: "none",
-                      }}
-                    >
-                      {b.buttonText}
-                    </Link>
-                  )}
-                </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid banner-grid gap-5">
-            <div
-              style={{
-                borderRadius: "var(--radius)",
-                position: "relative",
-                minHeight: 180,
-                display: "flex",
-                alignItems: "center",
-                padding: "2rem",
-                background: "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))",
-                overflow: "hidden",
-              }}
-            >
-              <div>
-                <h3 style={{ fontSize: 22, fontWeight: 900, color: "#fff", marginBottom: 6 }}>
-                  خرید عمده با بهترین قیمت
-                </h3>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,.75)", marginBottom: "1rem" }}>
-                  برای پروژه‌های بزرگ و پیمانکاران، قیمت ویژه عمده داریم.
-                </p>
-                <Link
-                  href="/invoice?type=contractor"
-                  style={{
-                    background: "#fff",
-                    color: "var(--primary)",
-                    padding: "9px 20px",
-                    borderRadius: "var(--radius-sm)",
-                    fontSize: 13,
-                    fontWeight: 900,
-                    display: "inline-block",
-                    textDecoration: "none",
-                  }}
-                >
-                  استعلام عمده
-                </Link>
-              </div>
-              <i
-                className="ti ti-building"
-                style={{
-                  position: "absolute",
-                  left: "1.5rem",
-                  bottom: -10,
-                  fontSize: 100,
-                  color: "rgba(255,255,255,.1)",
-                }}
-              />
+              <i className={`ti ${b.icon}`} style={{ position: "absolute", left: "1.5rem", bottom: -10, fontSize: 100, color: "rgba(255,255,255,.1)" }} />
             </div>
-            <div
-              style={{
-                borderRadius: "var(--radius)",
-                position: "relative",
-                minHeight: 180,
-                display: "flex",
-                alignItems: "center",
-                padding: "2rem",
-                background: "linear-gradient(135deg,#b54a00,var(--accent))",
-                overflow: "hidden",
-              }}
-            >
-              <div>
-                <h3 style={{ fontSize: 22, fontWeight: 900, color: "#fff", marginBottom: 6 }}>
-                  فاکتور آنلاین<br />رایگان
-                </h3>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,.75)", marginBottom: "1rem" }}>
-                  همین الان فاکتور حرفه‌ای بسازید.
-                </p>
-                <Link
-                  href="/invoice"
-                  style={{
-                    background: "#fff",
-                    color: "var(--accent)",
-                    padding: "9px 20px",
-                    borderRadius: "var(--radius-sm)",
-                    fontSize: 13,
-                    fontWeight: 900,
-                    display: "inline-block",
-                    textDecoration: "none",
-                  }}
-                >
-                  ساخت فاکتور
-                </Link>
-              </div>
-              <i
-                className="ti ti-file-invoice"
-                style={{
-                  position: "absolute",
-                  left: "1.5rem",
-                  bottom: -10,
-                  fontSize: 100,
-                  color: "rgba(255,255,255,.1)",
-                }}
-              />
-            </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
 
       {/* ── NEWEST PRODUCTS ──────────────────────────────────────────── */}
       {newest.length > 0 && (
-        <div style={{ maxWidth: 1280, margin: "3rem auto", padding: "0 2rem" }}>
-          <SectionHeader title="جدیدترین محصولات" href="/products?sort=newest" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {newest.map((p) => (
-              <ProductCard
-                key={p.id}
-                id={p.id}
-                name={p.name}
-                slug={p.slug}
-                price={p.price}
-                comparePrice={p.comparePrice}
-                brand={p.brand}
-                images={p.images}
-                sizes={p.sizes.map((s) => ({ ...s, price: s.price ?? null }))}
-                isNew={p.isNew}
-                isFeatured={p.isFeatured}
-                stockQty={p.stockQty}
-              />
-            ))}
+        <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
+          <div className="section-card">
+            <SectionHeader
+              title="جدیدترین محصولات"
+              href="/products?sort=newest"
+              badge={{ icon: "ti-sparkles", text: "جدید" }}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {newest.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  id={p.id}
+                  name={p.name}
+                  slug={p.slug}
+                  price={p.price}
+                  comparePrice={p.comparePrice}
+                  brand={p.brand}
+                  images={p.images}
+                  sizes={p.sizes.map((s) => ({ ...s, price: s.price ?? null }))}
+                  isNew={p.isNew}
+                  isFeatured={p.isFeatured}
+                  stockQty={p.stockQty}
+                />
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       {/* ── BRANDS ROW ───────────────────────────────────────────────── */}
       {brands.length > 0 && (
-        <div
-          style={{
-            background: "#fff",
-            boxShadow: "var(--shadow)",
-            padding: "2rem 0",
-            margin: "2rem 0",
-          }}
-        >
-          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem" }}>
+        <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
+          <div className="section-card">
             <SectionHeader title="برندهای معتبر" href="/products" linkLabel="همه برندها" />
-            <div
-              style={{
-                display: "flex",
-                gap: 24,
-                overflowX: "auto",
-                alignItems: "center",
-                paddingBottom: 8,
-                scrollbarWidth: "thin",
-                scrollbarColor: "var(--border) transparent",
-              }}
-            >
+            <div style={{ display: "flex", gap: 24, overflowX: "auto", alignItems: "center", paddingBottom: 8, scrollbarWidth: "thin", scrollbarColor: "var(--border) transparent" }}>
               {brands.map((b) => (
                 <BrandCard key={b.id} {...b} />
               ))}
@@ -747,96 +606,52 @@ export default async function HomePage() {
       )}
 
       {/* ── BLOG PREVIEW ─────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1280, margin: "3rem auto", padding: "0 2rem" }}>
-        <SectionHeader title="آخرین مطالب وبلاگ" href="/blog" linkLabel="همه مطالب" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {(posts.length === 0
-            ? [
-                { id: "1", title: "راهنمای کامل انتخاب شیر توپی مناسب برای لوله‌کشی ساختمانی", cat: "آموزش", slug: "#", imageUrl: null },
-                { id: "2", title: "تفاوت لوله پلیکا و پوش‌فیت — کدام یک برای فاضلاب بهتر است؟", cat: "مقایسه", slug: "#", imageUrl: null },
-                { id: "3", title: "نصب صحیح اتصالات پرسی — اشتباهات رایج و نکات طلایی", cat: "فنی", slug: "#", imageUrl: null },
-              ]
-            : posts.map((p) => ({
-                id: p.id,
-                title: p.title,
-                cat: p.category?.name ?? "عمومی",
-                slug: p.slug,
-                imageUrl: p.imageUrl,
-              }))
-          ).map((post) => (
-            <Link
-              key={post.id}
-              href={`/blog/${post.slug}`}
-              className="hover-card"
-              style={{
-                background: "#fff",
-                borderRadius: "var(--radius)",
-                boxShadow: "var(--shadow)",
-                overflow: "hidden",
-                display: "block",
-                textDecoration: "none",
-              }}
-            >
-              {/* Thumbnail */}
-              <div
-                style={{
-                  background: post.imageUrl ? undefined : "var(--bg2)",
-                  aspectRatio: "16/9",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                }}
+      <div style={{ maxWidth: 1280, margin: "1rem auto 2rem", padding: "0 1rem" }}>
+        <div className="section-card">
+          <SectionHeader title="آخرین مطالب وبلاگ" href="/blog" linkLabel="همه مطالب" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {(posts.length === 0
+              ? [
+                  { id: "1", title: "راهنمای کامل انتخاب شیر توپی مناسب برای لوله‌کشی ساختمانی", cat: "آموزش", slug: "#", imageUrl: null },
+                  { id: "2", title: "تفاوت لوله پلیکا و پوش‌فیت — کدام یک برای فاضلاب بهتر است؟", cat: "مقایسه", slug: "#", imageUrl: null },
+                  { id: "3", title: "نصب صحیح اتصالات پرسی — اشتباهات رایج و نکات طلایی", cat: "فنی", slug: "#", imageUrl: null },
+                ]
+              : posts.map((p) => ({
+                  id: p.id,
+                  title: p.title,
+                  cat: p.category?.name ?? "عمومی",
+                  slug: p.slug,
+                  imageUrl: p.imageUrl,
+                }))
+            ).map((post) => (
+              <Link
+                key={post.id}
+                href={`/blog/${post.slug}`}
+                className="hover-card"
+                style={{ background: "var(--bg)", borderRadius: "var(--radius)", overflow: "hidden", display: "block", textDecoration: "none" }}
               >
-                {post.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={post.imageUrl}
-                    alt={post.title}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                ) : (
-                  <i className="ti ti-article" style={{ fontSize: 48, color: "var(--border)" }} />
-                )}
-              </div>
-              <div style={{ padding: "1.25rem" }}>
-                <span
-                  style={{
-                    display: "inline-block",
-                    background: "var(--accent-light)",
-                    color: "var(--accent)",
-                    fontSize: 11,
-                    fontWeight: 900,
-                    padding: "3px 10px",
-                    borderRadius: 20,
-                    marginBottom: 8,
-                  }}
-                >
-                  {post.cat}
-                </span>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 900,
-                    color: "var(--text)",
-                    marginBottom: 8,
-                    lineHeight: 1.5,
-                    overflow: "hidden",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                  }}
-                >
-                  {post.title}
+                <div style={{ background: post.imageUrl ? undefined : "var(--bg2)", aspectRatio: "16/9", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                  {post.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={post.imageUrl} alt={post.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <i className="ti ti-article" style={{ fontSize: 48, color: "var(--border)" }} />
+                  )}
                 </div>
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "var(--text3)" }}
-                >
-                  <span><i className="ti ti-calendar" /> ۱۵ خرداد ۱۴۰۴</span>
+                <div style={{ padding: "1.25rem" }}>
+                  <span style={{ display: "inline-block", background: "var(--accent-light)", color: "var(--accent)", fontSize: 11, fontWeight: 900, padding: "3px 10px", borderRadius: 20, marginBottom: 8 }}>
+                    {post.cat}
+                  </span>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text)", marginBottom: 8, lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                    {post.title}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "var(--text3)" }}>
+                    <span><i className="ti ti-calendar" /> ۱۵ خرداد ۱۴۰۴</span>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </>
