@@ -158,13 +158,13 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             className="md:hidden"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="منو"
-            style={{ background: "transparent", border: "none", color: "#fff", fontSize: 22, padding: "0 4px", display: "flex", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44, flexShrink: 0 }}
+            style={{ background: "transparent", border: "none", color: "var(--primary)", fontSize: 22, padding: "0 4px", display: "flex", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44, flexShrink: 0 }}
           >
             <i className="ti ti-menu-2" />
           </button>
 
           {/* Logo */}
-          <Link href="/" style={{ fontSize: 22, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center" }}>
+          <Link href="/" style={{ fontSize: 22, fontWeight: 900, color: "var(--primary)", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center" }}>
             {siteLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={siteLogo} alt={siteName} style={{ height: 36, maxWidth: 120, objectFit: "contain" }} />
@@ -175,7 +175,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
 
           {/* Search — desktop only */}
           <div ref={searchRef} className="hidden md:block search-wrap" style={{ flex: 1, position: "relative" }}>
-            <form onSubmit={handleSearch} style={{ display: "flex", background: "rgba(255,255,255,.12)", borderRadius: "var(--radius-sm)", overflow: "hidden", border: "1px solid rgba(255,255,255,.18)" }}>
+            <form onSubmit={handleSearch} style={{ display: "flex", background: "var(--bg)", borderRadius: "var(--radius-sm)", overflow: "hidden", border: "1px solid var(--border)" }}>
               <input
                 type="text"
                 value={query}
@@ -183,7 +183,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                 onFocus={() => results.length > 0 && setDropOpen(true)}
                 onBlur={() => setTimeout(() => setDropOpen(false), 200)}
                 placeholder="جستجو... (لوله، شیرآلات، اتصالات)"
-                style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "10px 14px", color: "#fff", fontFamily: "Vazirmatn", fontSize: 14 }}
+                style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "10px 14px", color: "var(--text)", fontFamily: "Vazirmatn", fontSize: 14 }}
               />
               <button type="submit" style={{ background: "var(--accent)", border: "none", padding: "0 18px", color: "#fff", fontSize: 18 }}>
                 <i className="ti ti-search" />

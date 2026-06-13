@@ -192,11 +192,11 @@ button {
 }
 
 /* ─── DESIGN SYSTEM: NAV ELEMENTS ────────────────────────────────────────── */
-/* Navbar circular icon buttons (heart, cart) */
+/* Navbar circular icon buttons (cart, user) — dark icons on white navbar */
 .nav-icon-btn {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, .8);
+  color: var(--text2);
   font-size: 22px;
   position: relative;
   padding: 8px;
@@ -207,12 +207,11 @@ button {
   min-height: 44px;
   border-radius: 50%;
   cursor: pointer;
-  transition: color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+  transition: color .2s var(--ease), background .2s var(--ease);
 }
 .nav-icon-btn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, .22);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, .18);
+  color: var(--primary);
+  background: var(--bg);
 }
 
 /* Desktop-only nav icon: hidden on mobile without Tailwind specificity conflict */
@@ -239,30 +238,31 @@ button {
   transition: background .2s var(--ease), border-color .2s var(--ease);
 }
 
-/* Profile pill button (logged-in state) */
+/* Profile pill button (logged-in state) — white navbar */
 .nav-profile-btn {
-  background: rgba(255, 255, 255, .15);
-  border: 1px solid rgba(255, 255, 255, .3);
-  color: #fff;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
   padding: 6px 10px;
   gap: 8px;
 }
 .nav-profile-btn:hover,
 .nav-profile-btn[data-open="true"] {
-  background: rgba(255, 255, 255, .32);
-  border-color: rgba(255, 255, 255, .6);
+  background: var(--bg2);
+  border-color: var(--primary);
 }
 
-/* Login / register button (logged-out state) */
+/* Login / register button — white navbar */
 .nav-login-btn {
-  background: rgba(255, 255, 255, .15);
-  border: 1px solid rgba(255, 255, 255, .3);
+  background: var(--primary);
+  border: 1px solid var(--primary);
   color: #fff;
-  padding: 8px 10px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
 }
 .nav-login-btn:hover {
-  background: rgba(255, 255, 255, .32);
-  border-color: rgba(255, 255, 255, .6);
+  background: var(--primary-mid);
+  border-color: var(--primary-mid);
 }
 
 /* ─── DESIGN SYSTEM: INTERACTIVE UTILITIES (REF patterns) ──────────────── */
@@ -458,18 +458,17 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* ─── SITE NAV ────────────────────────────────────────────────────────────── */
+/* ─── SITE NAV — white navbar ──────────────────────────────────────────────── */
 .site-nav {
-  background: var(--primary);
-  box-shadow: 0 2px 8px rgba(10, 42, 94, 0.15);
-  transition: background 0.35s var(--ease), box-shadow 0.35s var(--ease), backdrop-filter 0.35s var(--ease);
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.35s var(--ease);
 }
 .site-nav--scrolled {
-  background: rgba(10, 42, 94, 0.88);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.22);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--border);
 }
 
 /* ─── CART PANEL ─────────────────────────────────────────────────────────── */
@@ -525,8 +524,8 @@ button {
 /* Neutral hover for megamenu top-level items */
 .mega-item > a:hover,
 .mega-item > span:hover {
-  background: rgba(255,255,255,.1);
-  border-radius: 0;
+  background: var(--bg);
+  border-radius: 4px;
 }
 /* Neutral hover for mega-drop child links */
 .mega-drop a:hover {

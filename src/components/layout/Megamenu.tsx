@@ -71,10 +71,12 @@ export default function Megamenu() {
     <div
       className="megabar"
       style={{
-        background: "var(--primary-mid)",
+        background: "#fff",
+        borderBottom: "1px solid var(--border)",
         position: "sticky",
         top: 64,
         zIndex: 49,
+        boxShadow: "0 2px 8px rgba(0,0,0,.04)",
       }}
     >
       <div
@@ -95,14 +97,14 @@ export default function Megamenu() {
                 alignItems: "center",
                 gap: 6,
                 padding: "12px 15px",
-                color: "rgba(255,255,255,.85)",
+                color: "var(--text2)",
                 fontSize: 13,
                 fontWeight: 700,
                 whiteSpace: "nowrap",
                 cursor: "pointer",
               }}
             >
-              <i className={`ti ${item.icon}`} style={{ fontSize: 15 }} />
+              <i className={`ti ${item.icon}`} style={{ fontSize: 15, color: "var(--primary)" }} />
               {item.label}
               {item.children && (
                 <i className="ti ti-chevron-down" style={{ fontSize: 11 }} />
@@ -143,14 +145,14 @@ export default function Megamenu() {
           {/* وبلاگ */}
           <Link
             href="/blog"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", color: "rgba(255,255,255,.85)", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", color: "var(--text2)", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}
           >
             <i className="ti ti-news" style={{ fontSize: 15 }} /> وبلاگ
           </Link>
 
           {/* فاکتورساز dropdown */}
           <div className="mega-item" style={{ position: "relative" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", color: "rgba(255,255,255,.85)", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", color: "var(--text2)", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
               <i className="ti ti-file-invoice" style={{ fontSize: 15 }} /> فاکتورساز
               <i className="ti ti-chevron-down" style={{ fontSize: 11 }} />
             </span>
