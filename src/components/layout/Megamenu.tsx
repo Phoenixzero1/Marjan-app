@@ -76,7 +76,7 @@ export default function Megamenu() {
         borderTop: "1px solid rgba(255,255,255,0.9)",
         borderBottom: "1px solid rgba(0,0,0,0.07)",
         position: "sticky",
-        top: 84,
+        top: 116,
         zIndex: 49,
         boxShadow: "0 1px 0 rgba(255,255,255,0.8) inset, 0 6px 24px rgba(0,0,0,0.07)",
       }}

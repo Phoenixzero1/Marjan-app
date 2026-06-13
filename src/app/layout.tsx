@@ -49,8 +49,10 @@ export default function RootLayout({
       <body style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
         <SessionProvider>
           <EmergencyBanner />
-          <Topbar />
-          <NavbarWrapper />
+          <div style={{ position: "sticky", top: 0, zIndex: 50 }}>
+            <Topbar />
+            <NavbarWrapper />
+          </div>
           <Megamenu />
           <main style={{ flex: 1 }}>{children}</main>
           <Footer />
