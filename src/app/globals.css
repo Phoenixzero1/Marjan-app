@@ -15,8 +15,9 @@
   --border: #dde3f0;
   --radius: 14px;
   --radius-sm: 8px;
-  --shadow: 0 4px 24px rgba(10, 42, 94, 0.1);
-  --shadow-lg: 0 12px 40px rgba(10, 42, 94, 0.16);
+  --shadow: 0 2px 12px rgba(10, 42, 94, .08);
+  --shadow-lg: 0 8px 32px rgba(10, 42, 94, .14);
+  --ease: cubic-bezier(.4, 0, .2, 1);
 }
 
 @theme inline {
@@ -63,9 +64,9 @@ button {
 }
 
 /* ─── DESIGN SYSTEM: CARD HOVER ─────────────────────────────────────────── */
-/* Product card — lift 4px (matches prototype .product-card:hover) */
+/* Product card — lift 4px */
 .product-card {
-  transition: all .25s;
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease);
 }
 .product-card:hover {
   box-shadow: var(--shadow-lg);
@@ -74,7 +75,7 @@ button {
 
 /* Generic card hover — lift 3px (blog, category, etc.) */
 .hover-card {
-  transition: all .25s;
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease);
 }
 .hover-card:hover {
   box-shadow: var(--shadow-lg);
@@ -95,7 +96,7 @@ button {
   justify-content: center;
   font-size: 18px;
   cursor: pointer;
-  transition: background .15s;
+  transition: background .15s var(--ease);
   flex-shrink: 0;
 }
 .btn-cart:hover:not(:disabled) {
@@ -206,7 +207,7 @@ button {
   min-height: 44px;
   border-radius: 50%;
   cursor: pointer;
-  transition: color .2s, background .2s, box-shadow .2s;
+  transition: color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
 }
 .nav-icon-btn:hover {
   color: #fff;
@@ -235,7 +236,7 @@ button {
   gap: 6px;
   min-height: 44px;
   cursor: pointer;
-  transition: background .2s, border-color .2s;
+  transition: background .2s var(--ease), border-color .2s var(--ease);
 }
 
 /* Profile pill button (logged-in state) */
@@ -262,6 +263,79 @@ button {
 .nav-login-btn:hover {
   background: rgba(255, 255, 255, .32);
   border-color: rgba(255, 255, 255, .6);
+}
+
+/* ─── DESIGN SYSTEM: INTERACTIVE UTILITIES (REF patterns) ──────────────── */
+/* Dropdown menu link — CSS hover replaces JS onMouseEnter/Leave */
+.dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: right;
+  font-family: "Vazirmatn", sans-serif;
+  cursor: pointer;
+  transition: background .12s var(--ease);
+}
+.dropdown-link:hover {
+  background: var(--bg);
+}
+.dropdown-link-danger {
+  color: #c0392b;
+}
+.dropdown-link-danger:hover {
+  background: #fff0f0;
+}
+
+/* Size/variant chip on product cards */
+.size-btn {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  color: var(--text2);
+  font-size: 10px;
+  font-weight: 900;
+  padding: 3px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: "Vazirmatn", sans-serif;
+  transition: background .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease);
+}
+.size-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* Category circle image/icon container */
+.cat-circle-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2.5px solid var(--border);
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: border-color .2s var(--ease), transform .2s var(--ease);
+}
+.cat-circle-img:hover {
+  border-color: var(--accent);
+  transform: scale(1.08);
+}
+
+/* Circular icon wrapper (REF: border-radius:100%; box-shadow:0 2px 8px rgba(0,0,0,.1)) */
+.icon-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
 }
 
 /* Homepage section card wrapper */

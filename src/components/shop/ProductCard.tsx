@@ -64,9 +64,9 @@ export default function ProductCard({
       style={{
         background: "#fff",
         borderRadius: "var(--radius)",
+        border: "1px solid var(--border)",
         boxShadow: "var(--shadow)",
         overflow: "hidden",
-        transition: "all .25s",
         display: "flex",
         flexDirection: "column",
         position: "relative",
@@ -174,28 +174,7 @@ export default function ProductCard({
                 <button
                   key={s.id}
                   onClick={() => handleAddToCart(s.label, s.price ?? price)}
-                  style={{
-                    background: "#fff",
-                    border: "1.5px solid var(--border)",
-                    color: "var(--text2)",
-                    fontSize: 10,
-                    fontWeight: 900,
-                    padding: "3px 7px",
-                    borderRadius: 6,
-                    cursor: "pointer",
-                    fontFamily: "Vazirmatn",
-                    transition: "all .15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.target as HTMLElement).style.background = "var(--primary)";
-                    (e.target as HTMLElement).style.borderColor = "var(--primary)";
-                    (e.target as HTMLElement).style.color = "#fff";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.target as HTMLElement).style.background = "#fff";
-                    (e.target as HTMLElement).style.borderColor = "var(--border)";
-                    (e.target as HTMLElement).style.color = "var(--text2)";
-                  }}
+                  className="size-btn"
                 >
                   {s.label}
                 </button>

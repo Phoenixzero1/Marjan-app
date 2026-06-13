@@ -377,19 +377,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                           key={item.href}
                           href={item.href}
                           onClick={() => setUserMenuOpen(false)}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 12,
-                            padding: "11px 18px",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: "var(--text)",
-                            textDecoration: "none",
-                            transition: "background .12s",
-                          }}
-                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg)"; }}
-                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                          className="dropdown-link"
                         >
                           <div
                             style={{
@@ -414,19 +402,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                       <Link
                         href="/dashboard?tab=wallet"
                         onClick={() => setUserMenuOpen(false)}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 12,
-                          padding: "11px 18px",
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: "var(--text)",
-                          textDecoration: "none",
-                          transition: "background .12s",
-                        }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg)"; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                        className="dropdown-link"
                       >
                         <div
                           style={{
@@ -470,19 +446,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                           <Link
                             href="/admin"
                             onClick={() => setUserMenuOpen(false)}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 12,
-                              padding: "11px 18px",
-                              fontSize: 13,
-                              fontWeight: 700,
-                              color: "var(--text)",
-                              textDecoration: "none",
-                              transition: "background .12s",
-                            }}
-                            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg)"; }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                            className="dropdown-link"
                           >
                             <div
                               style={{
@@ -510,24 +474,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                     <div style={{ padding: "6px 0 8px" }}>
                       <button
                         onClick={() => { signOut({ callbackUrl: "/" }); setUserMenuOpen(false); }}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 12,
-                          padding: "11px 18px",
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: "#c0392b",
-                          background: "none",
-                          border: "none",
-                          width: "100%",
-                          textAlign: "right",
-                          cursor: "pointer",
-                          fontFamily: "Vazirmatn",
-                          transition: "background .12s",
-                        }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#fff0f0"; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                        className="dropdown-link dropdown-link-danger"
                       >
                         <div
                           style={{

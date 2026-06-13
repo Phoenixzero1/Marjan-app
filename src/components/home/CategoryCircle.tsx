@@ -26,30 +26,14 @@ export default function CategoryCircle({ name, slug, imageUrl, iconClass, count 
       }}
     >
       <div
+        className="cat-circle-img"
         style={{
-          width: 80,
-          height: 80,
-          borderRadius: "50%",
-          border: "2.5px solid var(--border)",
           background: imageUrl
             ? `url(${imageUrl}) center/cover no-repeat`
             : "linear-gradient(135deg, var(--bg) 0%, var(--bg2) 100%)",
           display: imageUrl ? undefined : "flex",
           alignItems: "center",
           justifyContent: "center",
-          overflow: "hidden",
-          transition: "border-color .2s, transform .2s",
-          flexShrink: 0,
-        }}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget as HTMLElement;
-          el.style.borderColor = "var(--accent)";
-          el.style.transform = "scale(1.08)";
-        }}
-        onMouseLeave={(e) => {
-          const el = e.currentTarget as HTMLElement;
-          el.style.borderColor = "var(--border)";
-          el.style.transform = "scale(1)";
         }}
       >
         {!imageUrl && (
