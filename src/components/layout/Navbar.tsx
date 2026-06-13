@@ -167,15 +167,15 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
           <Link href="/" style={{ fontSize: 24, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center", gap: 8, marginLeft: "2rem" }}>
             {siteLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={siteLogo} alt={siteName} style={{ height: 46, maxWidth: 140, objectFit: "contain" }} />
+              <img src={siteLogo} alt={siteName} style={{ height: 38, maxWidth: 120, objectFit: "contain" }} />
             ) : (
               <>{siteName}<span style={{ color: "var(--accent)" }}>.</span></>
             )}
           </Link>
 
           {/* Search — desktop only, fixed width, stays right next to logo */}
-          <div ref={searchRef} className="hidden md:block search-wrap" style={{ width: "min(520px, 42vw)", flexShrink: 0, position: "relative", marginLeft: "1.5rem" }}>
-            <form onSubmit={handleSearch} style={{ display: "flex", background: "rgba(255,255,255,.15)", borderRadius: 28, overflow: "hidden", border: "1.5px solid rgba(255,255,255,.28)" }}>
+          <div ref={searchRef} className="hidden md:block search-wrap" style={{ width: "min(380px, 36vw)", flexShrink: 0, position: "relative", marginLeft: "1.5rem" }}>
+            <form onSubmit={handleSearch} style={{ display: "flex", background: "rgba(255,255,255,.15)", borderRadius: 8, overflow: "hidden", border: "1.5px solid rgba(255,255,255,.28)" }}>
               <input
                 type="text"
                 value={query}
@@ -185,7 +185,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                 placeholder="محصول، برند یا دسته مورد نظرتان را جستجو کنید"
                 style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "13px 20px", color: "#fff", fontFamily: "Vazirmatn", fontSize: 14 }}
               />
-              <button type="submit" style={{ background: "var(--accent)", border: "none", padding: "0 22px", color: "#fff", fontSize: 19, borderRadius: "0 28px 28px 0", flexShrink: 0 }}>
+              <button type="submit" style={{ background: "var(--accent)", border: "none", padding: "0 22px", color: "#fff", fontSize: 19, borderRadius: "0 8px 8px 0", flexShrink: 0 }}>
                 <i className="ti ti-search" />
               </button>
             </form>
@@ -248,6 +248,139 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
 
           {/* Actions — left edge (search flex:1 pushes them there) */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+
+            {/* User menu */}
+            {session?.user ? (
+              <div
+                ref={menuRef}
+                style={{ position: "relative" }}
+                onMouseEnter={openProfileMenu}
+                onMouseLeave={closeProfileMenu}
+              >
+                {/* Trigger — plain icon button like cart/wishlist */}
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  className="nav-icon-btn"
+                  aria-label="حساب کاربری"
+                >
+                  <i className="ti ti-user-circle" style={{ fontSize: 24 }} />
+                </button>
+
+                {/* Dropdown — Digikala-style clean list */}
+                {userMenuOpen && (
+                  <div
+                    onMouseEnter={openProfileMenu}
+                    onMouseLeave={closeProfileMenu}
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 8px)",
+                      left: 0,
+                      background: "#fff",
+                      borderRadius: 12,
+                      boxShadow: "0 8px 40px rgba(0,0,0,.16)",
+                      minWidth: 280,
+                      zIndex: 200,
+                      overflow: "hidden",
+                      border: "1px solid var(--border)",
+                      animation: "fadeIn .15s ease",
+                    }}
+                  >
+                    {/* Row: account + username */}
+                    <Link href="/dashboard" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                      <div className="dk-row-main">
+                        <i className="ti ti-user-circle" style={{ fontSize: 16, color: "var(--primary)" }} />
+                        حساب کاربری
+                      </div>
+                      <div className="dk-row-end">
+                        <span className="dk-row-secondary">{session.user.name?.split(" ")[0]}</span>
+                        <i className="ti ti-chevron-left" style={{ fontSize: 12 }} />
+                      </div>
+                    </Link>
+
+                    {/* Row: edit profile */}
+                    <Link href="/dashboard" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                      <div className="dk-row-main">
+                        <i className="ti ti-user-edit" style={{ fontSize: 16, color: "var(--text3)" }} />
+                        ویرایش مشخصات فردی
+                      </div>
+                      <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
+                    </Link>
+
+                    <div className="dk-menu-divider" />
+
+                    {/* Row: wallet + balance */}
+                    <Link href="/dashboard?tab=wallet" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                      <div className="dk-row-main">
+                        <i className="ti ti-wallet" style={{ fontSize: 16, color: "var(--accent)" }} />
+                        کیف پول
+                      </div>
+                      <span className="dk-row-balance">
+                        {walletLoading
+                          ? "..."
+                          : walletBalance !== null
+                          ? `${walletBalance.toLocaleString("fa-IR")} تومان`
+                          : "—"}
+                      </span>
+                    </Link>
+
+                    <div className="dk-menu-divider" />
+
+                    {/* Row: wishlist */}
+                    <Link href="/wishlist" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                      <div className="dk-row-main">
+                        <i className="ti ti-heart" style={{ fontSize: 16, color: "#e74c3c" }} />
+                        لیست علاقه‌مندی
+                      </div>
+                      <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
+                    </Link>
+
+                    {/* Row: orders */}
+                    <Link href="/dashboard/orders" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                      <div className="dk-row-main">
+                        <i className="ti ti-package" style={{ fontSize: 16, color: "#1a7a4a" }} />
+                        سفارش های من
+                      </div>
+                      <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
+                    </Link>
+
+                    {/* Admin */}
+                    {isAdmin && (
+                      <>
+                        <div className="dk-menu-divider" />
+                        <Link href="/admin" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                          <div className="dk-row-main">
+                            <i className="ti ti-shield-lock" style={{ fontSize: 16, color: "var(--accent)" }} />
+                            پنل ادمین
+                          </div>
+                          <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
+                        </Link>
+                      </>
+                    )}
+
+                    <div className="dk-menu-divider" />
+
+                    {/* Row: logout */}
+                    <button
+                      onClick={() => { signOut({ callbackUrl: "/" }); setUserMenuOpen(false); }}
+                      className="dk-menu-row dk-menu-logout"
+                    >
+                      <div className="dk-row-main">
+                        <i className="ti ti-logout" style={{ fontSize: 16 }} />
+                        خروج از حساب کاربری
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => setAuthOpen(true)}
+                className="nav-pill-btn nav-login-btn"
+              >
+                <i className="ti ti-user" />
+                <span className="hidden md:inline">ورود / ثبت‌نام</span>
+              </button>
+            )}
 
             {/* Cart — hover mini-cart, click goes to /cart */}
             <div
@@ -394,139 +527,6 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                 </div>
               )}
             </div>
-
-            {/* User menu */}
-            {session?.user ? (
-              <div
-                ref={menuRef}
-                style={{ position: "relative" }}
-                onMouseEnter={openProfileMenu}
-                onMouseLeave={closeProfileMenu}
-              >
-                {/* Trigger — plain icon button like cart/wishlist */}
-                <button
-                  onClick={() => router.push("/dashboard")}
-                  className="nav-icon-btn"
-                  aria-label="حساب کاربری"
-                >
-                  <i className="ti ti-user-circle" style={{ fontSize: 24 }} />
-                </button>
-
-                {/* Dropdown — Digikala-style clean list */}
-                {userMenuOpen && (
-                  <div
-                    onMouseEnter={openProfileMenu}
-                    onMouseLeave={closeProfileMenu}
-                    style={{
-                      position: "absolute",
-                      top: "calc(100% + 8px)",
-                      left: 0,
-                      background: "#fff",
-                      borderRadius: 12,
-                      boxShadow: "0 8px 40px rgba(0,0,0,.16)",
-                      minWidth: 280,
-                      zIndex: 200,
-                      overflow: "hidden",
-                      border: "1px solid var(--border)",
-                      animation: "fadeIn .15s ease",
-                    }}
-                  >
-                    {/* Row: account + username */}
-                    <Link href="/dashboard" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
-                      <div className="dk-row-main">
-                        <i className="ti ti-user-circle" style={{ fontSize: 16, color: "var(--primary)" }} />
-                        حساب کاربری
-                      </div>
-                      <div className="dk-row-end">
-                        <span className="dk-row-secondary">{session.user.name?.split(" ")[0]}</span>
-                        <i className="ti ti-chevron-left" style={{ fontSize: 12 }} />
-                      </div>
-                    </Link>
-
-                    {/* Row: edit profile */}
-                    <Link href="/dashboard" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
-                      <div className="dk-row-main">
-                        <i className="ti ti-user-edit" style={{ fontSize: 16, color: "var(--text3)" }} />
-                        ویرایش مشخصات فردی
-                      </div>
-                      <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
-                    </Link>
-
-                    <div className="dk-menu-divider" />
-
-                    {/* Row: wallet + balance */}
-                    <Link href="/dashboard?tab=wallet" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
-                      <div className="dk-row-main">
-                        <i className="ti ti-wallet" style={{ fontSize: 16, color: "var(--accent)" }} />
-                        کیف پول
-                      </div>
-                      <span className="dk-row-balance">
-                        {walletLoading
-                          ? "..."
-                          : walletBalance !== null
-                          ? `${walletBalance.toLocaleString("fa-IR")} تومان`
-                          : "—"}
-                      </span>
-                    </Link>
-
-                    <div className="dk-menu-divider" />
-
-                    {/* Row: wishlist */}
-                    <Link href="/wishlist" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
-                      <div className="dk-row-main">
-                        <i className="ti ti-heart" style={{ fontSize: 16, color: "#e74c3c" }} />
-                        لیست علاقه‌مندی
-                      </div>
-                      <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
-                    </Link>
-
-                    {/* Row: orders */}
-                    <Link href="/dashboard/orders" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
-                      <div className="dk-row-main">
-                        <i className="ti ti-package" style={{ fontSize: 16, color: "#1a7a4a" }} />
-                        سفارش های من
-                      </div>
-                      <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
-                    </Link>
-
-                    {/* Admin */}
-                    {isAdmin && (
-                      <>
-                        <div className="dk-menu-divider" />
-                        <Link href="/admin" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
-                          <div className="dk-row-main">
-                            <i className="ti ti-shield-lock" style={{ fontSize: 16, color: "var(--accent)" }} />
-                            پنل ادمین
-                          </div>
-                          <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
-                        </Link>
-                      </>
-                    )}
-
-                    <div className="dk-menu-divider" />
-
-                    {/* Row: logout */}
-                    <button
-                      onClick={() => { signOut({ callbackUrl: "/" }); setUserMenuOpen(false); }}
-                      className="dk-menu-row dk-menu-logout"
-                    >
-                      <div className="dk-row-main">
-                        <i className="ti ti-logout" style={{ fontSize: 16 }} />
-                        خروج از حساب کاربری
-                      </div>
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={() => setAuthOpen(true)}
-                className="nav-pill-btn nav-login-btn"
-              >
-                <i className="ti ti-user" />
-                <span className="hidden md:inline">ورود / ثبت‌نام</span>
-              </button>
-            )}
           </div>
         </div>
       </nav>
