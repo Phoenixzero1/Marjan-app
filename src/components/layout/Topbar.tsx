@@ -14,6 +14,9 @@ export default async function Topbar() {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
+        position: "sticky",
+        top: 0,
+        zIndex: 51,
       }}
     >
       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
