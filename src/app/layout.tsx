@@ -46,14 +46,16 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
         />
       </head>
-      <body style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <body>
         <SessionProvider>
-          <EmergencyBanner />
-          <Topbar />
-          <NavbarWrapper />
-          <Megamenu />
-          <main style={{ flex: 1 }}>{children}</main>
-          <Footer />
+          <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+            <EmergencyBanner />
+            <Topbar />
+            <NavbarWrapper />
+            <Megamenu />
+            <main style={{ flex: 1 }}>{children}</main>
+            <Footer />
+          </div>
         </SessionProvider>
       </body>
     </html>
