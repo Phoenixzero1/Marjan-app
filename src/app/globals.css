@@ -676,7 +676,10 @@ input:checked + .toggle-slider::before {
 /* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
 
 /* No horizontal overflow on any page */
-html, body {
+html {
+  overflow-x: clip; /* clip instead of hidden — doesn't create new scroll container, keeps position:sticky working */
+}
+body {
   overflow-x: hidden;
   max-width: 100%;
 }
