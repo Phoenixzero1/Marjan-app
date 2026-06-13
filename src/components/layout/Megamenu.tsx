@@ -2,19 +2,18 @@
 
 import Link from "next/link";
 
-const menuItems = [
-  { label: "خانه", href: "/", icon: "ti-home" },
+const categories = [
   {
     label: "شیرآلات",
     icon: "ti-circle-dotted",
     href: "/category/valves",
     children: [
-      { label: "شیر توپی", href: "/category/ball-valve", icon: "ti-circle-dotted" },
-      { label: "شیر سوزنی", href: "/category/needle-valve", icon: "ti-adjustments" },
-      { label: "شیر یک‌طرفه", href: "/category/check-valve", icon: "ti-git-branch" },
-      { label: "شیر فلکه", href: "/category/gate-valve", icon: "ti-filter" },
-      { label: "شیر رادیاتور", href: "/category/radiator-valve", icon: "ti-tool" },
-      { label: "شیر مخلوط", href: "/category/mixer-valve", icon: "ti-droplet" },
+      { label: "شیر توپی",      href: "/category/ball-valve",      icon: "ti-circle-dotted" },
+      { label: "شیر سوزنی",     href: "/category/needle-valve",    icon: "ti-adjustments" },
+      { label: "شیر یک‌طرفه",   href: "/category/check-valve",     icon: "ti-git-branch" },
+      { label: "شیر فلکه",      href: "/category/gate-valve",      icon: "ti-filter" },
+      { label: "شیر رادیاتور",  href: "/category/radiator-valve",  icon: "ti-tool" },
+      { label: "شیر مخلوط",     href: "/category/mixer-valve",     icon: "ti-droplet" },
     ],
   },
   {
@@ -22,12 +21,12 @@ const menuItems = [
     icon: "ti-minus",
     href: "/category/pipes",
     children: [
-      { label: "لوله پلیکا PVC", href: "/category/pvc-pipe", icon: "ti-minus" },
-      { label: "لوله پوش‌فیت", href: "/category/pushfit-pipe", icon: "ti-minus" },
-      { label: "لوله پنج‌لایه", href: "/category/multilayer-pipe", icon: "ti-minus" },
-      { label: "لوله مانیسمان", href: "/category/seamless-pipe", icon: "ti-minus" },
-      { label: "لوله گالوانیزه", href: "/category/galvanized-pipe", icon: "ti-minus" },
-      { label: "لوله پلی‌اتیلن", href: "/category/pe-pipe", icon: "ti-minus" },
+      { label: "لوله پلیکا PVC",    href: "/category/pvc-pipe",        icon: "ti-minus" },
+      { label: "لوله پوش‌فیت",      href: "/category/pushfit-pipe",    icon: "ti-minus" },
+      { label: "لوله پنج‌لایه",     href: "/category/multilayer-pipe", icon: "ti-minus" },
+      { label: "لوله مانیسمان",     href: "/category/seamless-pipe",   icon: "ti-minus" },
+      { label: "لوله گالوانیزه",    href: "/category/galvanized-pipe", icon: "ti-minus" },
+      { label: "لوله پلی‌اتیلن",   href: "/category/pe-pipe",         icon: "ti-minus" },
     ],
   },
   {
@@ -35,12 +34,12 @@ const menuItems = [
     icon: "ti-git-merge",
     href: "/category/fittings",
     children: [
-      { label: "زانو", href: "/category/elbow", icon: "ti-git-merge" },
-      { label: "سه‌راهی", href: "/category/tee", icon: "ti-git-branch-2" },
-      { label: "بوشن", href: "/category/coupling", icon: "ti-minus" },
-      { label: "درپوش", href: "/category/cap", icon: "ti-circle" },
-      { label: "تبدیل", href: "/category/reducer", icon: "ti-layout-sidebar" },
-      { label: "فلنج", href: "/category/flange", icon: "ti-maximize" },
+      { label: "زانو",      href: "/category/elbow",    icon: "ti-git-merge" },
+      { label: "سه‌راهی",   href: "/category/tee",      icon: "ti-git-branch-2" },
+      { label: "بوشن",      href: "/category/coupling", icon: "ti-minus" },
+      { label: "درپوش",     href: "/category/cap",      icon: "ti-circle" },
+      { label: "تبدیل",     href: "/category/reducer",  icon: "ti-layout-sidebar" },
+      { label: "فلنج",      href: "/category/flange",   icon: "ti-maximize" },
     ],
   },
   {
@@ -48,10 +47,10 @@ const menuItems = [
     icon: "ti-activity",
     href: "/category/pumps",
     children: [
-      { label: "پمپ آب", href: "/category/water-pump", icon: "ti-activity" },
-      { label: "منبع انبساط", href: "/category/expansion-tank", icon: "ti-thermometer" },
-      { label: "فیلتر آب", href: "/category/water-filter", icon: "ti-filter" },
-      { label: "پمپ تخلیه", href: "/category/drain-pump", icon: "ti-bolt" },
+      { label: "پمپ آب",         href: "/category/water-pump",      icon: "ti-activity" },
+      { label: "منبع انبساط",    href: "/category/expansion-tank",  icon: "ti-thermometer" },
+      { label: "فیلتر آب",       href: "/category/water-filter",    icon: "ti-filter" },
+      { label: "پمپ تخلیه",      href: "/category/drain-pump",      icon: "ti-bolt" },
     ],
   },
   {
@@ -59,9 +58,9 @@ const menuItems = [
     icon: "ti-droplet",
     href: "/category/sanitary",
     children: [
-      { label: "شیر مخلوط", href: "/category/mixer", icon: "ti-droplet" },
-      { label: "سیفون", href: "/category/siphon", icon: "ti-bath" },
-      { label: "یراق‌آلات", href: "/category/hardware", icon: "ti-tool" },
+      { label: "شیر مخلوط",  href: "/category/mixer",    icon: "ti-droplet" },
+      { label: "سیفون",       href: "/category/siphon",   icon: "ti-bath" },
+      { label: "یراق‌آلات",   href: "/category/hardware", icon: "ti-tool" },
     ],
   },
 ];
@@ -74,7 +73,7 @@ export default function Megamenu() {
         background: "#fff",
         borderBottom: "1px solid var(--border)",
         position: "sticky",
-        top: 68,
+        top: 72,
         zIndex: 49,
         boxShadow: "0 2px 8px rgba(0,0,0,.04)",
       }}
@@ -83,12 +82,34 @@ export default function Megamenu() {
         style={{
           maxWidth: 1280,
           margin: "auto",
-          padding: "0 2rem",
+          padding: "0 1.5rem",
           display: "flex",
           alignItems: "stretch",
         }}
       >
-        {menuItems.map((item) => (
+        {/* ── All-categories button (≡) ──────────────────────────── */}
+        <Link
+          href="/products"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "0 18px",
+            color: "#fff",
+            background: "var(--primary)",
+            fontSize: 13,
+            fontWeight: 900,
+            whiteSpace: "nowrap",
+            marginLeft: 8,
+            borderRadius: 0,
+          }}
+        >
+          <i className="ti ti-menu-2" style={{ fontSize: 16 }} />
+          دسته‌بندی محصولات
+        </Link>
+
+        {/* ── Category links with dropdowns ──────────────────────── */}
+        {categories.map((item) => (
           <div key={item.label} className="mega-item" style={{ position: "relative" }}>
             <Link
               href={item.href}
@@ -96,7 +117,7 @@ export default function Megamenu() {
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
-                padding: "12px 15px",
+                padding: "12px 14px",
                 color: "var(--text2)",
                 fontSize: 13,
                 fontWeight: 700,
@@ -104,42 +125,35 @@ export default function Megamenu() {
                 cursor: "pointer",
               }}
             >
-              <i className={`ti ${item.icon}`} style={{ fontSize: 15, color: "var(--primary)" }} />
+              <i className={`ti ${item.icon}`} style={{ fontSize: 14, color: "var(--primary)" }} />
               {item.label}
-              {item.children && (
-                <i className="ti ti-chevron-down" style={{ fontSize: 11 }} />
-              )}
+              <i className="ti ti-chevron-down" style={{ fontSize: 10, opacity: 0.5 }} />
             </Link>
 
-            {item.children && (
-              <div className="mega-drop">
-                {item.children.map((child) => (
-                  <Link
-                    key={child.href}
-                    href={child.href}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      padding: "10px 18px",
-                      fontSize: 13,
-                      color: "var(--text2)",
-                      fontWeight: 700,
-                    }}
-                  >
-                    <i
-                      className={`ti ${child.icon}`}
-                      style={{ fontSize: 16, color: "var(--primary)" }}
-                    />
-                    {child.label}
-                  </Link>
-                ))}
-              </div>
-            )}
+            <div className="mega-drop">
+              {item.children.map((child) => (
+                <Link
+                  key={child.href}
+                  href={child.href}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 18px",
+                    fontSize: 13,
+                    color: "var(--text2)",
+                    fontWeight: 700,
+                  }}
+                >
+                  <i className={`ti ${child.icon}`} style={{ fontSize: 16, color: "var(--primary)" }} />
+                  {child.label}
+                </Link>
+              ))}
+            </div>
           </div>
         ))}
 
-        {/* Left-side items — pushed to the left via marginRight: auto */}
+        {/* ── Left-side items ─────────────────────────────────────── */}
         <div style={{ marginRight: "auto", display: "flex", alignItems: "stretch" }}>
 
           {/* وبلاگ */}
@@ -147,14 +161,18 @@ export default function Megamenu() {
             href="/blog"
             style={{ display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", color: "var(--text2)", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" }}
           >
-            <i className="ti ti-news" style={{ fontSize: 15 }} /> وبلاگ
+            <i className="ti ti-news" style={{ fontSize: 14, color: "var(--primary)" }} /> وبلاگ
           </Link>
 
-          {/* فاکتورساز dropdown */}
+          {/* فاکتورساز — [جدید] badge */}
           <div className="mega-item" style={{ position: "relative" }}>
             <span style={{ display: "flex", alignItems: "center", gap: 6, padding: "12px 14px", color: "var(--text2)", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
-              <i className="ti ti-file-invoice" style={{ fontSize: 15 }} /> فاکتورساز
-              <i className="ti ti-chevron-down" style={{ fontSize: 11 }} />
+              <i className="ti ti-file-invoice" style={{ fontSize: 14, color: "var(--primary)" }} />
+              فاکتورساز
+              <span style={{ background: "#17a865", color: "#fff", fontSize: 10, fontWeight: 900, padding: "1px 7px", borderRadius: 20, lineHeight: 1.6 }}>
+                جدید
+              </span>
+              <i className="ti ti-chevron-down" style={{ fontSize: 10, opacity: 0.5 }} />
             </span>
             <div className="mega-drop" style={{ minWidth: 300, padding: 16, right: 0, left: "auto" }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text3)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 10, paddingBottom: 8, borderBottom: "1px solid var(--border)" }}>
@@ -181,7 +199,7 @@ export default function Megamenu() {
             </div>
           </div>
 
-          {/* خرید سازمانی — orange, far left, visually separated */}
+          {/* خرید سازمانی — orange accent, far left */}
           <Link
             href="/organizational"
             style={{
@@ -189,14 +207,14 @@ export default function Megamenu() {
               alignItems: "center",
               gap: 6,
               padding: "12px 16px",
-              color: "#e8920a",
+              color: "var(--accent)",
               fontSize: 13,
               fontWeight: 900,
               whiteSpace: "nowrap",
-              borderRight: "1px solid rgba(255,255,255,.15)",
+              borderRight: "1px solid var(--border)",
             }}
           >
-            <i className="ti ti-building-skyscraper" style={{ fontSize: 15 }} />
+            <i className="ti ti-building-skyscraper" style={{ fontSize: 14 }} />
             خرید سازمانی
           </Link>
         </div>

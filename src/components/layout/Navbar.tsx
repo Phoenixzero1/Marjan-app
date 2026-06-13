@@ -151,7 +151,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   return (
     <>
       <nav className={`site-nav${scrolled ? " site-nav--scrolled" : ""}`} style={{ position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1280, margin: "auto", padding: "0 1.5rem", display: "flex", alignItems: "center", height: 68 }}>
+        <div style={{ maxWidth: 1280, margin: "auto", padding: "0 1.5rem", display: "flex", alignItems: "center", height: 72 }}>
 
           {/* Hamburger — mobile only */}
           <button
@@ -163,8 +163,8 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             <i className="ti ti-menu-2" />
           </button>
 
-          {/* Logo — flush to right edge */}
-          <Link href="/" style={{ fontSize: 22, fontWeight: 900, color: "var(--primary)", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center", marginLeft: "1rem" }}>
+          {/* Logo — right corner */}
+          <Link href="/" style={{ fontSize: 22, fontWeight: 900, color: "var(--primary)", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center", gap: 8, marginLeft: "1.5rem" }}>
             {siteLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={siteLogo} alt={siteName} style={{ height: 36, maxWidth: 120, objectFit: "contain" }} />
@@ -174,18 +174,18 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
           </Link>
 
           {/* Search — desktop only, fills middle */}
-          <div ref={searchRef} className="hidden md:block search-wrap" style={{ flex: 1, position: "relative", margin: "0 1rem" }}>
-            <form onSubmit={handleSearch} style={{ display: "flex", background: "var(--bg)", borderRadius: "var(--radius-sm)", overflow: "hidden", border: "1px solid var(--border)" }}>
+          <div ref={searchRef} className="hidden md:block search-wrap" style={{ flex: 1, position: "relative", margin: "0 1.5rem" }}>
+            <form onSubmit={handleSearch} style={{ display: "flex", background: "var(--bg)", borderRadius: 24, overflow: "hidden", border: "1.5px solid var(--border)" }}>
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => results.length > 0 && setDropOpen(true)}
                 onBlur={() => setTimeout(() => setDropOpen(false), 200)}
-                placeholder="جستجو... (لوله، شیرآلات، اتصالات)"
-                style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "10px 14px", color: "var(--text)", fontFamily: "Vazirmatn", fontSize: 14 }}
+                placeholder="محصول، برند یا دسته مورد نظرتان را جستجو کنید"
+                style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "11px 18px", color: "var(--text)", fontFamily: "Vazirmatn", fontSize: 14 }}
               />
-              <button type="submit" style={{ background: "var(--accent)", border: "none", padding: "0 18px", color: "#fff", fontSize: 18 }}>
+              <button type="submit" style={{ background: "var(--primary)", border: "none", padding: "0 20px", color: "#fff", fontSize: 18, borderRadius: "0 24px 24px 0" }}>
                 <i className="ti ti-search" />
               </button>
             </form>
