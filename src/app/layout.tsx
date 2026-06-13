@@ -48,6 +48,16 @@ export default function RootLayout({
       </head>
       <body>
         <SessionProvider>
+          {/* Liquid glass SVG filter — edge refraction via fractal noise displacement */}
+          <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden focusable="false">
+            <defs>
+              <filter id="lg-edge" x="-30%" y="-30%" width="160%" height="160%" colorInterpolationFilters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.85 0.35" numOctaves="2" seed="4" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5" xChannelSelector="R" yChannelSelector="G" />
+              </filter>
+            </defs>
+          </svg>
+
           {/* Fixed header — always visible on scroll */}
           <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }}>
             <EmergencyBanner />

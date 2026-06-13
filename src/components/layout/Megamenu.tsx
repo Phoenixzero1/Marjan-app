@@ -69,19 +69,7 @@ export default function Megamenu() {
   return (
     <div
       className="megabar"
-      style={{
-        background: "rgba(255,255,255,0.52)",
-        backdropFilter: "blur(36px) saturate(240%) brightness(1.1)",
-        WebkitBackdropFilter: "blur(36px) saturate(240%) brightness(1.1)",
-        borderTop: "1px solid rgba(255,255,255,0.92)",
-        borderLeft: "1px solid rgba(255,255,255,0.55)",
-        borderRight: "1px solid rgba(255,255,255,0.55)",
-        borderBottom: "1.5px solid rgba(255,255,255,0.6)",
-        borderRadius: "0 0 18px 18px",
-        position: "relative",
-        zIndex: 49,
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.98), inset 0 -4px 10px rgba(255,255,255,0.35), 0 14px 48px rgba(0,0,0,0.13), 0 4px 16px rgba(0,0,0,0.07)",
-      }}
+      style={{ position: "relative", zIndex: 49 }}
     >
       <div
         style={{
