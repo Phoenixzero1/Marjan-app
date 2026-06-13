@@ -466,11 +466,8 @@ button {
   transition: background 0.35s var(--ease), box-shadow 0.35s var(--ease);
 }
 .site-nav--scrolled {
-  background: rgba(10, 42, 94, 0.94);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.22);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--primary);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.28);
 }
 
 /* ─── CART PANEL ─────────────────────────────────────────────────────────── */
@@ -516,13 +513,11 @@ button {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .megabar {
-  /* ── GPU compositor layer — prevents repaint on scroll ──────────────────── */
-  will-change: backdrop-filter;
-  transform: translateZ(0);
+  /* ── Stacking context so pseudo-layers don't leak ────────────────────────── */
   isolation: isolate;
 
   /* ── Glass tint — keep very light so backdrop content reads through ──────── */
-  background: rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.18);
 
   /* ── Backdrop blur (desktop budget: 24px — lower hierarchy than modals) ──── */
   backdrop-filter: blur(24px) saturate(200%) brightness(1.08);

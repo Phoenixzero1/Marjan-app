@@ -51,19 +51,11 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // Hydration fix: don't render cart count until client has rehydrated the store
   const [mounted, setMounted] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -150,7 +142,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
 
   return (
     <>
-      <nav className={`site-nav${scrolled ? " site-nav--scrolled" : ""}`} style={{ position: "relative", zIndex: 50 }}>
+      <nav className="site-nav" style={{ position: "relative", zIndex: 50 }}>
         <div style={{ width: "100%", padding: "0 2rem", display: "flex", alignItems: "center", height: 84 }}>
 
           {/* Hamburger — mobile only */}
