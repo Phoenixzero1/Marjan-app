@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { formatPrice } from "@/lib/utils";
+import DatePicker from "@/components/ui/DatePicker";
 
 interface Coupon {
   id: string;
@@ -367,11 +368,11 @@ export default function CouponManager() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
                   <label style={lbl}>تاریخ شروع</label>
-                  <input type="date" value={form.startsAt} onChange={e => set("startsAt", e.target.value)} style={{ ...inp, direction: "ltr" }} />
+                  <DatePicker value={form.startsAt} onChange={val => set("startsAt", val)} />
                 </div>
                 <div>
                   <label style={lbl}>تاریخ انقضا</label>
-                  <input type="date" value={form.expiresAt} onChange={e => set("expiresAt", e.target.value)} style={{ ...inp, direction: "ltr" }} />
+                  <DatePicker value={form.expiresAt} onChange={val => set("expiresAt", val)} />
                 </div>
               </div>
 

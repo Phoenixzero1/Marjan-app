@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import DatePicker from "@/components/ui/DatePicker";
 
 interface Slide {
   id: string;
@@ -551,22 +552,18 @@ export default function SliderManager() {
                 <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--text2)", marginBottom: 6 }}>
                   <i className="ti ti-calendar" /> تاریخ شروع (اختیاری)
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={form.startDate}
-                  onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-                  style={{ width: "100%", border: "1.5px solid var(--border)", borderRadius: 6, padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13 }}
+                  onChange={(val) => setForm((f) => ({ ...f, startDate: val }))}
                 />
               </div>
               <div>
                 <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--text2)", marginBottom: 6 }}>
                   <i className="ti ti-calendar" /> تاریخ پایان (اختیاری)
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={form.endDate}
-                  onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-                  style={{ width: "100%", border: "1.5px solid var(--border)", borderRadius: 6, padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13 }}
+                  onChange={(val) => setForm((f) => ({ ...f, endDate: val }))}
                 />
               </div>
             </div>

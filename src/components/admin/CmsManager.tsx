@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import DatePicker from "@/components/ui/DatePicker";
 
 type CmsTab = "pages" | "banners" | "menus" | "status" | "topbar";
 
@@ -280,8 +281,8 @@ export default function CmsManager() {
                 </div>
                 <div><label style={lbl}>متن دکمه</label><input style={inp} value={editBanner.buttonText ?? ""} onChange={e => setEditBanner(p => ({ ...p, buttonText: e.target.value }))} /></div>
                 <div><label style={lbl}>لینک دکمه</label><input style={{ ...inp, direction: "ltr" }} value={editBanner.buttonLink ?? ""} onChange={e => setEditBanner(p => ({ ...p, buttonLink: e.target.value }))} placeholder="/products" /></div>
-                <div><label style={lbl}>تاریخ شروع</label><input type="date" style={{ ...inp, direction: "ltr" }} value={editBanner.startDate?.slice(0, 10) ?? ""} onChange={e => setEditBanner(p => ({ ...p, startDate: e.target.value || null }))} /></div>
-                <div><label style={lbl}>تاریخ پایان</label><input type="date" style={{ ...inp, direction: "ltr" }} value={editBanner.endDate?.slice(0, 10) ?? ""} onChange={e => setEditBanner(p => ({ ...p, endDate: e.target.value || null }))} /></div>
+                <div><label style={lbl}>تاریخ شروع</label><DatePicker value={editBanner.startDate?.slice(0, 10) ?? ""} onChange={val => setEditBanner(p => ({ ...p, startDate: val || null }))} /></div>
+                <div><label style={lbl}>تاریخ پایان</label><DatePicker value={editBanner.endDate?.slice(0, 10) ?? ""} onChange={val => setEditBanner(p => ({ ...p, endDate: val || null }))} /></div>
                 <div><label style={lbl}>ترتیب</label><input type="number" style={inp} value={editBanner.sortOrder ?? 0} onChange={e => setEditBanner(p => ({ ...p, sortOrder: parseInt(e.target.value) }))} /></div>
               </div>
               <div style={{ display: "flex", gap: 8 }}>

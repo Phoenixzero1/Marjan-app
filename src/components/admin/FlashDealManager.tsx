@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import DateTimePicker from "@/components/ui/DateTimePicker";
 
 interface ProductRow {
   id: string;
@@ -220,24 +221,9 @@ export default function FlashDealManager() {
             <label style={{ fontSize: 12, fontWeight: 700, display: "block", marginBottom: 6, color: "var(--text2)" }}>
               تاریخ و زمان پایان
             </label>
-            <input
-              type="datetime-local"
-              value={toLocalDatetime(config.endTime)}
-              onChange={(e) =>
-                setConfig((prev) => ({
-                  ...prev,
-                  endTime: e.target.value ? new Date(e.target.value).toISOString() : null,
-                }))
-              }
-              style={{
-                width: "100%",
-                padding: "9px 12px",
-                borderRadius: 8,
-                border: "1.5px solid var(--border)",
-                fontSize: 13,
-                fontFamily: "Vazirmatn",
-                outline: "none",
-              }}
+            <DateTimePicker
+              value={config.endTime}
+              onChange={(val) => setConfig((prev) => ({ ...prev, endTime: val }))}
             />
           </div>
 

@@ -32,8 +32,10 @@
     "pg": "^8.21.0",
     "prisma": "^7.8.0",
     "react": "^19.2.7",
+    "react-date-object": "^2.1.9",
     "react-dom": "^19.2.7",
     "react-hook-form": "^7.77.0",
+    "react-multi-date-picker": "^4.5.2",
     "sharp": "^0.35.1",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"

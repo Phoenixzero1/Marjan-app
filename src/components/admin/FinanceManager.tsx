@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { formatPrice } from "@/lib/utils";
+import DatePicker from "@/components/ui/DatePicker";
 
 interface Summary {
   totalRevenue: number;
@@ -217,11 +218,11 @@ export default function FinanceManager() {
         </select>
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text3)" }}>
           <span>از:</span>
-          <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 10px", fontFamily: "Vazirmatn", fontSize: 13, outline: "none" }} />
+          <DatePicker value={from} onChange={setFrom} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text3)" }}>
           <span>تا:</span>
-          <input type="date" value={to} onChange={e => setTo(e.target.value)} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 10px", fontFamily: "Vazirmatn", fontSize: 13, outline: "none" }} />
+          <DatePicker value={to} onChange={setTo} />
         </div>
         <button
           onClick={() => load(1)}

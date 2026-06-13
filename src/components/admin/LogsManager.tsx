@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import DatePicker from "@/components/ui/DatePicker";
 
 type LogLevel = "INFO" | "WARNING" | "ERROR" | "CRITICAL";
 
@@ -155,11 +156,11 @@ export default function LogsManager() {
         </select>
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text3)" }}>
           <span>از:</span>
-          <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 10px", fontFamily: "Vazirmatn", fontSize: 13, outline: "none" }} />
+          <DatePicker value={from} onChange={setFrom} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text3)" }}>
           <span>تا:</span>
-          <input type="date" value={to} onChange={e => setTo(e.target.value)} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 10px", fontFamily: "Vazirmatn", fontSize: 13, outline: "none" }} />
+          <DatePicker value={to} onChange={setTo} />
         </div>
         <button onClick={() => load(1)} style={{ background: "var(--primary)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "8px 16px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>اعمال</button>
         {(levelFilter || q || from || to) && (
