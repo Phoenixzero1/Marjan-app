@@ -342,6 +342,7 @@ button {
 .section-card {
   background: #fff;
   border-radius: 16px;
+  overflow: hidden;
   box-shadow: var(--shadow);
   padding: 1.75rem 2rem;
 }
