@@ -80,34 +80,12 @@ export default function Megamenu() {
     >
       <div
         style={{
-          maxWidth: 1280,
-          margin: "auto",
+          width: "100%",
           padding: "0 1.5rem",
           display: "flex",
           alignItems: "stretch",
         }}
       >
-        {/* ── All-categories button (≡) ──────────────────────────── */}
-        <Link
-          href="/products"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "0 18px",
-            color: "#fff",
-            background: "var(--primary)",
-            fontSize: 13,
-            fontWeight: 900,
-            whiteSpace: "nowrap",
-            marginLeft: 8,
-            borderRadius: 0,
-          }}
-        >
-          <i className="ti ti-menu-2" style={{ fontSize: 16 }} />
-          دسته‌بندی محصولات
-        </Link>
-
         {/* ── Category links with dropdowns ──────────────────────── */}
         {categories.map((item) => (
           <div key={item.label} className="mega-item" style={{ position: "relative" }}>

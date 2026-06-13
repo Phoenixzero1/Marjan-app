@@ -151,20 +151,20 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   return (
     <>
       <nav className={`site-nav${scrolled ? " site-nav--scrolled" : ""}`} style={{ position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1280, margin: "auto", padding: "0 1.5rem", display: "flex", alignItems: "center", height: 72 }}>
+        <div style={{ width: "100%", padding: "0 1.5rem", display: "flex", alignItems: "center", height: 72 }}>
 
           {/* Hamburger — mobile only */}
           <button
             className="md:hidden"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="منو"
-            style={{ background: "transparent", border: "none", color: "var(--primary)", fontSize: 22, padding: "0 4px", display: "flex", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44, flexShrink: 0 }}
+            style={{ background: "transparent", border: "none", color: "#fff", fontSize: 22, padding: "0 4px", display: "flex", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44, flexShrink: 0 }}
           >
             <i className="ti ti-menu-2" />
           </button>
 
           {/* Logo — right corner */}
-          <Link href="/" style={{ fontSize: 22, fontWeight: 900, color: "var(--primary)", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center", gap: 8, marginLeft: "1.5rem" }}>
+          <Link href="/" style={{ fontSize: 22, fontWeight: 900, color: "#fff", whiteSpace: "nowrap", flexShrink: 0, display: "flex", alignItems: "center", gap: 8, marginLeft: "1.5rem" }}>
             {siteLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={siteLogo} alt={siteName} style={{ height: 36, maxWidth: 120, objectFit: "contain" }} />
@@ -175,7 +175,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
 
           {/* Search — desktop only, fixed width, stays right next to logo */}
           <div ref={searchRef} className="hidden md:block search-wrap" style={{ width: "min(460px, 40vw)", flexShrink: 0, position: "relative", marginLeft: "1.25rem" }}>
-            <form onSubmit={handleSearch} style={{ display: "flex", background: "var(--bg)", borderRadius: 24, overflow: "hidden", border: "1.5px solid var(--border)" }}>
+            <form onSubmit={handleSearch} style={{ display: "flex", background: "rgba(255,255,255,.14)", borderRadius: 24, overflow: "hidden", border: "1.5px solid rgba(255,255,255,.25)" }}>
               <input
                 type="text"
                 value={query}
@@ -183,9 +183,9 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                 onFocus={() => results.length > 0 && setDropOpen(true)}
                 onBlur={() => setTimeout(() => setDropOpen(false), 200)}
                 placeholder="محصول، برند یا دسته مورد نظرتان را جستجو کنید"
-                style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "11px 18px", color: "var(--text)", fontFamily: "Vazirmatn", fontSize: 14 }}
+                style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "11px 18px", color: "#fff", fontFamily: "Vazirmatn", fontSize: 14 }}
               />
-              <button type="submit" style={{ background: "var(--primary)", border: "none", padding: "0 20px", color: "#fff", fontSize: 18, borderRadius: "0 24px 24px 0" }}>
+              <button type="submit" style={{ background: "var(--accent)", border: "none", padding: "0 20px", color: "#fff", fontSize: 18, borderRadius: "0 24px 24px 0", flexShrink: 0 }}>
                 <i className="ti ti-search" />
               </button>
             </form>
