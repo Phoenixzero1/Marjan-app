@@ -40,13 +40,14 @@ interface NavbarProps {
 export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   const router = useRouter();
   const { data: session } = useSession();
-  const { totalItems } = useCart();
+  const { items, totalItems, totalPrice, updateQty, removeItem } = useCart();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [catResults, setCatResults] = useState<CategoryResult[]>([]);
   const [dropOpen, setDropOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [cartMenuOpen, setCartMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // Hydration fix: don't render cart count until client has rehydrated the store
   const [mounted, setMounted] = useState(false);
@@ -118,6 +119,15 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [walletLoading, setWalletLoading] = useState(false);
   const profileMenuTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cartMenuTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function openCartMenu() {
+    if (cartMenuTimeout.current) clearTimeout(cartMenuTimeout.current);
+    setCartMenuOpen(true);
+  }
+  function closeCartMenu() {
+    cartMenuTimeout.current = setTimeout(() => setCartMenuOpen(false), 180);
+  }
 
   function openProfileMenu() {
     if (profileMenuTimeout.current) clearTimeout(profileMenuTimeout.current);
@@ -238,26 +248,152 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
 
           {/* Actions */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-            {/* Wishlist — desktop only */}
-            <Link
-              href="/wishlist"
-              className="nav-icon-btn nav-icon-desktop"
-            >
-              <i className="ti ti-heart" />
-            </Link>
 
-            {/* Cart — click navigates to cart page */}
-            <button
-              onClick={() => router.push("/cart")}
-              className="nav-icon-btn"
+            {/* Cart — hover mini-cart, click goes to /cart */}
+            <div
+              style={{ position: "relative" }}
+              onMouseEnter={openCartMenu}
+              onMouseLeave={closeCartMenu}
             >
-              <i className="ti ti-shopping-cart" />
-              {count > 0 && (
-                <span style={{ position: "absolute", top: 2, right: 2, background: "var(--accent)", color: "#fff", fontSize: 10, fontWeight: 700, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                  {count}
-                </span>
+              <button
+                onClick={() => router.push("/cart")}
+                className="nav-icon-btn"
+                aria-label="سبد خرید"
+              >
+                <i className="ti ti-shopping-cart" />
+                {count > 0 && (
+                  <span style={{ position: "absolute", top: 2, right: 2, background: "var(--accent)", color: "#fff", fontSize: 10, fontWeight: 700, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                    {count}
+                  </span>
+                )}
+              </button>
+
+              {/* Mini-cart dropdown */}
+              {cartMenuOpen && mounted && (
+                <div
+                  onMouseEnter={openCartMenu}
+                  onMouseLeave={closeCartMenu}
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 8px)",
+                    left: 0,
+                    background: "#fff",
+                    borderRadius: 12,
+                    boxShadow: "0 8px 40px rgba(0,0,0,.16)",
+                    width: 340,
+                    zIndex: 200,
+                    border: "1px solid var(--border)",
+                    animation: "fadeIn .15s ease",
+                    overflow: "hidden",
+                  }}
+                >
+                  {/* Header */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: "1px solid var(--border)" }}>
+                    <span style={{ fontSize: 14, fontWeight: 900, color: "var(--text)", display: "flex", alignItems: "center", gap: 6 }}>
+                      سبد خرید شما
+                      {items.length > 0 && (
+                        <span style={{ color: "var(--text3)", fontWeight: 700, fontSize: 12 }}>
+                          | {totalItems()} عدد کالا
+                        </span>
+                      )}
+                    </span>
+                    <Link
+                      href="/cart"
+                      onClick={() => setCartMenuOpen(false)}
+                      style={{ fontSize: 12, fontWeight: 700, color: "var(--primary)", display: "flex", alignItems: "center", gap: 3, textDecoration: "none" }}
+                    >
+                      مشاهده سبد خرید <i className="ti ti-chevron-left" style={{ fontSize: 11 }} />
+                    </Link>
+                  </div>
+
+                  {items.length === 0 ? (
+                    <div style={{ padding: "2.5rem 1rem", textAlign: "center", color: "var(--text3)" }}>
+                      <i className="ti ti-shopping-cart-off" style={{ fontSize: 44, display: "block", marginBottom: 10 }} />
+                      <p style={{ fontSize: 13, fontWeight: 700, margin: 0 }}>سبد خرید شما خالی است</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Items list */}
+                      <div style={{ maxHeight: 300, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "var(--border) transparent" }}>
+                        {items.slice(0, 5).map((item) => (
+                          <div
+                            key={`${item.id}-${item.sizeLabel ?? ""}`}
+                            style={{ display: "flex", gap: 12, padding: "12px 16px", borderBottom: "1px solid var(--bg2)", alignItems: "flex-start" }}
+                          >
+                            {/* Image */}
+                            <div style={{ width: 60, height: 60, borderRadius: 8, overflow: "hidden", background: "var(--bg)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              {item.imageUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={item.imageUrl} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                              ) : (
+                                <i className="ti ti-package" style={{ fontSize: 24, color: "var(--border)" }} />
+                              )}
+                            </div>
+
+                            {/* Details */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 12.5, fontWeight: 900, color: "var(--text)", lineHeight: 1.4, marginBottom: 5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                                {item.name}
+                              </div>
+                              {item.sizeLabel && (
+                                <div style={{ fontSize: 11, color: "var(--text3)", marginBottom: 4 }}>سایز: {item.sizeLabel}</div>
+                              )}
+                              <div style={{ fontSize: 13, fontWeight: 900, color: "var(--primary)", marginBottom: 8 }}>
+                                {new Intl.NumberFormat("fa-IR").format(item.price * item.quantity)} تومان
+                              </div>
+
+                              {/* Qty control */}
+                              <div style={{ display: "flex", alignItems: "center", background: "var(--bg)", borderRadius: 8, width: "fit-content", overflow: "hidden" }}>
+                                <button
+                                  onClick={() => updateQty(item.id, item.sizeLabel, item.quantity + 1)}
+                                  style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", color: "var(--primary)", fontSize: 15, cursor: "pointer" }}
+                                >
+                                  <i className="ti ti-plus" />
+                                </button>
+                                <span style={{ width: 28, textAlign: "center", fontSize: 13, fontWeight: 900, color: "var(--text)" }}>
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  onClick={() => item.quantity === 1
+                                    ? removeItem(item.id, item.sizeLabel)
+                                    : updateQty(item.id, item.sizeLabel, item.quantity - 1)}
+                                  style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", color: item.quantity === 1 ? "#e53935" : "var(--primary)", fontSize: item.quantity === 1 ? 14 : 15, cursor: "pointer" }}
+                                >
+                                  <i className={item.quantity === 1 ? "ti ti-trash" : "ti ti-minus"} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        {items.length > 5 && (
+                          <div style={{ padding: "8px 16px", fontSize: 12, color: "var(--text3)", textAlign: "center" }}>
+                            و {items.length - 5} کالای دیگر...
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      <div style={{ borderTop: "1px solid var(--border)", display: "flex", alignItems: "stretch" }}>
+                        <Link
+                          href="/checkout"
+                          onClick={() => setCartMenuOpen(false)}
+                          style={{ flex: 1, background: "var(--primary)", color: "#fff", padding: "13px 16px", fontSize: 13, fontWeight: 900, textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        >
+                          ثبت سفارش
+                        </Link>
+                        <div style={{ width: 1, background: "rgba(255,255,255,.3)", flexShrink: 0 }} />
+                        <div style={{ flex: 1, padding: "0 12px", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 1 }}>
+                          <span style={{ fontSize: 11, color: "var(--text3)", fontWeight: 700 }}>مبلغ کل</span>
+                          <span style={{ fontSize: 13, fontWeight: 900, color: "var(--primary)" }}>
+                            {new Intl.NumberFormat("fa-IR").format(totalPrice())} تومان
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
-            </button>
+            </div>
 
             {/* User menu */}
             {session?.user ? (
