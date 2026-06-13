@@ -262,7 +262,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                 {/* Trigger button — click goes to dashboard, hover opens dropdown */}
                 <button
                   onClick={() => router.push("/dashboard")}
-                  className="nav-profile-btn"
+                  className="nav-pill-btn nav-profile-btn"
                   data-open={userMenuOpen ? "true" : "false"}
                 >
                   {/* Avatar */}
@@ -552,7 +552,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             ) : (
               <button
                 onClick={() => setAuthOpen(true)}
-                style={{ background: "rgba(255,255,255,.15)", border: "1px solid rgba(255,255,255,.3)", color: "#fff", padding: "8px 10px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, minHeight: 44 }}
+                className="nav-pill-btn nav-login-btn"
               >
                 <i className="ti ti-user" />
                 <span className="hidden md:inline">ورود / ثبت‌نام</span>
