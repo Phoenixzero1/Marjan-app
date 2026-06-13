@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
 
 export interface SliderSlide {
   id: string;
@@ -71,82 +70,7 @@ export default function HeroSlider({ slides, settings }: Props) {
                   ? `url(${slide.imageUrl}) center/cover no-repeat`
                   : "linear-gradient(135deg,var(--primary-dark) 0%,#1a5fa0 100%)",
               }}
-            >
-              {/* Overlay for readability */}
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  background: slide.imageUrl
-                    ? "linear-gradient(to left, rgba(0,0,0,.6) 0%, rgba(0,0,0,.2) 60%, transparent 100%)"
-                    : "radial-gradient(circle at 80% 50%,rgba(232,146,10,.12) 0%,transparent 60%)",
-                }}
-              />
-              {/* Content */}
-              <div
-                style={{
-                  position: "relative",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  maxWidth: 1280,
-                  margin: "0 auto",
-                  padding: "2rem 2rem 4rem",
-                }}
-              >
-                <div style={{ maxWidth: 560 }}>
-                  {slide.title && (
-                    <h1
-                      style={{
-                        fontSize: "clamp(22px, 3.5vw, 44px)",
-                        fontWeight: 900,
-                        lineHeight: 1.25,
-                        color: "#fff",
-                        marginBottom: "1rem",
-                        textShadow: "0 2px 8px rgba(0,0,0,.4)",
-                      }}
-                    >
-                      {slide.title}
-                    </h1>
-                  )}
-                  {slide.subtitle && (
-                    <p
-                      style={{
-                        fontSize: "clamp(13px, 1.5vw, 16px)",
-                        color: "rgba(255,255,255,.85)",
-                        maxWidth: 480,
-                        marginBottom: "2rem",
-                        lineHeight: 1.7,
-                        textShadow: "0 1px 4px rgba(0,0,0,.3)",
-                      }}
-                    >
-                      {slide.subtitle}
-                    </p>
-                  )}
-                  {slide.buttonText && slide.buttonLink && (
-                    <Link
-                      href={slide.buttonLink}
-                      style={{
-                        background: "var(--accent)",
-                        color: "#fff",
-                        padding: "13px 30px",
-                        borderRadius: "var(--radius-sm)",
-                        fontSize: 14,
-                        fontWeight: 900,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 8,
-                        boxShadow: "0 4px 16px rgba(232,146,10,.5)",
-                        transition: "transform .15s, box-shadow .15s",
-                      }}
-                    >
-                      {slide.buttonText}
-                      <i className="ti ti-arrow-left" style={{ fontSize: 16 }} />
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
+            />
           );
         })}
       </div>
