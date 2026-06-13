@@ -150,7 +150,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
 
   return (
     <>
-      <nav className={`site-nav${scrolled ? " site-nav--scrolled" : ""}`} style={{ position: "sticky", top: 32, zIndex: 50 }}>
+      <nav className={`site-nav${scrolled ? " site-nav--scrolled" : ""}`} style={{ position: "relative", zIndex: 50 }}>
         <div style={{ width: "100%", padding: "0 2rem", display: "flex", alignItems: "center", height: 84 }}>
 
           {/* Hamburger — mobile only */}

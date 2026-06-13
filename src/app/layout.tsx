@@ -48,11 +48,16 @@ export default function RootLayout({
       </head>
       <body>
         <SessionProvider>
-          <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+          {/* Fixed header — always visible on scroll */}
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }}>
             <EmergencyBanner />
             <Topbar />
             <NavbarWrapper />
             <Megamenu />
+          </div>
+          {/* Spacer pushes content below the fixed header (topbar≈32 + navbar≈84 + megabar≈46) */}
+          <div id="header-spacer" style={{ height: 162 }} />
+          <div style={{ minHeight: "calc(100vh - 162px)", display: "flex", flexDirection: "column" }}>
             <main style={{ flex: 1 }}>{children}</main>
             <Footer />
           </div>
