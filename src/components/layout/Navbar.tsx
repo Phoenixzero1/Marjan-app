@@ -173,8 +173,8 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             )}
           </Link>
 
-          {/* Search — desktop only, fills middle */}
-          <div ref={searchRef} className="hidden md:block search-wrap" style={{ flex: 1, position: "relative", margin: "0 1.5rem" }}>
+          {/* Search — desktop only, fixed width, stays right next to logo */}
+          <div ref={searchRef} className="hidden md:block search-wrap" style={{ width: "min(460px, 40vw)", flexShrink: 0, position: "relative", marginLeft: "1.25rem" }}>
             <form onSubmit={handleSearch} style={{ display: "flex", background: "var(--bg)", borderRadius: 24, overflow: "hidden", border: "1.5px solid var(--border)" }}>
               <input
                 type="text"
@@ -243,8 +243,8 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             )}
           </div>
 
-          {/* Spacer on mobile to push actions to the left */}
-          <div className="flex-1 md:hidden" />
+          {/* Spacer — pushes actions to the far left on all screen sizes */}
+          <div style={{ flex: 1 }} />
 
           {/* Actions — left edge (search flex:1 pushes them there) */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
