@@ -233,7 +233,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             {/* Wishlist — desktop only */}
             <Link
               href="/wishlist"
-              className="nav-icon-btn hidden md:flex"
+              className="nav-icon-btn nav-icon-desktop"
             >
               <i className="ti ti-heart" />
             </Link>
@@ -262,20 +262,8 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                 {/* Trigger button — click goes to dashboard, hover opens dropdown */}
                 <button
                   onClick={() => router.push("/dashboard")}
-                  style={{
-                    background: userMenuOpen ? "rgba(255,255,255,.25)" : "rgba(255,255,255,.15)",
-                    border: "1px solid rgba(255,255,255,.3)",
-                    color: "#fff",
-                    padding: "6px 10px",
-                    borderRadius: "var(--radius-sm)",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    minHeight: 44,
-                    transition: "background .15s",
-                  }}
+                  className="nav-profile-btn"
+                  data-open={userMenuOpen ? "true" : "false"}
                 >
                   {/* Avatar */}
                   <div
