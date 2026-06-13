@@ -267,240 +267,118 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                 onMouseEnter={openProfileMenu}
                 onMouseLeave={closeProfileMenu}
               >
-                {/* Trigger button — click goes to dashboard, hover opens dropdown */}
+                {/* Trigger — plain icon button like cart/wishlist */}
                 <button
                   onClick={() => router.push("/dashboard")}
-                  className="nav-pill-btn nav-profile-btn"
-                  data-open={userMenuOpen ? "true" : "false"}
+                  className="nav-icon-btn"
+                  aria-label="حساب کاربری"
                 >
-                  {/* Avatar */}
-                  <div
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: "50%",
-                      background: "var(--accent)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 13,
-                      fontWeight: 900,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {(session.user.name ?? "U")[0].toUpperCase()}
-                  </div>
-                  <span className="hidden md:inline" style={{ maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {session.user.name?.split(" ")[0]}
-                  </span>
-                  <i className={`ti ti-chevron-${userMenuOpen ? "up" : "down"} hidden md:inline`} style={{ fontSize: 12, opacity: 0.7 }} />
+                  <i className="ti ti-user-circle" style={{ fontSize: 24 }} />
                 </button>
 
-                {/* Dropdown panel — shown on hover */}
+                {/* Dropdown — Digikala-style clean list */}
                 {userMenuOpen && (
                   <div
                     onMouseEnter={openProfileMenu}
                     onMouseLeave={closeProfileMenu}
                     style={{
                       position: "absolute",
-                      top: "calc(100% + 4px)",
+                      top: "calc(100% + 8px)",
                       left: 0,
                       background: "#fff",
-                      borderRadius: "var(--radius)",
-                      boxShadow: "0 8px 40px rgba(0,0,0,.18)",
-                      minWidth: 265,
+                      borderRadius: 12,
+                      boxShadow: "0 8px 40px rgba(0,0,0,.16)",
+                      minWidth: 280,
                       zIndex: 200,
                       overflow: "hidden",
                       border: "1px solid var(--border)",
                       animation: "fadeIn .15s ease",
                     }}
                   >
-                    {/* User header */}
-                    <div
-                      style={{
-                        padding: "16px 18px",
-                        background: "linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%)",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 46,
-                          height: 46,
-                          borderRadius: "50%",
-                          background: "var(--accent)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 20,
-                          fontWeight: 900,
-                          color: "#fff",
-                          flexShrink: 0,
-                          border: "2px solid rgba(255,255,255,.3)",
-                        }}
-                      >
-                        {(session.user.name ?? "U")[0].toUpperCase()}
+                    {/* Row: account + username */}
+                    <Link href="/dashboard" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                      <div className="dk-row-main">
+                        <i className="ti ti-user-circle" style={{ fontSize: 16, color: "var(--primary)" }} />
+                        حساب کاربری
                       </div>
-                      <div style={{ minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 14,
-                            fontWeight: 900,
-                            color: "#fff",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {session.user.name}
-                        </div>
-                        {session.user.email && (
-                          <div
-                            style={{
-                              fontSize: 11,
-                              color: "rgba(255,255,255,.6)",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              marginTop: 2,
-                              direction: "ltr",
-                            }}
-                          >
-                            {session.user.email}
-                          </div>
-                        )}
+                      <div className="dk-row-end">
+                        <span className="dk-row-secondary">{session.user.name?.split(" ")[0]}</span>
+                        <i className="ti ti-chevron-left" style={{ fontSize: 12 }} />
                       </div>
-                    </div>
+                    </Link>
 
-                    {/* Main links */}
-                    <div style={{ padding: "6px 0" }}>
-                      {[
-                        { href: "/dashboard",          icon: "ti-user-circle",    label: "ویرایش مشخصات",   iconColor: "var(--primary)" },
-                        { href: "/dashboard/orders",   icon: "ti-package",        label: "سفارش‌های من",    iconColor: "#1a7a4a" },
-                        { href: "/wishlist",           icon: "ti-heart",          label: "علاقه‌مندی‌ها",  iconColor: "#e74c3c" },
-                      ].map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setUserMenuOpen(false)}
-                          className="dropdown-link"
-                        >
-                          <div
-                            style={{
-                              width: 34,
-                              height: 34,
-                              borderRadius: 8,
-                              background: `${item.iconColor}18`,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              flexShrink: 0,
-                            }}
-                          >
-                            <i className={`ti ${item.icon}`} style={{ fontSize: 16, color: item.iconColor }} />
-                          </div>
-                          {item.label}
-                          <i className="ti ti-arrow-left" style={{ marginRight: "auto", fontSize: 12, color: "var(--text3)" }} />
-                        </Link>
-                      ))}
+                    {/* Row: edit profile */}
+                    <Link href="/dashboard" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                      <div className="dk-row-main">
+                        <i className="ti ti-user-edit" style={{ fontSize: 16, color: "var(--text3)" }} />
+                        ویرایش مشخصات فردی
+                      </div>
+                      <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
+                    </Link>
 
-                      {/* Wallet row — shows balance */}
-                      <Link
-                        href="/dashboard?tab=wallet"
-                        onClick={() => setUserMenuOpen(false)}
-                        className="dropdown-link"
-                      >
-                        <div
-                          style={{
-                            width: 34,
-                            height: 34,
-                            borderRadius: 8,
-                            background: "rgba(232,146,10,.12)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexShrink: 0,
-                          }}
-                        >
-                          <i className="ti ti-wallet" style={{ fontSize: 16, color: "var(--accent)" }} />
-                        </div>
-                        <span style={{ flex: 1 }}>کیف پول</span>
-                        <span
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 900,
-                            color: walletLoading ? "var(--text3)" : "var(--accent)",
-                            background: "var(--accent-light)",
-                            padding: "2px 8px",
-                            borderRadius: 20,
-                          }}
-                        >
-                          {walletLoading
-                            ? "..."
-                            : walletBalance !== null
-                            ? `${walletBalance.toLocaleString("fa-IR")} ت`
-                            : "—"}
-                        </span>
-                      </Link>
-                    </div>
+                    <div className="dk-menu-divider" />
 
-                    {/* Admin link */}
+                    {/* Row: wallet + balance */}
+                    <Link href="/dashboard?tab=wallet" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                      <div className="dk-row-main">
+                        <i className="ti ti-wallet" style={{ fontSize: 16, color: "var(--accent)" }} />
+                        کیف پول
+                      </div>
+                      <span className="dk-row-balance">
+                        {walletLoading
+                          ? "..."
+                          : walletBalance !== null
+                          ? `${walletBalance.toLocaleString("fa-IR")} تومان`
+                          : "—"}
+                      </span>
+                    </Link>
+
+                    <div className="dk-menu-divider" />
+
+                    {/* Row: wishlist */}
+                    <Link href="/wishlist" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                      <div className="dk-row-main">
+                        <i className="ti ti-heart" style={{ fontSize: 16, color: "#e74c3c" }} />
+                        لیست علاقه‌مندی
+                      </div>
+                      <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
+                    </Link>
+
+                    {/* Row: orders */}
+                    <Link href="/dashboard/orders" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                      <div className="dk-row-main">
+                        <i className="ti ti-package" style={{ fontSize: 16, color: "#1a7a4a" }} />
+                        سفارش های من
+                      </div>
+                      <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
+                    </Link>
+
+                    {/* Admin */}
                     {isAdmin && (
                       <>
-                        <div style={{ height: 1, background: "var(--border)", margin: "0 12px" }} />
-                        <div style={{ padding: "6px 0" }}>
-                          <Link
-                            href="/admin"
-                            onClick={() => setUserMenuOpen(false)}
-                            className="dropdown-link"
-                          >
-                            <div
-                              style={{
-                                width: 34,
-                                height: 34,
-                                borderRadius: 8,
-                                background: "rgba(232,146,10,.12)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                flexShrink: 0,
-                              }}
-                            >
-                              <i className="ti ti-shield-lock" style={{ fontSize: 16, color: "var(--accent)" }} />
-                            </div>
+                        <div className="dk-menu-divider" />
+                        <Link href="/admin" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                          <div className="dk-row-main">
+                            <i className="ti ti-shield-lock" style={{ fontSize: 16, color: "var(--accent)" }} />
                             پنل ادمین
-                            <i className="ti ti-arrow-left" style={{ marginRight: "auto", fontSize: 12, color: "var(--text3)" }} />
-                          </Link>
-                        </div>
+                          </div>
+                          <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
+                        </Link>
                       </>
                     )}
 
-                    {/* Logout */}
-                    <div style={{ height: 1, background: "var(--border)", margin: "0 12px" }} />
-                    <div style={{ padding: "6px 0 8px" }}>
-                      <button
-                        onClick={() => { signOut({ callbackUrl: "/" }); setUserMenuOpen(false); }}
-                        className="dropdown-link dropdown-link-danger"
-                      >
-                        <div
-                          style={{
-                            width: 34,
-                            height: 34,
-                            borderRadius: 8,
-                            background: "rgba(192,57,43,.1)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexShrink: 0,
-                          }}
-                        >
-                          <i className="ti ti-logout" style={{ fontSize: 16, color: "#c0392b" }} />
-                        </div>
-                        خروج از حساب
-                      </button>
-                    </div>
+                    <div className="dk-menu-divider" />
+
+                    {/* Row: logout */}
+                    <button
+                      onClick={() => { signOut({ callbackUrl: "/" }); setUserMenuOpen(false); }}
+                      className="dk-menu-row dk-menu-logout"
+                    >
+                      <div className="dk-row-main">
+                        <i className="ti ti-logout" style={{ fontSize: 16 }} />
+                        خروج از حساب کاربری
+                      </div>
+                    </button>
                   </div>
                 )}
               </div>
