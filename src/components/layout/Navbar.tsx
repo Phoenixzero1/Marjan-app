@@ -175,7 +175,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
 
           {/* Search — desktop only, fixed width, stays right next to logo */}
           <div ref={searchRef} className="hidden md:block search-wrap" style={{ width: "min(380px, 36vw)", flexShrink: 0, position: "relative", marginLeft: "1.5rem" }}>
-            <form onSubmit={handleSearch} style={{ display: "flex", background: "rgba(255,255,255,.15)", borderRadius: 8, overflow: "hidden", border: "1.5px solid rgba(255,255,255,.28)" }}>
+            <form onSubmit={handleSearch} style={{ display: "flex", alignItems: "center", background: "#fff", borderRadius: 8, overflow: "hidden", border: "1.5px solid #d0d5dd" }}>
               <input
                 type="text"
                 value={query}
@@ -183,9 +183,9 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                 onFocus={() => results.length > 0 && setDropOpen(true)}
                 onBlur={() => setTimeout(() => setDropOpen(false), 200)}
                 placeholder="محصول، برند یا دسته مورد نظرتان را جستجو کنید"
-                style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "13px 20px", color: "#fff", fontFamily: "Vazirmatn", fontSize: 14 }}
+                style={{ flex: 1, background: "transparent", border: "none", outline: "none", padding: "11px 16px", color: "var(--text)", fontFamily: "Vazirmatn", fontSize: 13.5 }}
               />
-              <button type="submit" style={{ background: "var(--accent)", border: "none", padding: "0 22px", color: "#fff", fontSize: 19, borderRadius: "0 8px 8px 0", flexShrink: 0 }}>
+              <button type="submit" style={{ background: "none", border: "none", padding: "0 14px", color: "var(--text3)", fontSize: 18, display: "flex", alignItems: "center", cursor: "pointer", flexShrink: 0 }}>
                 <i className="ti ti-search" />
               </button>
             </form>
