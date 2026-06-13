@@ -507,6 +507,42 @@ button {
   display: block;
 }
 
+/* ─── MEGABAR 3D GLASS EDGE ─────────────────────────────────────────────── */
+
+/* Convex lens illusion: radial light spreading from center-bottom outward */
+.megabar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0 0 18px 18px;
+  background:
+    radial-gradient(ellipse 85% 170% at 50% 115%,
+      rgba(255,255,255,0.52) 0%,
+      rgba(255,255,255,0.18) 35%,
+      transparent 65%
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Bright curved highlight at bottom edge — the "ridge" of the convex glass */
+.megabar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 12%;
+  right: 12%;
+  height: 2.5px;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.0) 100%);
+  border-radius: 50%;
+  filter: blur(1px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* make sure links render above the pseudo-elements */
+.megabar > div { position: relative; z-index: 1; }
+
 /* ─── MEGA DROPDOWN ──────────────────────────────────────────────────────── */
 .mega-drop {
   display: none;
