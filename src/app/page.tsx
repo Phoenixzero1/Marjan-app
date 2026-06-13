@@ -214,10 +214,41 @@ const FALLBACK_CATEGORIES = [
 // ─── Section Header ─────────────────────────────────────────────────────────
 
 function SectionHeader({
-  title, href, linkLabel = "مشاهده همه", badge,
+  title, href, linkLabel = "مشاهده همه", badge, bar,
 }: {
-  title: string; href: string; linkLabel?: string; badge?: { icon: string; text: string };
+  title: string;
+  href: string;
+  linkLabel?: string;
+  badge?: { icon: string; text: string };
+  bar?: { bg: string; icon?: string };
 }) {
+  if (bar) {
+    // Full-width colored bar spanning the top of the section card
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          background: bar.bg,
+          margin: "-1.75rem -2rem 1.5rem",
+          padding: "13px 2rem",
+        }}
+      >
+        <h2 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+          {bar.icon && <i className={`ti ${bar.icon}`} style={{ fontSize: 18 }} />}
+          {title}
+        </h2>
+        <Link
+          href={href}
+          style={{ color: "rgba(255,255,255,.85)", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 4, textDecoration: "none" }}
+        >
+          {linkLabel} <i className="ti ti-arrow-left" />
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div style={{ marginBottom: "1.5rem" }}>
       {badge && (
@@ -464,7 +495,7 @@ export default async function HomePage() {
       {/* ── CATEGORY CIRCLES ─────────────────────────────────────────── */}
       <div style={{ maxWidth: 1280, margin: "1.5rem auto 1rem", padding: "0 1rem" }}>
         <div className="section-card">
-          <SectionHeader title="دسته‌بندی محصولات" href="/products" linkLabel="همه دسته‌ها" />
+          <SectionHeader title="دسته‌بندی محصولات" href="/products" linkLabel="همه دسته‌ها" bar={{ bg: "var(--primary-mid)", icon: "ti-category" }} />
           <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8, scrollbarWidth: "thin", scrollbarColor: "var(--border) transparent" }}>
             {categories.map((cat) => (
               <CategoryCircle key={cat.id} {...cat} />
@@ -491,7 +522,7 @@ export default async function HomePage() {
           <SectionHeader
             title="پرفروش‌ترین محصولات"
             href="/products"
-            badge={{ icon: "ti-flame", text: "پرفروش" }}
+            bar={{ bg: "var(--primary)", icon: "ti-flame" }}
           />
           {bestsellers.length === 0 ? (
             <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
@@ -567,7 +598,6 @@ export default async function HomePage() {
             <SectionHeader
               title="جدیدترین محصولات"
               href="/products?sort=newest"
-              badge={{ icon: "ti-sparkles", text: "جدید" }}
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {newest.map((p) => (
