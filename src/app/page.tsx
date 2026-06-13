@@ -554,40 +554,70 @@ export default async function HomePage() {
 
       {/* ── PROMO BANNERS ────────────────────────────────────────────── */}
       <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
-        <div className="grid banner-grid gap-4">
-          {(promoBanners.length > 0 ? promoBanners.map((b) => ({
-            key: b.id,
-            bg: b.imageUrl
-              ? `url(${b.imageUrl}) center/cover no-repeat`
-              : "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))",
-            overlay: !!b.imageUrl,
-            title: b.title,
-            subtitle: b.subtitle,
-            btnText: b.buttonText,
-            btnLink: b.buttonLink,
-            btnColor: "var(--primary)",
-            icon: "ti-tag",
-          })) : [
-            { key: "promo1", bg: "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))", overlay: false, title: "خرید عمده با بهترین قیمت", subtitle: "برای پروژه‌های بزرگ و پیمانکاران، قیمت ویژه عمده داریم.", btnText: "استعلام عمده", btnLink: "/invoice?type=contractor", btnColor: "var(--primary)", icon: "ti-building" },
-            { key: "promo2", bg: "linear-gradient(135deg,#b54a00,var(--accent))", overlay: false, title: "فاکتور آنلاین رایگان", subtitle: "همین الان فاکتور حرفه‌ای بسازید.", btnText: "ساخت فاکتور", btnLink: "/invoice", btnColor: "var(--accent)", icon: "ti-file-invoice" },
-          ]).map((b) => (
-            <div
-              key={b.key}
-              style={{ borderRadius: 16, position: "relative", minHeight: 180, display: "flex", alignItems: "center", padding: "2rem", background: b.bg, overflow: "hidden" }}
-            >
-              {b.overlay && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.4)", borderRadius: 16 }} />}
-              <div style={{ position: "relative" }}>
-                {b.title && <h3 style={{ fontSize: 20, fontWeight: 900, color: "#fff", marginBottom: 6 }}>{b.title}</h3>}
-                {b.subtitle && <p style={{ fontSize: 13, color: "rgba(255,255,255,.8)", marginBottom: "1rem" }}>{b.subtitle}</p>}
-                {b.btnText && b.btnLink && (
-                  <Link href={b.btnLink} style={{ background: "#fff", color: b.btnColor, padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 900, display: "inline-block", textDecoration: "none" }}>
-                    {b.btnText}
-                  </Link>
-                )}
+        <div className="section-card">
+          <SectionHeader
+            title="پیشنهادهای ویژه"
+            href="/products?tag=promo"
+            bar={{ bg: "linear-gradient(135deg,#b54a00,var(--accent))", icon: "ti-tag" }}
+          />
+          <div className="grid banner-grid gap-4">
+            {(promoBanners.length > 0 ? promoBanners.map((b) => ({
+              key: b.id,
+              bg: b.imageUrl
+                ? `url(${b.imageUrl}) center/cover no-repeat`
+                : "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))",
+              overlay: !!b.imageUrl,
+              title: b.title,
+              subtitle: b.subtitle,
+              btnText: b.buttonText,
+              btnLink: b.buttonLink,
+              btnColor: "var(--primary)",
+              icon: "ti-tag",
+            })) : [
+              { key: "promo1", bg: "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))", overlay: false, title: "خرید عمده با بهترین قیمت", subtitle: "برای پروژه‌های بزرگ و پیمانکاران، قیمت ویژه عمده داریم.", btnText: "استعلام عمده", btnLink: "/invoice?type=contractor", btnColor: "var(--primary)", icon: "ti-building" },
+              { key: "promo2", bg: "linear-gradient(135deg,#b54a00,var(--accent))", overlay: false, title: "فاکتور آنلاین رایگان", subtitle: "همین الان فاکتور حرفه‌ای بسازید.", btnText: "ساخت فاکتور", btnLink: "/invoice", btnColor: "var(--accent)", icon: "ti-file-invoice" },
+            ]).map((b) => (
+              <div
+                key={b.key}
+                style={{ borderRadius: 12, position: "relative", minHeight: 180, display: "flex", alignItems: "center", padding: "2rem", background: b.bg, overflow: "hidden" }}
+              >
+                {b.overlay && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.4)" }} />}
+                <div style={{ position: "relative" }}>
+                  {b.title && <h3 style={{ fontSize: 20, fontWeight: 900, color: "#fff", marginBottom: 6 }}>{b.title}</h3>}
+                  {b.subtitle && <p style={{ fontSize: 13, color: "rgba(255,255,255,.8)", marginBottom: "1rem" }}>{b.subtitle}</p>}
+                  {b.btnText && b.btnLink && (
+                    <Link href={b.btnLink} style={{ background: "#fff", color: b.btnColor, padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 900, display: "inline-block", textDecoration: "none" }}>
+                      {b.btnText}
+                    </Link>
+                  )}
+                </div>
+                <i className={`ti ${b.icon}`} style={{ position: "absolute", left: "1.5rem", bottom: -10, fontSize: 100, color: "rgba(255,255,255,.1)" }} />
               </div>
-              <i className={`ti ${b.icon}`} style={{ position: "absolute", left: "1.5rem", bottom: -10, fontSize: 100, color: "rgba(255,255,255,.1)" }} />
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── CATEGORY SHOWCASE ────────────────────────────────────────── */}
+      <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
+        <div className="section-card">
+          <SectionHeader
+            title="خرید بر اساس دسته‌بندی"
+            href="/products"
+            linkLabel="همه دسته‌ها"
+            bar={{ bg: "var(--primary)", icon: "ti-layout-grid" }}
+          />
+          <div className="cat-showcase-grid">
+            {categories.map((cat) => (
+              <Link key={cat.id} href={`/products?category=${cat.slug}`} className="cat-showcase-item">
+                <div className="cat-showcase-icon">
+                  <i className={`ti ${cat.iconClass}`} />
+                </div>
+                <span className="cat-showcase-name">{cat.name}</span>
+                {cat.count && <span className="cat-showcase-count">{cat.count} محصول</span>}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -72,23 +72,24 @@ export default function ProductCard({
         position: "relative",
       }}
     >
-      {/* Badge */}
+      {/* Discount badge — red pill, top-left (RTL: right side visually) */}
       {discount > 0 && (
         <span
           style={{
             position: "absolute",
             top: 10,
-            right: 10,
-            background: "var(--accent)",
+            left: 10,
+            background: "#e53935",
             color: "#fff",
             fontSize: 10,
             fontWeight: 900,
-            padding: "3px 10px",
+            padding: "3px 9px",
             borderRadius: 20,
             zIndex: 2,
+            lineHeight: 1.5,
           }}
         >
-          {discount}٪ تخفیف
+          {discount}٪
         </span>
       )}
       {isNew && !discount && (
@@ -96,12 +97,12 @@ export default function ProductCard({
           style={{
             position: "absolute",
             top: 10,
-            right: 10,
-            background: "var(--primary)",
+            left: 10,
+            background: "var(--primary-mid)",
             color: "#fff",
             fontSize: 10,
             fontWeight: 900,
-            padding: "3px 10px",
+            padding: "3px 9px",
             borderRadius: 20,
             zIndex: 2,
           }}
@@ -110,8 +111,8 @@ export default function ProductCard({
         </span>
       )}
 
-      {/* Wishlist */}
-      <div style={{ position: "absolute", top: 10, left: 10, zIndex: 3 }}>
+      {/* Wishlist — top-right corner (physical right = RTL end side) */}
+      <div style={{ position: "absolute", top: 10, right: 10, zIndex: 3 }}>
         <WishlistButton productId={id} size={32} />
       </div>
 

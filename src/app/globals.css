@@ -851,6 +851,76 @@ body.admin-mode footer {
 .prose-content strong { font-weight: 900; color: var(--text); }
 .prose-content blockquote { border-right: 4px solid var(--accent); padding: .75rem 1rem; background: var(--bg); border-radius: 0 8px 8px 0; margin: 1rem 0; color: var(--text2); font-style: italic; }
 
+/* ─── BRAND CARD ─────────────────────────────────────────────────────────── */
+.brand-card {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  transition: border-color .2s var(--ease), background .2s var(--ease), transform .2s var(--ease);
+  min-width: 100px;
+  background: #fff;
+}
+.brand-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  transform: translateY(-2px);
+}
+
+/* ─── CATEGORY SHOWCASE GRID ─────────────────────────────────────────────── */
+.cat-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+@media (max-width: 1024px) {
+  .cat-showcase-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 640px) {
+  .cat-showcase-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.cat-showcase-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 8px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  text-decoration: none;
+  transition: border-color .2s var(--ease), background .2s var(--ease), transform .2s var(--ease);
+  text-align: center;
+  background: #fff;
+}
+.cat-showcase-item:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(232,146,10,.12);
+}
+.cat-showcase-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s var(--ease);
+}
+.cat-showcase-item:hover .cat-showcase-icon {
+  background: rgba(232,146,10,.15);
+}
+.cat-showcase-icon i { font-size: 24px; color: var(--primary); transition: color .2s var(--ease); }
+.cat-showcase-item:hover .cat-showcase-icon i { color: var(--accent); }
+.cat-showcase-name { font-size: 12px; font-weight: 900; color: var(--text); line-height: 1.3; }
+.cat-showcase-count { font-size: 10px; font-weight: 700; color: var(--text3); }
+
 /* ─── PRINT STYLES ───────────────────────────────────────────────────────── */
 @media print {
   nav,

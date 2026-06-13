@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 
 interface Props {
@@ -11,30 +9,7 @@ interface Props {
 
 export default function BrandCard({ name, slug, logoUrl }: Props) {
   return (
-    <Link
-      href={`/brand/${slug}`}
-      style={{
-        flexShrink: 0,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 8,
-        textDecoration: "none",
-        padding: "12px 16px",
-        borderRadius: "var(--radius-sm)",
-        border: "1.5px solid var(--border)",
-        transition: "border-color .2s",
-        minWidth: 100,
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
-        (e.currentTarget as HTMLElement).style.background = "var(--accent-light)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
-        (e.currentTarget as HTMLElement).style.background = "";
-      }}
-    >
+    <Link href={`/brand/${slug}`} className="brand-card">
       {logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
