@@ -112,7 +112,7 @@ export default async function ProductLayout({
       name: r.title ?? p.name,
       reviewBody: r.content ?? undefined,
       datePublished: r.createdAt.toISOString().split("T")[0],
-      author: { "@type": "Person", name: `${r.user.firstName} ${r.user.lastName}` },
+      author: { "@type": "Person", name: `${r.user?.firstName ?? ""} ${r.user?.lastName ?? ""}`.trim() },
     }));
   }
 

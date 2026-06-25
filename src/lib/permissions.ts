@@ -83,6 +83,18 @@ export function sessionHasPermission(
 }
 
 /**
+ * Strict admin guard — ADMIN and SUPER_ADMIN only.
+ * Use for sensitive routes (stats, analytics, settings, backup).
+ */
+export async function requireAdmin() {
+  const session = await auth();
+  if (!session?.user) return null;
+  const role = (session.user as { role?: string }).role ?? "";
+  if (!["ADMIN", "SUPER_ADMIN"].includes(role)) return null;
+  return session;
+}
+
+/**
  * Auth + permission guard for API routes.
  * Returns the session on success, null on forbidden.
  */
