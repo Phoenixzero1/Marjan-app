@@ -1,5 +1,4 @@
-﻿export const dynamic = 'force-dynamic'
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 
 import { prisma } from "@/lib/prisma";
@@ -46,7 +45,7 @@ export async function GET(req: NextRequest) {
     prisma.user.count({ where }),
   ]);
 
-  return NextResponse.json({ users, pagination: { total, page, limit, totalPages: Math.ceil(total / limit) } });
+  return NextResponse.json({ users, pagination: { total, page, limit } });
 }
 
 const createSchema = z.object({
@@ -167,15 +166,7 @@ export async function DELETE(req: NextRequest) {
   if (id === session.user.id) return NextResponse.json({ error: "نمی‌توانید حساب خودتان را حذف کنید" }, { status: 400 });
 
   const before = await prisma.user.findUnique({ where: { id }, select: { firstName: true, lastName: true, email: true, role: true } });
-  const reviewerName = `${before?.firstName ?? ""} ${before?.lastName ?? ""}`.trim() + " (حذف‌شده)";
-
-  // Anonymize all reviews by this user (preserve review content, remove user link)
-  await prisma.review.updateMany({
-    where: { userId: id },
-    data: { userId: null, reviewerName },
-  });
-
-  // Users with orders must be soft-deleted (keep order history)
+  // Users with orders can't be hard-deleted (FK); suspend them instead
   const orderCount = await prisma.order.count({ where: { userId: id } });
   if (orderCount > 0) {
     await prisma.user.update({ where: { id }, data: { status: "DELETED" as never } });

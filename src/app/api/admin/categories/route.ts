@@ -21,16 +21,20 @@ import { getClientIp } from "@/lib/rateLimit";const schema = z.object({
 export async function GET() {
   if (!(await requirePermission("MANAGE_CATEGORIES"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const categories = await prisma.category.findMany({
-    where: { deletedAt: null },
-    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-    include: {
-      _count: { select: { products: true, children: true } },
-      parent: { select: { name: true } },
-    },
-  });
-
-  return NextResponse.json({ categories });
+  try {
+    const categories = await prisma.category.findMany({
+      where: { deletedAt: null },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      include: {
+        _count: { select: { products: true, children: true } },
+        parent: { select: { name: true } },
+      },
+    });
+    return NextResponse.json({ categories });
+  } catch (err) {
+    console.error("GET /api/admin/categories failed:", err);
+    return NextResponse.json({ error: "خطا در بارگذاری دسته‌بندی‌ها", categories: [] }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {

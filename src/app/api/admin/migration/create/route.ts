@@ -1,4 +1,3 @@
-﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
@@ -13,7 +12,7 @@ const PACKAGES_DIR = path.join(process.cwd(), "migration-packages");
 
 export async function POST(req: NextRequest) {
   const session = await requirePermission("MANAGE_BACKUP");
-  if (!session) return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ù…Ù†ÙˆØ¹" }, { status: 403 });
+  if (!session) return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
 
   const encoder = new TextEncoder();
   const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
@@ -39,7 +38,7 @@ export async function POST(req: NextRequest) {
     try {
       if (!existsSync(PACKAGES_DIR)) await mkdir(PACKAGES_DIR, { recursive: true });
 
-      await log("Ø´Ø±ÙˆØ¹ ØµØ§Ø¯Ø±Ø§Øª Ù¾Ø§ÛŒÚ¯Ø§Ù‡ Ø¯Ø§Ø¯Ù‡...");
+      await log("شروع صادرات پایگاه داده...");
 
       // Export all tables
       const [
@@ -79,13 +78,13 @@ export async function POST(req: NextRequest) {
       const counts: Record<string, number> = {};
       for (const [table, rows] of Object.entries(tables)) {
         counts[table] = rows.length;
-        await log(`âœ… ${table} ØµØ§Ø¯Ø± Ø´Ø¯ (${rows.length} Ø±Ú©ÙˆØ±Ø¯)`, "ok");
+        await log(`✅ ${table} صادر شد (${rows.length} رکورد)`, "ok");
       }
 
       const packageDate = new Date().toISOString().slice(0, 10);
       const packageId = `marjan-migration-${Date.now()}`;
 
-      await log("Ø³Ø§Ø®Øª ÙØ§ÛŒÙ„â€ŒÙ‡Ø§ÛŒ Ù¾Ú©ÛŒØ¬...");
+      await log("ساخت فایل‌های پکیج...");
 
       const dbExport = JSON.stringify({ exportedAt: new Date().toISOString(), tables }, null, 0);
       const installerHtml = generateInstallerHtml({ packageDate, recordCounts: counts, appName: "Marjan" });
@@ -102,7 +101,7 @@ export async function POST(req: NextRequest) {
         ".env.example": createHash("md5").update(envExample).digest("hex"),
       };
 
-      await log("Ø³Ø§Ø®Øª Ø¢Ø±Ø´ÛŒÙˆ ZIP...");
+      await log("ساخت آرشیو ZIP...");
 
       const zipPath = path.join(PACKAGES_DIR, `${packageId}.zip`);
 
@@ -124,7 +123,7 @@ export async function POST(req: NextRequest) {
       const stat = require("fs").statSync(zipPath);
       const sizeMB = (stat.size / 1024 / 1024).toFixed(2);
 
-      await log(`Ù¾Ú©ÛŒØ¬ Ø¢Ù…Ø§Ø¯Ù‡ Ø´Ø¯ â€” ${sizeMB}MB`, "ok");
+      await log(`پکیج آماده شد — ${sizeMB}MB`, "ok");
 
       // Save metadata
       await writeFile(

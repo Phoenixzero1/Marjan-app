@@ -1,5 +1,7 @@
 "use client";
 
+import { AdminPageHeader, AdminCard } from "@/components/admin/AdminUI";
+
 interface Field { name: string; type: string; note?: string; }
 interface Table { name: string; icon: string; color: string; fields: Field[]; }
 
@@ -170,15 +172,16 @@ const TABLES: Table[] = [
 export default function DbSchemaManager() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div>
-        <h2 style={{ fontSize: 20, fontWeight: 900, color: "var(--primary)", margin: 0 }}>ساختار پایگاه داده</h2>
-        <p style={{ fontSize: 12, color: "var(--text3)", margin: "4px 0 0" }}>{TABLES.length} جدول اصلی — بر اساس Prisma Schema</p>
-      </div>
+      <AdminPageHeader
+        title="ساختار پایگاه داده"
+        icon="ti-database"
+        count={TABLES.length}
+        subtitle="بر اساس Prisma Schema"
+      />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
         {TABLES.map((table) => (
           <div key={table.name} style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", overflow: "hidden" }}>
-            {/* Table header */}
             <div style={{ padding: "12px 16px", background: table.color, display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(255,255,255,.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <i className={`ti ${table.icon}`} style={{ fontSize: 17, color: "#fff" }} />
@@ -186,8 +189,6 @@ export default function DbSchemaManager() {
               <span style={{ fontSize: 14, fontWeight: 900, color: "#fff" }}>{table.name}</span>
               <span style={{ marginRight: "auto", fontSize: 11, color: "rgba(255,255,255,.7)", fontWeight: 700 }}>{table.fields.length} فیلد</span>
             </div>
-
-            {/* Fields */}
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
               <thead>
                 <tr>
@@ -212,20 +213,22 @@ export default function DbSchemaManager() {
         ))}
       </div>
 
-      <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1rem 1.5rem", display: "flex", gap: 20, flexWrap: "wrap" }}>
-        <div style={{ fontSize: 13, fontWeight: 900, color: "var(--primary)" }}>راهنما:</div>
-        {[
-          { label: "String?", desc: "nullable string" },
-          { label: "PK", desc: "Primary Key" },
-          { label: "FK → X", desc: "Foreign Key به جدول X" },
-          { label: "منحصربه‌فرد", desc: "@@unique constraint" },
-        ].map(({ label, desc }) => (
-          <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-            <span style={{ background: "#f1f5f9", color: "#475569", borderRadius: 4, padding: "2px 8px", fontSize: 10, fontWeight: 900, fontFamily: "monospace" }}>{label}</span>
-            <span style={{ color: "var(--text3)" }}>{desc}</span>
-          </div>
-        ))}
-      </div>
+      <AdminCard>
+        <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ fontSize: 13, fontWeight: 900, color: "var(--primary)" }}>راهنما:</div>
+          {[
+            { label: "String?", desc: "nullable string" },
+            { label: "PK", desc: "Primary Key" },
+            { label: "FK → X", desc: "Foreign Key به جدول X" },
+            { label: "منحصربه‌فرد", desc: "@@unique constraint" },
+          ].map(({ label, desc }) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+              <span style={{ background: "#f1f5f9", color: "#475569", borderRadius: 4, padding: "2px 8px", fontSize: 10, fontWeight: 900, fontFamily: "monospace" }}>{label}</span>
+              <span style={{ color: "var(--text3)" }}>{desc}</span>
+            </div>
+          ))}
+        </div>
+      </AdminCard>
     </div>
   );
 }

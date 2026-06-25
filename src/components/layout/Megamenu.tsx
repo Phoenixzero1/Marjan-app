@@ -1,6 +1,9 @@
 "use client";
 
+import { useRef, useEffect, useState, useId } from "react";
 import Link from "next/link";
+import { GlassFilter } from "@/lib/liquid-glass";
+import { ShaderDisplacementGenerator, fragmentShaders } from "@/lib/liquid-glass/shader-utils";
 
 const categories = [
   {
@@ -66,13 +69,68 @@ const categories = [
 ];
 
 export default function Megamenu() {
+  const barRef = useRef<HTMLDivElement>(null);
+  const rawId = useId().replace(/:/g, "");
+  const filterId = `mgb-${rawId}`;
+  const [barSize, setBarSize] = useState({ width: 1440, height: 52 });
+  const [shaderUrl, setShaderUrl] = useState("");
+
+  useEffect(() => {
+    function measure() {
+      if (barRef.current) {
+        const r = barRef.current.getBoundingClientRect();
+        setBarSize({ width: Math.round(r.width), height: Math.round(r.height) });
+      }
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  useEffect(() => {
+    if (barSize.width < 1) return;
+    const gen = new ShaderDisplacementGenerator({
+      width: barSize.width,
+      height: barSize.height,
+      fragment: fragmentShaders.liquidGlass,
+    });
+    setShaderUrl(gen.updateShader());
+    gen.destroy();
+  }, [barSize.width, barSize.height]);
+
   return (
+    <>
     <div
+      ref={barRef}
       className="megabar"
       style={{ position: "relative", zIndex: 49 }}
     >
+      {shaderUrl && (
+        <>
+          <GlassFilter
+            id={filterId}
+            displacementScale={80}
+            aberrationIntensity={2}
+            width={barSize.width}
+            height={barSize.height}
+            mode="shader"
+            shaderMapUrl={shaderUrl}
+          />
+          <span style={{
+            position: "absolute",
+            inset: 0,
+            filter: `url(#${filterId})`,
+            backdropFilter: "blur(16px) saturate(140%)",
+            WebkitBackdropFilter: "blur(16px) saturate(140%)",
+            pointerEvents: "none",
+            zIndex: 0,
+          }} />
+        </>
+      )}
+      {/* Content */}
       <div
         style={{
+          position: "relative", zIndex: 10,
           width: "100%",
           padding: "0 2rem",
           display: "flex",
@@ -81,9 +139,10 @@ export default function Megamenu() {
       >
         {/* ── Category links with dropdowns ──────────────────────── */}
         {categories.map((item) => (
-          <div key={item.label} className="mega-item" style={{ position: "relative" }}>
+          <div key={item.href} className="mega-item" style={{ position: "relative" }}>
             <Link
               href={item.href}
+              className="mega-nav-link"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -97,7 +156,7 @@ export default function Megamenu() {
               }}
             >
               <i className={`ti ${item.icon}`} style={{ fontSize: 14, color: "var(--primary)" }} />
-              {item.label}
+              <span data-label>{item.label}</span>
               <i className="ti ti-chevron-down" style={{ fontSize: 10, opacity: 0.5 }} />
             </Link>
 
@@ -130,16 +189,17 @@ export default function Megamenu() {
           {/* وبلاگ */}
           <Link
             href="/blog"
+            className="mega-nav-link"
             style={{ display: "flex", alignItems: "center", gap: 6, padding: "14px 16px", color: "var(--text2)", fontSize: 13.5, fontWeight: 700, whiteSpace: "nowrap" }}
           >
-            <i className="ti ti-news" style={{ fontSize: 15, color: "var(--primary)" }} /> وبلاگ
+            <i className="ti ti-news" style={{ fontSize: 15, color: "var(--primary)" }} /> <span data-label>وبلاگ</span>
           </Link>
 
           {/* فاکتورساز — [جدید] badge */}
           <div className="mega-item" style={{ position: "relative" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 6, padding: "14px 16px", color: "var(--text2)", fontSize: 13.5, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+            <span className="mega-nav-link" style={{ display: "flex", alignItems: "center", gap: 6, padding: "14px 16px", color: "var(--text2)", fontSize: 13.5, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
               <i className="ti ti-file-invoice" style={{ fontSize: 14, color: "var(--primary)" }} />
-              فاکتورساز
+              <span data-label>فاکتورساز</span>
               <span style={{ background: "#17a865", color: "#fff", fontSize: 10, fontWeight: 900, padding: "1px 7px", borderRadius: 20, lineHeight: 1.6 }}>
                 جدید
               </span>
@@ -173,6 +233,7 @@ export default function Megamenu() {
           {/* خرید سازمانی — orange accent, far left */}
           <Link
             href="/organizational"
+            className="mega-nav-link"
             style={{
               display: "flex",
               alignItems: "center",
@@ -186,10 +247,11 @@ export default function Megamenu() {
             }}
           >
             <i className="ti ti-building-skyscraper" style={{ fontSize: 14 }} />
-            خرید سازمانی
+            <span data-label>خرید سازمانی</span>
           </Link>
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -2,11 +2,25 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { useCart } from "@/store/cart";
 import { useSession, signOut } from "next-auth/react";
 import AuthModal from "@/components/auth/AuthModal";
 import CartPanel from "@/components/layout/CartPanel";
+import { ShaderDisplacementGenerator, fragmentShaders } from "@/lib/liquid-glass/shader-utils";
+
+/* Module-level cache — generated once per size, shared by all instances */
+const _shaderCache = new Map<string, string>();
+function getNavShader(w: number, h: number): string {
+  const key = `${w}x${h}`;
+  if (!_shaderCache.has(key)) {
+    const gen = new ShaderDisplacementGenerator({ width: w, height: h, fragment: fragmentShaders.liquidGlass });
+    _shaderCache.set(key, gen.updateShader());
+    gen.destroy();
+  }
+  return _shaderCache.get(key)!;
+}
+
 
 interface SearchResult {
   id: string;
@@ -32,10 +46,91 @@ const mobileCategories = [
   { href: "/category/hardware", icon: "ti-tool",          label: "یراق‌آلات" },
 ];
 
+function NavGlassWrap({ children, width, height, radius = 12, onReady }: {
+  children: React.ReactNode;
+  width: number;
+  height: number;
+  radius?: number;
+  onReady?: () => void;
+}) {
+  const rawId = useId().replace(/:/g, "");
+  const filterId = `ng-${rawId}`;
+  const [shaderUrl, setShaderUrl] = useState("");
+
+  useEffect(() => {
+    setShaderUrl(getNavShader(width, height));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Signal ready after mount — the backdrop-filter span is always in DOM from the
+  // start, so we just need a few frames for GPU compositing to initialize.
+  // onReady fires independently of SVG shader URL (that's a visual enhancement
+  // on top of the already-working backdrop blur).
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
+  useEffect(() => {
+    // 4 rAFs (~67ms) — enough for GPU to init backdrop-filter compositing layer
+    // and for SVG filter program to compile before animation starts
+    let id: number;
+    let n = 4;
+    const tick = () => { if (--n > 0) id = requestAnimationFrame(tick); else onReadyRef.current?.(); };
+    id = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div style={{
+      position: "relative", width, height, flexShrink: 0,
+      borderRadius: radius,
+      /* Only show glass styling once the shader (and thus the effect) is ready.
+         This prevents a flash of just the outline before the blur appears. */
+      ...(shaderUrl ? {
+        background: "rgba(255,255,255,0.08)",
+        border: "1.5px solid rgba(255,255,255,0.45)",
+        boxShadow: "inset 0 1.5px 0 rgba(255,255,255,0.9), inset 1px 1px 6px rgba(255,255,255,0.2), 0 3px 12px rgba(0,0,0,0.2)",
+      } : {}),
+    }}>
+      {/* SVG displacement filter — only when shader is ready */}
+      {shaderUrl && (
+        <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden>
+          <defs>
+            <filter id={filterId} x="-150%" y="-150%" width="400%" height="400%" colorInterpolationFilters="sRGB">
+              <feImage x="0" y="0" width="100%" height="100%" result="DMAP" href={shaderUrl} preserveAspectRatio="xMidYMid slice" />
+              <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="30" xChannelSelector="R" yChannelSelector="B" result="RED_D" />
+              <feColorMatrix in="RED_D" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="R" />
+              <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="27" xChannelSelector="R" yChannelSelector="B" result="GRN_D" />
+              <feColorMatrix in="GRN_D" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="G" />
+              <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="24" xChannelSelector="R" yChannelSelector="B" result="BLU_D" />
+              <feColorMatrix in="BLU_D" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="B" />
+              <feBlend in="G" in2="B" mode="screen" result="GB" />
+              <feBlend in="R" in2="GB" mode="screen" />
+            </filter>
+          </defs>
+        </svg>
+      )}
+      {/* backdrop-filter span — ALWAYS in DOM so GPU compositing layer stays warm.
+          SVG displacement added on top once shader is ready. */}
+      <span style={{
+        position: "absolute", inset: 0, borderRadius: radius,
+        ...(shaderUrl ? { filter: `url(#${filterId})` } : {}),
+        backdropFilter: "blur(12px) saturate(140%)",
+        WebkitBackdropFilter: "blur(12px) saturate(140%)",
+        overflow: "hidden", pointerEvents: "none", zIndex: 0,
+      }} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 interface NavbarProps {
   siteName: string;
   siteLogo: string;
 }
+
+
 
 export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   const router = useRouter();
@@ -49,8 +144,11 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [cartMenuOpen, setCartMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // Hydration fix: don't render cart count until client has rehydrated the store
   const [mounted, setMounted] = useState(false);
+  const [navGone, setNavGone] = useState(false);
+  const [floatingIn, setFloatingIn] = useState(false);
+  const [shaderReady, setShaderReady] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -59,7 +157,29 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   }, []);
 
   useEffect(() => {
-    if (!userMenuOpen) return;
+    const el = navRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        const gone = !entry.isIntersecting;
+        setNavGone(gone);
+        if (!gone) setFloatingIn(false);
+      },
+      { threshold: 0 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // Animate in only after BOTH navGone AND shader/GPU are ready
+  useEffect(() => {
+    if (!navGone || !shaderReady) return;
+    const id = requestAnimationFrame(() => setFloatingIn(true));
+    return () => cancelAnimationFrame(id);
+  }, [navGone, shaderReady]);
+
+  useEffect(() => {
+    if (!userMenuOpen || navGone) return; // floating mode closes on mouse-leave, not click-outside
     function handler(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setUserMenuOpen(false);
@@ -67,7 +187,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [userMenuOpen]);
+  }, [userMenuOpen, navGone]);
 
   useEffect(() => {
     if (query.length < 2) { setResults([]); setCatResults([]); setDropOpen(false); return; }
@@ -129,6 +249,14 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
     profileMenuTimeout.current = setTimeout(() => setUserMenuOpen(false), 180);
   }
 
+  // Clear hover-delay timeouts on unmount to prevent setState on unmounted component
+  useEffect(() => {
+    return () => {
+      if (profileMenuTimeout.current) clearTimeout(profileMenuTimeout.current);
+      if (cartMenuTimeout.current) clearTimeout(cartMenuTimeout.current);
+    };
+  }, []);
+
   // Fetch wallet balance the first time the dropdown opens
   useEffect(() => {
     if (!userMenuOpen || !session?.user || walletBalance !== null) return;
@@ -142,8 +270,8 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
 
   return (
     <>
-      <nav className="site-nav" style={{ position: "relative", zIndex: 50 }}>
-        <div style={{ width: "100%", padding: "0 2rem", display: "flex", alignItems: "center", height: 84 }}>
+      <nav ref={navRef} className="site-nav" style={{ position: "relative", zIndex: 51 }}>
+        <div style={{ position: "relative", width: "100%", padding: "0 2rem", display: "flex", alignItems: "center", height: 84 }}>
 
           {/* Hamburger — mobile only */}
           <button
@@ -239,7 +367,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
           <div style={{ flex: 1 }} />
 
           {/* Actions — left edge (search flex:1 pushes them there) */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
 
             {/* User menu */}
             {session?.user ? (
@@ -249,17 +377,19 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                 onMouseEnter={openProfileMenu}
                 onMouseLeave={closeProfileMenu}
               >
-                {/* Trigger — plain icon button like cart/wishlist */}
-                <button
-                  onClick={() => router.push("/dashboard")}
-                  className="nav-icon-btn"
-                  aria-label="حساب کاربری"
-                >
-                  <i className="ti ti-user-circle" style={{ fontSize: 24 }} />
-                </button>
+                {/* Trigger */}
+                <NavGlassWrap width={44} height={44} radius={12}>
+                  <button
+                    onClick={() => router.push("/dashboard")}
+                    aria-label="حساب کاربری"
+                    style={{ background: "transparent", border: "none", color: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0, width: 44, height: 44, borderRadius: 12 }}
+                  >
+                    <i className="ti ti-user-circle" style={{ fontSize: 24 }} />
+                  </button>
+                </NavGlassWrap>
 
-                {/* Dropdown — Digikala-style clean list */}
-                {userMenuOpen && (
+                {/* Dropdown — only when navbar is visible */}
+                {userMenuOpen && !navGone && (
                   <div
                     onMouseEnter={openProfileMenu}
                     onMouseLeave={closeProfileMenu}
@@ -365,13 +495,16 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
                 )}
               </div>
             ) : (
-              <button
-                onClick={() => setAuthOpen(true)}
-                className="nav-pill-btn nav-login-btn"
-              >
-                <i className="ti ti-user" />
-                <span className="hidden md:inline">ورود / ثبت‌نام</span>
-              </button>
+              <NavGlassWrap width={140} height={44} radius={999}>
+                <button
+                  onClick={() => setAuthOpen(true)}
+                  aria-label="ورود / ثبت‌نام"
+                  style={{ background: "transparent", border: "none", color: "#fff", fontSize: 13.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", width: 140, height: 44, fontFamily: "Vazirmatn", whiteSpace: "nowrap" }}
+                >
+                  <i className="ti ti-user" style={{ fontSize: 18 }} />
+                  <span className="hidden md:inline">ورود / ثبت‌نام</span>
+                </button>
+              </NavGlassWrap>
             )}
 
             {/* Cart — hover mini-cart, click goes to /cart */}
@@ -380,21 +513,23 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
               onMouseEnter={openCartMenu}
               onMouseLeave={closeCartMenu}
             >
-              <button
-                onClick={() => router.push("/cart")}
-                className="nav-icon-btn"
-                aria-label="سبد خرید"
-              >
-                <i className="ti ti-shopping-cart" />
-                {count > 0 && (
-                  <span style={{ position: "absolute", top: 2, right: 2, background: "var(--accent)", color: "#fff", fontSize: 10, fontWeight: 700, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                    {count}
-                  </span>
-                )}
-              </button>
+              <NavGlassWrap width={44} height={44} radius={12}>
+                <button
+                  onClick={() => router.push("/cart")}
+                  aria-label="سبد خرید"
+                  style={{ background: "transparent", border: "none", color: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", width: 44, height: 44, borderRadius: 12, position: "relative" }}
+                >
+                  <i className="ti ti-shopping-cart" />
+                  {count > 0 && (
+                    <span style={{ position: "absolute", top: -4, right: -4, background: "var(--accent)", color: "#fff", fontSize: 10, fontWeight: 700, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 3 }}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              </NavGlassWrap>
 
-              {/* Mini-cart dropdown */}
-              {cartMenuOpen && mounted && (
+              {/* Mini-cart dropdown — only when navbar is visible */}
+              {cartMenuOpen && mounted && !navGone && (
                 <div
                   onMouseEnter={openCartMenu}
                   onMouseLeave={closeCartMenu}
@@ -522,6 +657,160 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
           </div>
         </div>
       </nav>
+
+      {/* ── Floating action buttons — pre-rendered for GPU warm-up, visible when navbar scrolls out ── */}
+      {mounted && (
+        <div
+          style={{
+            position: "fixed",
+            top: 60,
+            left: "2rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            zIndex: 51,
+            // opacity MUST stay 1 always — any opacity < 1 on a backdrop-filter
+            // ancestor causes Chrome to render children into an offscreen buffer,
+            // so backdrop-filter samples from that empty buffer instead of the page.
+            // Result: no blur visible until opacity reaches exactly 1 (after animation ends).
+            // Fix: animate with transform only, never touch opacity on this container.
+            opacity: 1,
+            transform: floatingIn
+              ? "translateY(0)"
+              : "translateY(-120px)", // 120px above top:60 = -60px → off-screen
+            transition: navGone ? "transform 0.4s cubic-bezier(0.34,1.56,0.64,1)" : "none",
+            pointerEvents: navGone && floatingIn ? "auto" : "none",
+          }}
+        >
+          {/* Profile / Login */}
+          {session?.user ? (
+            <div style={{ position: "relative" }}
+                 onMouseEnter={openProfileMenu} onMouseLeave={closeProfileMenu}>
+              <NavGlassWrap width={44} height={44} radius={12}>
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  aria-label="حساب کاربری"
+                  style={{ background: "transparent", border: "none", color: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0, width: 44, height: 44, borderRadius: 12 }}
+                >
+                  <i className="ti ti-user-circle" style={{ fontSize: 24 }} />
+                </button>
+              </NavGlassWrap>
+
+              {navGone && userMenuOpen && (
+                <div
+                  onMouseEnter={openProfileMenu} onMouseLeave={closeProfileMenu}
+                  style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, background: "#fff", borderRadius: 12, boxShadow: "0 8px 40px rgba(0,0,0,.16)", minWidth: 280, zIndex: 200, overflow: "hidden", border: "1px solid var(--border)", animation: "fadeIn .15s ease" }}
+                >
+                  <Link href="/dashboard" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                    <div className="dk-row-main"><i className="ti ti-user-circle" style={{ fontSize: 16, color: "var(--primary)" }} />حساب کاربری</div>
+                    <div className="dk-row-end"><span className="dk-row-secondary">{session.user.name?.split(" ")[0]}</span><i className="ti ti-chevron-left" style={{ fontSize: 12 }} /></div>
+                  </Link>
+                  <Link href="/dashboard" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                    <div className="dk-row-main"><i className="ti ti-user-edit" style={{ fontSize: 16, color: "var(--text3)" }} />ویرایش مشخصات فردی</div>
+                    <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
+                  </Link>
+                  <div className="dk-menu-divider" />
+                  <Link href="/dashboard?tab=wallet" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                    <div className="dk-row-main"><i className="ti ti-wallet" style={{ fontSize: 16, color: "var(--accent)" }} />کیف پول</div>
+                    <span className="dk-row-balance">{walletLoading ? "..." : walletBalance !== null ? `${walletBalance.toLocaleString("fa-IR")} تومان` : "—"}</span>
+                  </Link>
+                  <div className="dk-menu-divider" />
+                  <Link href="/wishlist" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                    <div className="dk-row-main"><i className="ti ti-heart" style={{ fontSize: 16, color: "#e74c3c" }} />لیست علاقه‌مندی</div>
+                    <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
+                  </Link>
+                  <Link href="/dashboard/orders" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}>
+                    <div className="dk-row-main"><i className="ti ti-package" style={{ fontSize: 16, color: "#1a7a4a" }} />سفارش های من</div>
+                    <i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} />
+                  </Link>
+                  {isAdmin && (<><div className="dk-menu-divider" /><Link href="/admin" className="dk-menu-row" onClick={() => setUserMenuOpen(false)}><div className="dk-row-main"><i className="ti ti-shield-lock" style={{ fontSize: 16, color: "var(--accent)" }} />پنل ادمین</div><i className="ti ti-chevron-left" style={{ fontSize: 12, color: "var(--text3)" }} /></Link></>)}
+                  <div className="dk-menu-divider" />
+                  <button onClick={() => { signOut({ callbackUrl: "/" }); setUserMenuOpen(false); }} className="dk-menu-row dk-menu-logout">
+                    <div className="dk-row-main"><i className="ti ti-logout" style={{ fontSize: 16 }} />خروج از حساب کاربری</div>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <NavGlassWrap width={44} height={44} radius={999}>
+              <button
+                onClick={() => setAuthOpen(true)}
+                aria-label="ورود / ثبت‌نام"
+                style={{ background: "transparent", border: "none", color: "#fff", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", width: 44, height: 44 }}
+              >
+                <i className="ti ti-user" />
+              </button>
+            </NavGlassWrap>
+          )}
+
+          {/* Cart */}
+          <div style={{ position: "relative" }}
+               onMouseEnter={openCartMenu} onMouseLeave={closeCartMenu}>
+            <NavGlassWrap width={44} height={44} radius={12} onReady={() => setShaderReady(true)}>
+              <button
+                onClick={() => router.push("/cart")}
+                aria-label="سبد خرید"
+                style={{ background: "transparent", border: "none", color: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", width: 44, height: 44, borderRadius: 12, position: "relative" }}
+              >
+                <i className="ti ti-shopping-cart" />
+                {mounted && count > 0 && (
+                  <span style={{ position: "absolute", top: -4, right: -4, background: "var(--accent)", color: "#fff", fontSize: 10, fontWeight: 700, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            </NavGlassWrap>
+
+            {navGone && cartMenuOpen && mounted && (
+              <div
+                onMouseEnter={openCartMenu} onMouseLeave={closeCartMenu}
+                style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, background: "#fff", borderRadius: 12, boxShadow: "0 8px 40px rgba(0,0,0,.16)", width: 340, zIndex: 200, border: "1px solid var(--border)", animation: "fadeIn .15s ease", overflow: "hidden" }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: "1px solid var(--border)" }}>
+                  <span style={{ fontSize: 14, fontWeight: 900, color: "var(--text)", display: "flex", alignItems: "center", gap: 6 }}>
+                    سبد خرید شما
+                    {items.length > 0 && <span style={{ color: "var(--text3)", fontWeight: 700, fontSize: 12 }}>| {totalItems()} عدد کالا</span>}
+                  </span>
+                  <Link href="/cart" onClick={() => setCartMenuOpen(false)} style={{ fontSize: 12, fontWeight: 700, color: "var(--primary)", display: "flex", alignItems: "center", gap: 3, textDecoration: "none" }}>
+                    مشاهده سبد خرید <i className="ti ti-chevron-left" style={{ fontSize: 11 }} />
+                  </Link>
+                </div>
+                {items.length === 0 ? (
+                  <div style={{ padding: "2.5rem 1rem", textAlign: "center", color: "var(--text3)" }}>
+                    <i className="ti ti-shopping-cart-off" style={{ fontSize: 44, display: "block", marginBottom: 10 }} />
+                    <p style={{ fontSize: 13, fontWeight: 700, margin: 0 }}>سبد خرید شما خالی است</p>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ maxHeight: 260, overflowY: "auto", scrollbarWidth: "thin" }}>
+                      {items.slice(0, 4).map((item) => (
+                        <div key={`${item.id}-${item.sizeLabel ?? ""}`} style={{ display: "flex", gap: 12, padding: "10px 16px", borderBottom: "1px solid var(--bg2)", alignItems: "flex-start" }}>
+                          <div style={{ width: 52, height: 52, borderRadius: 8, overflow: "hidden", background: "var(--bg)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {item.imageUrl ? <img src={item.imageUrl} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <i className="ti ti-package" style={{ fontSize: 22, color: "var(--border)" }} />}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text)", lineHeight: 1.4, marginBottom: 4, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{item.name}</div>
+                            <div style={{ fontSize: 12, fontWeight: 900, color: "var(--primary)" }}>{new Intl.NumberFormat("fa-IR").format(item.price * item.quantity)} تومان</div>
+                          </div>
+                        </div>
+                      ))}
+                      {items.length > 4 && <div style={{ padding: "8px 16px", fontSize: 12, color: "var(--text3)", textAlign: "center" }}>و {items.length - 4} کالای دیگر...</div>}
+                    </div>
+                    <div style={{ borderTop: "1px solid var(--border)", display: "flex", alignItems: "stretch" }}>
+                      <Link href="/checkout" onClick={() => setCartMenuOpen(false)} style={{ flex: 1, background: "var(--primary)", color: "#fff", padding: "12px 16px", fontSize: 13, fontWeight: 900, textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>ثبت سفارش</Link>
+                      <div style={{ width: 1, background: "rgba(255,255,255,.3)", flexShrink: 0 }} />
+                      <div style={{ flex: 1, padding: "0 12px", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 1 }}>
+                        <span style={{ fontSize: 11, color: "var(--text3)", fontWeight: 700 }}>مبلغ کل</span>
+                        <span style={{ fontSize: 13, fontWeight: 900, color: "var(--primary)" }}>{new Intl.NumberFormat("fa-IR").format(totalPrice())} تومان</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Mobile nav overlay ── */}
       <div className={`mobile-nav-overlay ${mobileMenuOpen ? "open" : ""}`} onClick={() => setMobileMenuOpen(false)} />

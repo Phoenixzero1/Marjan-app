@@ -1,8 +1,7 @@
-﻿export const dynamic = 'force-dynamic'
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
-import { prisma } from "@/lib/prisma";
-import { z } from "zod";export async function GET(req: NextRequest) {
+
+import { prisma } from "@/lib/prisma";export async function GET(req: NextRequest) {
   if (!(await requirePermission("VIEW_ADMIN"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
@@ -67,30 +66,19 @@ import { z } from "zod";export async function GET(req: NextRequest) {
   return NextResponse.json({ items: reviews, total, page, pages: Math.ceil(total / limit), pendingCount });
 }
 
-const patchSchema = z.object({
-  id: z.string().min(1, "شناسه الزامی است"),
-  tab: z.enum(["blog", "review"]).optional(),
-  isApproved: z.boolean(),
-});
-
 export async function PATCH(req: NextRequest) {
   if (!(await requirePermission("VIEW_ADMIN"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const body = await req.json();
-  const parsed = patchSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
-  const { id, tab, isApproved } = parsed.data;
+  const { id, tab, isApproved } = await req.json();
+  if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
 
-  try {
-    if (tab === "blog") {
-      const comment = await prisma.blogComment.update({ where: { id }, data: { isApproved } });
-      return NextResponse.json({ comment });
-    }
-    const review = await prisma.review.update({ where: { id }, data: { isApproved } });
-    return NextResponse.json({ review });
-  } catch {
-    return NextResponse.json({ error: "خطا در بروزرسانی" }, { status: 500 });
+  if (tab === "blog") {
+    const comment = await prisma.blogComment.update({ where: { id }, data: { isApproved } });
+    return NextResponse.json({ comment });
   }
+
+  const review = await prisma.review.update({ where: { id }, data: { isApproved } });
+  return NextResponse.json({ review });
 }
 
 export async function DELETE(req: NextRequest) {

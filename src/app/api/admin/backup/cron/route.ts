@@ -1,4 +1,3 @@
-﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { spawn } from "child_process";
@@ -29,7 +28,7 @@ function runPgDump(dbInfo: ReturnType<typeof parseDatabaseUrl>, outFile: string)
   });
 }
 
-// GET â€” called by system cron or Windows Task Scheduler every 24h
+// GET — called by system cron or Windows Task Scheduler every 24h
 // Protected by CRON_SECRET header or query param
 export async function GET(req: NextRequest) {
   const secret = req.nextUrl.searchParams.get("secret") ?? req.headers.get("x-cron-secret");

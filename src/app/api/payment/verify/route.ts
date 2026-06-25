@@ -46,10 +46,33 @@ export async function GET(req: NextRequest) {
       `${appUrl}/payment/success?orderId=${payment.orderId}&refId=${result.refId}`
     );
   } else {
-    await prisma.payment.update({
-      where: { authority },
-      data: { status: "FAILED", gatewayResponse: { error: result.error } },
+    // Mark payment failed + cancel the order + return stock
+    const order = await prisma.order.findUnique({
+      where: { id: payment.orderId },
+      include: { items: true },
     });
+
+    await prisma.$transaction([
+      prisma.payment.update({
+        where: { authority },
+        data: { status: "FAILED", gatewayResponse: { error: result.error } },
+      }),
+      prisma.order.update({
+        where: { id: payment.orderId },
+        data: { status: "CANCELLED" },
+      }),
+      // Restore stock for each item
+      ...(order?.items ?? []).map((item) =>
+        prisma.product.update({
+          where: { id: item.productId },
+          data: {
+            stockQty: { increment: item.quantity },
+            saleCount: { decrement: item.quantity },
+          },
+        })
+      ),
+    ]);
+
     return NextResponse.redirect(
       `${appUrl}/payment/failed?reason=verification_failed`
     );

@@ -81,9 +81,7 @@ export default function OrdersPage() {
                         <span className={s.class} style={{ fontSize: 11, fontWeight: 900, padding: "3px 10px", borderRadius: 20, display: "inline-block" }}>{s.label}</span>
                       </td>
                       <td style={{ padding: 10 }}>
-                        <Link href={`/dashboard/orders/${o.id}`} style={{ background: "var(--primary)", color: "#fff", padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                          <i className="ti ti-eye" style={{ fontSize: 12 }} /> جزئیات
-                        </Link>
+                        <button style={{ background: "var(--bg2)", border: "none", padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Vazirmatn", color: "var(--primary)" }}>جزئیات</button>
                       </td>
                     </tr>
                   );

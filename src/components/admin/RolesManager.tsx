@@ -1,41 +1,36 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import {
+  AdminPageHeader, AdminToolbar, AdminSearch, AdminSelect, AdminBtn,
+  AdminTable, AdminTh, AdminTd, AdminTr, AdminBadge, AdminEmptyState,
+  AdminDrawer, AdminTabs, AdminPagination,
+  AdminToast, useAdminToast,
+} from "@/components/admin/AdminUI";
+import type { Permission } from "@/lib/permissions";
 
 type UserRole = "CUSTOMER" | "CONTRACTOR" | "CONTENT_MANAGER" | "ADMIN" | "SUPER_ADMIN";
 type UserStatus = "ACTIVE" | "SUSPENDED" | "PENDING_VERIFY" | "DELETED";
 
 interface UserRow {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string | null;
-  phone: string | null;
-  role: UserRole;
-  status: UserStatus;
-  createdAt: string;
-  lastLoginAt: string | null;
-  avatarUrl: string | null;
+  id: string; firstName: string; lastName: string; email: string | null; phone: string | null;
+  role: UserRole; status: UserStatus; createdAt: string; lastLoginAt: string | null; avatarUrl: string | null;
 }
 
-type Toast = { msg: string; ok: boolean };
-
-const ROLE_META: Record<UserRole, { label: string; color: string; bg: string; icon: string }> = {
-  CUSTOMER:        { label: "مشتری",       color: "#64748b", bg: "#f1f5f9", icon: "ti-user" },
-  CONTRACTOR:      { label: "پیمانکار",    color: "#7c3aed", bg: "#ede9fe", icon: "ti-tool" },
-  CONTENT_MANAGER: { label: "مدیر محتوا",  color: "#0284c7", bg: "#e0f2fe", icon: "ti-edit" },
-  ADMIN:           { label: "مدیر",        color: "#d97706", bg: "#fef3c7", icon: "ti-shield" },
-  SUPER_ADMIN:     { label: "مدیر ارشد",   color: "#dc2626", bg: "#fee2e2", icon: "ti-crown" },
+const ROLE_META: Record<UserRole, { label: string; color: string; bg: string; icon: string; variant: "success" | "info" | "warning" | "danger" | "neutral" | "purple" }> = {
+  CUSTOMER:        { label: "مشتری",      color: "#64748b", bg: "#f1f5f9", icon: "ti-user",   variant: "neutral" },
+  CONTRACTOR:      { label: "پیمانکار",   color: "#7c3aed", bg: "#ede9fe", icon: "ti-tool",   variant: "purple" },
+  CONTENT_MANAGER: { label: "مدیر محتوا", color: "#0284c7", bg: "#e0f2fe", icon: "ti-edit",   variant: "info" },
+  ADMIN:           { label: "مدیر",       color: "#d97706", bg: "#fef3c7", icon: "ti-shield",  variant: "warning" },
+  SUPER_ADMIN:     { label: "مدیر ارشد",  color: "#dc2626", bg: "#fee2e2", icon: "ti-crown",   variant: "danger" },
 };
 
-const STATUS_META: Record<UserStatus, { label: string; color: string; bg: string }> = {
-  ACTIVE:         { label: "فعال",          color: "#16a34a", bg: "#dcfce7" },
-  SUSPENDED:      { label: "معلق",          color: "#dc2626", bg: "#fee2e2" },
-  PENDING_VERIFY: { label: "در انتظار",     color: "#d97706", bg: "#fef3c7" },
-  DELETED:        { label: "حذف‌شده",       color: "#9ca3af", bg: "#f3f4f6" },
+const STATUS_META: Record<UserStatus, { label: string; variant: "success" | "danger" | "warning" | "neutral" }> = {
+  ACTIVE:         { label: "فعال",      variant: "success" },
+  SUSPENDED:      { label: "معلق",      variant: "danger" },
+  PENDING_VERIFY: { label: "در انتظار", variant: "warning" },
+  DELETED:        { label: "حذف‌شده",   variant: "neutral" },
 };
-
-import type { Permission } from "@/lib/permissions";
 
 const PERMISSIONS: { label: string; keys: UserRole[] }[] = [
   { label: "مشاهده پنل ادمین",        keys: ["ADMIN", "SUPER_ADMIN", "CONTENT_MANAGER"] },
@@ -59,11 +54,12 @@ const PERMISSIONS: { label: string; keys: UserRole[] }[] = [
 
 type PermissionRow = { permission: Permission; granted: boolean; isDefault: boolean };
 type PermUser = { id: string; firstName: string; lastName: string; role: UserRole };
-
 const ALL_ROLES: UserRole[] = ["CUSTOMER", "CONTRACTOR", "CONTENT_MANAGER", "ADMIN", "SUPER_ADMIN"];
 const ALL_STATUSES: UserStatus[] = ["ACTIVE", "SUSPENDED", "PENDING_VERIFY", "DELETED"];
+const PAGE_SIZE = 25;
 
 export default function RolesManager() {
+  const { toast, showToast } = useAdminToast();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
@@ -84,12 +80,6 @@ export default function RolesManager() {
   const [drawerRole, setDrawerRole] = useState<UserRole>("CUSTOMER");
   const [drawerStatus, setDrawerStatus] = useState<UserStatus>("ACTIVE");
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<Toast | null>(null);
-
-  const showToast = (msg: string, ok = true) => {
-    setToast({ msg, ok });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const load = useCallback(async (pg = 1) => {
     setLoading(true);
@@ -100,140 +90,92 @@ export default function RolesManager() {
       if (statusFilter) params.set("status", statusFilter);
       const res = await fetch(`/api/admin/roles?${params}`);
       const data = await res.json();
-      setUsers(data.users ?? []);
-      setTotal(data.total ?? 0);
-      setPages(data.pages ?? 1);
-      setPage(pg);
+      setUsers(data.users ?? []); setTotal(data.total ?? 0); setPages(data.pages ?? 1); setPage(pg);
       if (data.roleCounts) setRoleCounts(data.roleCounts);
       if (data.myUserId) setMyUserId(data.myUserId);
       if (data.myRole) setMyRole(data.myRole);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, [q, roleFilter, statusFilter]);
 
   useEffect(() => { load(1); }, [load]);
 
-  function openEdit(user: UserRow) {
-    setEditing(user);
-    setDrawerRole(user.role);
-    setDrawerStatus(user.status);
-  }
+  function openEdit(user: UserRow) { setEditing(user); setDrawerRole(user.role); setDrawerStatus(user.status); }
 
   async function handleSave() {
     if (!editing) return;
     const roleChanged = drawerRole !== editing.role;
     const statusChanged = drawerStatus !== editing.status;
     if (!roleChanged && !statusChanged) { setEditing(null); return; }
-
     setSaving(true);
     try {
       const body: Record<string, string> = { userId: editing.id };
       if (roleChanged) body.role = drawerRole;
       if (statusChanged) body.status = drawerStatus;
-
-      const res = await fetch("/api/admin/roles", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch("/api/admin/roles", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
-      if (!res.ok) { showToast(data.error ?? "خطا در ذخیره", false); return; }
-      showToast("تغییرات اعمال شد");
-      setEditing(null);
-      load(page);
-    } finally {
-      setSaving(false);
-    }
+      if (!res.ok) { showToast("error", data.error ?? "خطا در ذخیره"); return; }
+      showToast("success", "تغییرات اعمال شد"); setEditing(null); load(page);
+    } finally { setSaving(false); }
   }
 
   async function openPerms(user: UserRow) {
     setPermUser({ id: user.id, firstName: user.firstName, lastName: user.lastName, role: user.role });
-    setPermRows([]);
-    setPermLoading(true);
-    setActiveTab("perms");
+    setPermRows([]); setPermLoading(true); setActiveTab("perms");
     try {
       const res = await fetch(`/api/admin/permissions?userId=${user.id}`);
       const data = await res.json();
       setPermRows(data.permissions ?? []);
-    } finally {
-      setPermLoading(false);
-    }
+    } finally { setPermLoading(false); }
   }
 
   async function togglePerm(permission: Permission, currentGranted: boolean, isDefault: boolean) {
     if (!permUser) return;
     setPermSaving(permission);
     try {
-      // If it's a default and we're "granting" (same as default), remove override; else set override
       const newGranted = !currentGranted;
-      const body = { userId: permUser.id, permission, granted: newGranted };
-      await fetch("/api/admin/permissions", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      setPermRows((prev) => prev.map((r) =>
-        r.permission === permission ? { ...r, granted: newGranted, isDefault: false } : r
-      ));
-      showToast("دسترسی به‌روز شد");
-    } catch {
-      showToast("خطا در ذخیره", false);
-    } finally {
-      setPermSaving(null);
-    }
+      await fetch("/api/admin/permissions", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId: permUser.id, permission, granted: newGranted }) });
+      setPermRows(prev => prev.map(r => r.permission === permission ? { ...r, granted: newGranted, isDefault: false } : r));
+      showToast("success", "دسترسی به‌روز شد");
+    } catch { showToast("error", "خطا در ذخیره"); }
+    finally { setPermSaving(null); }
   }
 
   async function resetPerms() {
     if (!permUser) return;
-    if (!window.confirm(`آیا می‌خواهید تمام تنظیمات دسترسی ${permUser.firstName} ${permUser.lastName} را به حالت پیش‌فرض نقش بازگردانید؟`)) return;
+    if (!window.confirm(`آیا می‌خواهید تمام تنظیمات دسترسی ${permUser.firstName} ${permUser.lastName} را به حالت پیش‌فرض بازگردانید؟`)) return;
     setPermSaving("__all__");
     try {
       await fetch(`/api/admin/permissions?userId=${permUser.id}`, { method: "DELETE" });
       const res = await fetch(`/api/admin/permissions?userId=${permUser.id}`);
       const data = await res.json();
-      setPermRows(data.permissions ?? []);
-      showToast("تنظیمات دسترسی به پیش‌فرض بازگشت");
-    } catch {
-      showToast("خطا", false);
-    } finally {
-      setPermSaving(null);
-    }
+      setPermRows(data.permissions ?? []); showToast("success", "تنظیمات دسترسی به پیش‌فرض بازگشت");
+    } catch { showToast("error", "خطا"); }
+    finally { setPermSaving(null); }
   }
 
-  const fmtDate = (s: string | null) => s
-    ? new Date(s).toLocaleDateString("fa-IR", { year: "numeric", month: "short", day: "numeric" })
-    : "—";
-
+  const fmtDate = (s: string | null) => s ? new Date(s).toLocaleDateString("fa-IR", { year: "numeric", month: "short", day: "numeric" }) : "—";
   const totalUsers = Object.values(roleCounts).reduce((a, b) => a + b, 0);
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* Toast */}
-      {toast && (
-        <div style={{ position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: toast.ok ? "#22c55e" : "#ef4444", color: "#fff", padding: "12px 28px", borderRadius: 10, fontWeight: 700, fontSize: 14, boxShadow: "0 4px 24px rgba(0,0,0,.18)" }}>
-          {toast.msg}
-        </div>
-      )}
+  const TABS = [
+    { id: "users", label: "مدیریت کاربران", icon: "ti-users" },
+    { id: "matrix", label: "ماتریس دسترسی", icon: "ti-layout-grid" },
+    { id: "perms", label: permUser ? `دسترسی: ${permUser.firstName}` : "دسترسی اختصاصی", icon: "ti-key" },
+  ];
 
-      {/* Header */}
-      <div>
-        <h2 style={{ fontSize: 20, fontWeight: 900, color: "var(--primary)", margin: 0 }}>نقش‌ها و دسترسی</h2>
-        <p style={{ fontSize: 12, color: "var(--text3)", margin: "4px 0 0" }}>{totalUsers.toLocaleString("fa-IR")} کاربر ثبت‌شده</p>
-      </div>
+  return (
+    <div>
+      <AdminToast toast={toast} />
+
+      <AdminPageHeader title="نقش‌ها و دسترسی" icon="ti-shield-half-filled" count={totalUsers} subtitle={`${totalUsers.toLocaleString("fa-IR")} کاربر ثبت‌شده`} />
 
       {/* Role summary cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
-        {ALL_ROLES.map((r) => {
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 16 }}>
+        {ALL_ROLES.map(r => {
           const meta = ROLE_META[r];
           const count = roleCounts[r] ?? 0;
           const active = roleFilter === r;
           return (
-            <div
-              key={r}
-              onClick={() => setRoleFilter(active ? "" : r)}
-              style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: active ? `0 0 0 2px ${meta.color}` : "var(--shadow)", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, transition: "box-shadow .15s" }}
-            >
+            <div key={r} onClick={() => setRoleFilter(active ? "" : r)} style={{ background: "#fff", borderRadius: 10, border: active ? `2px solid ${meta.color}` : "1.5px solid var(--border)", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, boxShadow: active ? `0 0 0 1px ${meta.color}20` : "0 1px 4px rgba(0,0,0,.06)", transition: "all .15s" }}>
               <div style={{ width: 38, height: 38, borderRadius: 10, background: meta.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <i className={`ti ${meta.icon}`} style={{ fontSize: 20, color: meta.color }} />
               </div>
@@ -246,160 +188,86 @@ export default function RolesManager() {
         })}
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: "flex", borderBottom: "2px solid var(--border)", gap: 0 }}>
-        {([["users", "مدیریت کاربران"], ["matrix", "ماتریس دسترسی"], ["perms", `دسترسی${permUser ? `: ${permUser.firstName}` : " اختصاصی"}`]] as const).map(([tab, label]) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{ background: "none", border: "none", borderBottom: activeTab === tab ? "2px solid var(--primary)" : "2px solid transparent", marginBottom: -2, padding: "10px 20px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, color: activeTab === tab ? "var(--primary)" : "var(--text3)", cursor: "pointer" }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <AdminTabs tabs={TABS} active={activeTab} onChange={v => setActiveTab(v as typeof activeTab)} />
 
       {/* Tab: Users */}
       {activeTab === "users" && (
         <>
-          {/* Filters */}
-          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "12px 16px", display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-            <input
-              value={q}
-              onChange={e => setQ(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && load(1)}
-              placeholder="جستجو نام، ایمیل یا موبایل..."
-              style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 12px", fontFamily: "Vazirmatn", fontSize: 13, outline: "none", minWidth: 240 }}
-            />
-            <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 10px", fontFamily: "Vazirmatn", fontSize: 13, background: "#fff" }}>
+          <AdminToolbar>
+            <AdminSearch value={q} onChange={setQ} placeholder="جستجو نام، ایمیل یا موبایل..." />
+            <AdminSelect value={roleFilter} onChange={setRoleFilter}>
               <option value="">همه نقش‌ها</option>
               {ALL_ROLES.map(r => <option key={r} value={r}>{ROLE_META[r].label}</option>)}
-            </select>
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 10px", fontFamily: "Vazirmatn", fontSize: 13, background: "#fff" }}>
+            </AdminSelect>
+            <AdminSelect value={statusFilter} onChange={setStatusFilter}>
               <option value="">همه وضعیت‌ها</option>
               {ALL_STATUSES.map(s => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
-            </select>
-            <button onClick={() => load(1)} style={{ background: "var(--primary)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "8px 16px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>اعمال</button>
-            {(roleFilter || statusFilter || q) && (
-              <button onClick={() => { setRoleFilter(""); setStatusFilter(""); setQ(""); }} style={{ background: "var(--surface)", color: "var(--text2)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 12px", fontFamily: "Vazirmatn", fontSize: 13, cursor: "pointer" }}>پاک‌سازی</button>
-            )}
-            <div style={{ marginRight: "auto", fontSize: 13, color: "var(--text3)", fontWeight: 700 }}>{total.toLocaleString("fa-IR")} نتیجه</div>
-          </div>
+            </AdminSelect>
+            <AdminBtn icon="ti-search" onClick={() => load(1)}>اعمال</AdminBtn>
+            {(roleFilter || statusFilter || q) && <AdminBtn icon="ti-x" variant="secondary" onClick={() => { setRoleFilter(""); setStatusFilter(""); setQ(""); }}>پاک‌سازی</AdminBtn>}
+            <span style={{ fontSize: 13, color: "var(--text3)", fontWeight: 700 }}>{total.toLocaleString("fa-IR")} نتیجه</span>
+          </AdminToolbar>
 
-          {/* Table */}
-          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", overflow: "hidden" }}>
-            {loading ? (
-              <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
-                <i className="ti ti-loader-2" style={{ fontSize: 28, display: "block", marginBottom: 8 }} />در حال بارگذاری...
-              </div>
-            ) : users.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
-                <i className="ti ti-users" style={{ fontSize: 40, display: "block", marginBottom: 8 }} />کاربری یافت نشد
-              </div>
-            ) : (
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead>
-                  <tr>
-                    {["کاربر", "نقش", "وضعیت", "تاریخ ثبت‌نام", "آخرین ورود", "عملیات"].map(h => (
-                      <th key={h} style={{ background: "var(--bg)", padding: "10px 14px", fontSize: 11, fontWeight: 900, color: "var(--text2)", textAlign: "right", borderBottom: "2px solid var(--border)" }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user, i) => {
-                    const roleMeta = ROLE_META[user.role];
-                    const statusMeta = STATUS_META[user.status];
-                    const isMe = user.id === myUserId;
-                    return (
-                      <tr key={user.id} style={{ borderBottom: i < users.length - 1 ? "1px solid var(--border)" : "none" }}>
-                        {/* User */}
-                        <td style={{ padding: "12px 14px" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <div style={{ width: 34, height: 34, borderRadius: "50%", background: roleMeta.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 16 }}>
-                              {user.avatarUrl
-                                ? <img src={user.avatarUrl} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover" }} />
-                                : <i className={`ti ${roleMeta.icon}`} style={{ color: roleMeta.color }} />
-                              }
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: 900, display: "flex", alignItems: "center", gap: 6 }}>
-                                {user.firstName} {user.lastName}
-                                {isMe && <span style={{ background: "#dbeafe", color: "#2563eb", fontSize: 9, fontWeight: 900, padding: "1px 6px", borderRadius: 6 }}>شما</span>}
-                              </div>
-                              <div style={{ fontSize: 11, color: "var(--text3)", direction: "ltr", textAlign: "right" }}>
-                                {user.email ?? user.phone ?? "—"}
-                              </div>
-                            </div>
+          <AdminTable>
+            <thead>
+              <tr>
+                <AdminTh>کاربر</AdminTh>
+                <AdminTh>نقش</AdminTh>
+                <AdminTh>وضعیت</AdminTh>
+                <AdminTh>تاریخ ثبت‌نام</AdminTh>
+                <AdminTh>آخرین ورود</AdminTh>
+                <AdminTh>عملیات</AdminTh>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && <tr><td colSpan={6}><AdminEmptyState icon="ti-loader-2" title="در حال بارگذاری..." /></td></tr>}
+              {!loading && users.length === 0 && <tr><td colSpan={6}><AdminEmptyState icon="ti-users" title="کاربری یافت نشد" /></td></tr>}
+              {users.map(user => {
+                const roleMeta = ROLE_META[user.role];
+                const isMe = user.id === myUserId;
+                return (
+                  <AdminTr key={user.id}>
+                    <AdminTd>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 34, height: 34, borderRadius: "50%", background: roleMeta.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          {user.avatarUrl
+                            // eslint-disable-next-line @next/next/no-img-element
+                            ? <img src={user.avatarUrl} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover" }} />
+                            : <i className={`ti ${roleMeta.icon}`} style={{ color: roleMeta.color, fontSize: 16 }} />
+                          }
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 900, display: "flex", alignItems: "center", gap: 6 }}>
+                            {user.firstName} {user.lastName}
+                            {isMe && <AdminBadge variant="info" size="xs">شما</AdminBadge>}
                           </div>
-                        </td>
+                          <div style={{ fontSize: 11, color: "var(--text3)" }}>{user.email ?? user.phone ?? "—"}</div>
+                        </div>
+                      </div>
+                    </AdminTd>
+                    <AdminTd><AdminBadge variant={roleMeta.variant}><i className={`ti ${roleMeta.icon}`} style={{ fontSize: 11, marginLeft: 4 }} />{roleMeta.label}</AdminBadge></AdminTd>
+                    <AdminTd><AdminBadge variant={STATUS_META[user.status].variant}>{STATUS_META[user.status].label}</AdminBadge></AdminTd>
+                    <AdminTd style={{ color: "var(--text3)", fontSize: 12 }}>{fmtDate(user.createdAt)}</AdminTd>
+                    <AdminTd style={{ color: "var(--text3)", fontSize: 12 }}>{fmtDate(user.lastLoginAt)}</AdminTd>
+                    <AdminTd>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <AdminBtn size="sm" icon="ti-shield-half-filled" disabled={isMe} title={isMe ? "نمی‌توانید نقش خودتان را تغییر دهید" : undefined} onClick={() => openEdit(user)}>نقش</AdminBtn>
+                        {!isMe && <AdminBtn size="sm" icon="ti-key" variant="secondary" onClick={() => openPerms(user)}>دسترسی</AdminBtn>}
+                      </div>
+                    </AdminTd>
+                  </AdminTr>
+                );
+              })}
+            </tbody>
+          </AdminTable>
 
-                        {/* Role */}
-                        <td style={{ padding: "12px 14px" }}>
-                          <span style={{ background: roleMeta.bg, color: roleMeta.color, borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 900, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                            <i className={`ti ${roleMeta.icon}`} style={{ fontSize: 11 }} />
-                            {roleMeta.label}
-                          </span>
-                        </td>
-
-                        {/* Status */}
-                        <td style={{ padding: "12px 14px" }}>
-                          <span style={{ background: statusMeta.bg, color: statusMeta.color, borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 900 }}>
-                            {statusMeta.label}
-                          </span>
-                        </td>
-
-                        {/* Joined */}
-                        <td style={{ padding: "12px 14px", color: "var(--text3)", fontSize: 12 }}>{fmtDate(user.createdAt)}</td>
-
-                        {/* Last Login */}
-                        <td style={{ padding: "12px 14px", color: "var(--text3)", fontSize: 12 }}>{fmtDate(user.lastLoginAt)}</td>
-
-                        {/* Actions */}
-                        <td style={{ padding: "12px 14px" }}>
-                          <div style={{ display: "flex", gap: 6 }}>
-                            <button
-                              onClick={() => openEdit(user)}
-                              disabled={isMe}
-                              title={isMe ? "نمی‌توانید نقش خودتان را تغییر دهید" : "ویرایش نقش و وضعیت"}
-                              style={{ background: isMe ? "var(--bg)" : "var(--primary)", color: isMe ? "var(--text3)" : "#fff", border: isMe ? "1.5px solid var(--border)" : "none", borderRadius: "var(--radius-sm)", padding: "6px 12px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: isMe ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 5, opacity: isMe ? .5 : 1 }}
-                            >
-                              <i className="ti ti-shield-half-filled" style={{ fontSize: 13 }} /> نقش
-                            </button>
-                            {!isMe && (
-                              <button
-                                onClick={() => openPerms(user)}
-                                title="تنظیم دسترسی‌های اختصاصی"
-                                style={{ background: "var(--bg)", color: "var(--text2)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "6px 12px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
-                              >
-                                <i className="ti ti-key" style={{ fontSize: 13 }} /> دسترسی
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-          {/* Pagination */}
-          {pages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
-              <button onClick={() => load(page - 1)} disabled={page <= 1} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 14px", fontFamily: "Vazirmatn", fontSize: 13, cursor: "pointer", opacity: page <= 1 ? .5 : 1 }}>قبلی</button>
-              <span style={{ display: "flex", alignItems: "center", fontSize: 13, color: "var(--text2)", padding: "0 8px" }}>
-                {page.toLocaleString("fa-IR")} از {pages.toLocaleString("fa-IR")}
-              </span>
-              <button onClick={() => load(page + 1)} disabled={page >= pages} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 14px", fontFamily: "Vazirmatn", fontSize: 13, cursor: "pointer", opacity: page >= pages ? .5 : 1 }}>بعدی</button>
-            </div>
-          )}
+          {pages > 1 && <AdminPagination page={page} total={total} pageSize={PAGE_SIZE} onChange={pg => load(pg)} />}
         </>
       )}
 
-      {/* Tab: Permissions Matrix */}
+      {/* Tab: Matrix */}
       {activeTab === "matrix" && (
-        <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", overflow: "auto" }}>
+        <div style={{ background: "#fff", borderRadius: 10, border: "1.5px solid var(--border)", overflow: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr>
@@ -410,7 +278,7 @@ export default function RolesManager() {
                     <th key={r} style={{ background: "var(--bg)", padding: "12px 16px", fontSize: 11, fontWeight: 900, color: meta.color, textAlign: "center", borderBottom: "2px solid var(--border)", minWidth: 100, whiteSpace: "nowrap" }}>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                         <div style={{ width: 30, height: 30, borderRadius: 8, background: meta.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <i className={`ti ${meta.icon}`} style={{ fontSize: 16 }} />
+                          <i className={`ti ${meta.icon}`} style={{ fontSize: 16, color: meta.color }} />
                         </div>
                         {meta.label}
                       </div>
@@ -422,7 +290,7 @@ export default function RolesManager() {
             <tbody>
               {PERMISSIONS.map((perm, i) => (
                 <tr key={i} style={{ borderBottom: "1px solid var(--border)", background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
-                  <td style={{ padding: "12px 16px", fontWeight: 700, color: "var(--text)" }}>{perm.label}</td>
+                  <td style={{ padding: "12px 16px", fontWeight: 700 }}>{perm.label}</td>
                   {ALL_ROLES.map(r => {
                     const has = perm.keys.includes(r);
                     return (
@@ -441,86 +309,52 @@ export default function RolesManager() {
         </div>
       )}
 
-      {/* Tab: Per-User Permissions */}
+      {/* Tab: Per-user Permissions */}
       {activeTab === "perms" && (
-        <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1.5rem" }}>
+        <div style={{ background: "#fff", borderRadius: 10, border: "1.5px solid var(--border)", padding: "1.5rem" }}>
           {!permUser ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
-              <i className="ti ti-key" style={{ fontSize: 40, display: "block", marginBottom: 8 }} />
-              برای تنظیم دسترسی اختصاصی، از تب «مدیریت کاربران» روی دکمه «دسترسی» کلیک کنید
-            </div>
+            <AdminEmptyState icon="ti-key" title="برای تنظیم دسترسی اختصاصی" subtitle="از تب «مدیریت کاربران» روی دکمه «دسترسی» کلیک کنید" />
           ) : (
             <>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "var(--primary)" }}>
-                    دسترسی‌های اختصاصی: {permUser.firstName} {permUser.lastName}
-                  </h3>
-                  <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--text3)" }}>
-                    نقش: {ROLE_META[permUser.role].label} — تغییرات اختصاصی بر دسترسی‌های پیش‌فرض نقش اعمال می‌شوند
-                  </p>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: "var(--primary)" }}>دسترسی‌های اختصاصی: {permUser.firstName} {permUser.lastName}</div>
+                  <div style={{ fontSize: 12, color: "var(--text3)", marginTop: 2 }}>نقش: {ROLE_META[permUser.role].label}</div>
                 </div>
-                <button
-                  onClick={resetPerms}
-                  disabled={permSaving === "__all__"}
-                  style={{ background: "#fef3c7", color: "#d97706", border: "1.5px solid #fcd34d", borderRadius: "var(--radius-sm)", padding: "7px 14px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
-                >
-                  <i className="ti ti-refresh" /> بازگشت به پیش‌فرض
-                </button>
+                <AdminBtn icon="ti-refresh" variant="secondary" loading={permSaving === "__all__"} onClick={resetPerms}>بازگشت به پیش‌فرض</AdminBtn>
               </div>
-              {permLoading ? (
-                <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
-                  <i className="ti ti-loader-2" style={{ fontSize: 28, display: "block", marginBottom: 8 }} />در حال بارگذاری...
-                </div>
-              ) : (
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              {permLoading ? <AdminEmptyState icon="ti-loader-2" title="در حال بارگذاری..." /> : (
+                <AdminTable>
                   <thead>
                     <tr>
-                      {["دسترسی", "پیش‌فرض نقش", "وضعیت فعلی", "تغییر"].map(h => (
-                        <th key={h} style={{ background: "var(--bg)", padding: "10px 14px", fontSize: 11, fontWeight: 900, color: "var(--text2)", textAlign: "right", borderBottom: "2px solid var(--border)" }}>{h}</th>
-                      ))}
+                      <AdminTh>دسترسی</AdminTh>
+                      <AdminTh>پیش‌فرض نقش</AdminTh>
+                      <AdminTh>وضعیت فعلی</AdminTh>
+                      <AdminTh>تغییر</AdminTh>
                     </tr>
                   </thead>
                   <tbody>
                     {permRows.map((row, i) => (
-                      <tr key={row.permission} style={{ borderBottom: "1px solid var(--border)", background: row.isDefault ? "#fff" : "#fffbeb" }}>
-                        <td style={{ padding: "10px 14px", fontWeight: 700 }}>{PERMISSIONS[i]?.label ?? row.permission}</td>
-                        <td style={{ padding: "10px 14px" }}>
-                          {row.isDefault && row.granted
-                            ? <span style={{ color: "#16a34a", fontSize: 11, fontWeight: 900 }}><i className="ti ti-check" /> مجاز</span>
-                            : row.isDefault
-                            ? <span style={{ color: "#9ca3af", fontSize: 11 }}><i className="ti ti-x" /> غیرمجاز</span>
-                            : <span style={{ color: "#d97706", fontSize: 11 }}>تنظیم‌شده</span>
-                          }
-                        </td>
-                        <td style={{ padding: "10px 14px" }}>
-                          <span style={{
-                            background: row.granted ? "#dcfce7" : "#fee2e2",
-                            color: row.granted ? "#16a34a" : "#dc2626",
-                            padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 900,
-                          }}>
-                            {row.granted ? "مجاز" : "مسدود"}
-                          </span>
-                        </td>
-                        <td style={{ padding: "10px 14px" }}>
-                          <button
+                      <AdminTr key={row.permission} style={{ background: row.isDefault ? "#fff" : "#fffbeb" }}>
+                        <AdminTd style={{ fontWeight: 700 }}>{PERMISSIONS[i]?.label ?? row.permission}</AdminTd>
+                        <AdminTd>
+                          {row.isDefault && row.granted ? <span style={{ color: "#16a34a", fontSize: 11, fontWeight: 900 }}><i className="ti ti-check" /> مجاز</span>
+                           : row.isDefault ? <span style={{ color: "#9ca3af", fontSize: 11 }}><i className="ti ti-x" /> غیرمجاز</span>
+                           : <span style={{ color: "#d97706", fontSize: 11 }}>تنظیم‌شده</span>}
+                        </AdminTd>
+                        <AdminTd><AdminBadge variant={row.granted ? "success" : "danger"} size="xs">{row.granted ? "مجاز" : "مسدود"}</AdminBadge></AdminTd>
+                        <AdminTd>
+                          <AdminBtn size="sm" variant={row.granted ? "danger" : "secondary"}
+                            loading={permSaving === row.permission} disabled={permUser.role === "SUPER_ADMIN"}
                             onClick={() => togglePerm(row.permission, row.granted, row.isDefault)}
-                            disabled={permSaving === row.permission || permUser.role === "SUPER_ADMIN"}
-                            style={{
-                              background: row.granted ? "#fee2e2" : "#dcfce7",
-                              color: row.granted ? "#dc2626" : "#16a34a",
-                              border: "none", borderRadius: "var(--radius-sm)", padding: "5px 12px",
-                              fontFamily: "Vazirmatn", fontSize: 11, fontWeight: 700, cursor: "pointer",
-                              opacity: permUser.role === "SUPER_ADMIN" ? .4 : 1,
-                            }}
                           >
-                            {permSaving === row.permission ? "..." : row.granted ? "مسدود کردن" : "اعطا کردن"}
-                          </button>
-                        </td>
-                      </tr>
+                            {row.granted ? "مسدود کردن" : "اعطا کردن"}
+                          </AdminBtn>
+                        </AdminTd>
+                      </AdminTr>
                     ))}
                   </tbody>
-                </table>
+                </AdminTable>
               )}
             </>
           )}
@@ -528,112 +362,68 @@ export default function RolesManager() {
       )}
 
       {/* Edit Drawer */}
-      {editing && (
-        <>
-          <div onClick={() => setEditing(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", zIndex: 200 }} />
-          <div style={{ position: "fixed", top: 0, left: 0, width: 380, height: "100vh", background: "#fff", zIndex: 201, boxShadow: "-4px 0 32px rgba(0,0,0,.15)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {/* Drawer header */}
-            <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--primary)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, color: "#fff" }}>
-                <i className="ti ti-shield-half-filled" style={{ fontSize: 20 }} />
-                <div>
-                  <div style={{ fontWeight: 900, fontSize: 15 }}>ویرایش نقش و وضعیت</div>
-                  <div style={{ fontSize: 12, opacity: .8 }}>{editing.firstName} {editing.lastName}</div>
-                </div>
+      <AdminDrawer open={!!editing} onClose={() => setEditing(null)} title={`ویرایش نقش: ${editing?.firstName ?? ""} ${editing?.lastName ?? ""}`} width={380}>
+        {editing && (
+          <div>
+            <div style={{ background: "var(--bg)", borderRadius: 10, padding: "14px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: ROLE_META[editing.role].bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <i className={`ti ${ROLE_META[editing.role].icon}`} style={{ fontSize: 22, color: ROLE_META[editing.role].color }} />
               </div>
-              <button onClick={() => setEditing(null)} style={{ background: "rgba(255,255,255,.15)", border: "none", color: "#fff", width: 32, height: 32, borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <i className="ti ti-x" style={{ fontSize: 16 }} />
-              </button>
-            </div>
-
-            {/* Drawer body */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
-              {/* User info */}
-              <div style={{ background: "var(--bg)", borderRadius: "var(--radius)", padding: "14px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 44, height: 44, borderRadius: "50%", background: ROLE_META[editing.role].bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <i className={`ti ${ROLE_META[editing.role].icon}`} style={{ fontSize: 22, color: ROLE_META[editing.role].color }} />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 900, fontSize: 14 }}>{editing.firstName} {editing.lastName}</div>
-                  <div style={{ fontSize: 12, color: "var(--text3)" }}>{editing.email ?? editing.phone ?? "—"}</div>
-                </div>
-              </div>
-
-              {/* Role selector */}
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ fontSize: 13, fontWeight: 900, color: "var(--text)", display: "block", marginBottom: 10 }}>
-                  نقش کاربر <span style={{ color: "#dc2626" }}>*</span>
-                </label>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {ALL_ROLES.map(r => {
-                    const meta = ROLE_META[r];
-                    const isAdminRole = ["ADMIN", "SUPER_ADMIN"].includes(r);
-                    const canAssign = !isAdminRole || myRole === "SUPER_ADMIN";
-                    return (
-                      <button
-                        key={r}
-                        onClick={() => canAssign && setDrawerRole(r)}
-                        disabled={!canAssign}
-                        style={{ background: drawerRole === r ? meta.bg : "var(--bg)", border: drawerRole === r ? `2px solid ${meta.color}` : "2px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "10px 14px", cursor: canAssign ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 10, textAlign: "right", opacity: canAssign ? 1 : .4, transition: "all .15s" }}
-                      >
-                        <div style={{ width: 32, height: 32, borderRadius: 8, background: meta.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                          <i className={`ti ${meta.icon}`} style={{ fontSize: 16, color: meta.color }} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 13, fontWeight: 900, color: drawerRole === r ? meta.color : "var(--text)" }}>{meta.label}</div>
-                        </div>
-                        {drawerRole === r && <i className="ti ti-check" style={{ fontSize: 16, color: meta.color }} />}
-                        {!canAssign && <i className="ti ti-lock" style={{ fontSize: 14, color: "var(--text3)" }} />}
-                      </button>
-                    );
-                  })}
-                </div>
-                {myRole !== "SUPER_ADMIN" && (
-                  <p style={{ fontSize: 11, color: "var(--text3)", marginTop: 8 }}>برای اعطای نقش ادمین یا ارشد، دسترسی مدیر ارشد لازم است.</p>
-                )}
-              </div>
-
-              {/* Status selector */}
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ fontSize: 13, fontWeight: 900, color: "var(--text)", display: "block", marginBottom: 10 }}>وضعیت حساب</label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  {ALL_STATUSES.map(s => {
-                    const meta = STATUS_META[s];
-                    return (
-                      <button
-                        key={s}
-                        onClick={() => setDrawerStatus(s)}
-                        style={{ background: drawerStatus === s ? meta.bg : "var(--bg)", border: drawerStatus === s ? `2px solid ${meta.color}` : "2px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "10px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "all .15s" }}
-                      >
-                        <span style={{ width: 10, height: 10, borderRadius: "50%", background: meta.color, flexShrink: 0 }} />
-                        <span style={{ fontSize: 12, fontWeight: 900, color: drawerStatus === s ? meta.color : "var(--text2)" }}>{meta.label}</span>
-                        {drawerStatus === s && <i className="ti ti-check" style={{ fontSize: 13, color: meta.color, marginRight: "auto" }} />}
-                      </button>
-                    );
-                  })}
-                </div>
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 14 }}>{editing.firstName} {editing.lastName}</div>
+                <div style={{ fontSize: 12, color: "var(--text3)" }}>{editing.email ?? editing.phone ?? "—"}</div>
               </div>
             </div>
 
-            {/* Drawer footer */}
-            <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 10 }}>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                style={{ flex: 1, background: "var(--primary)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "11px 0", fontFamily: "Vazirmatn", fontSize: 14, fontWeight: 900, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? .7 : 1 }}
-              >
+            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text)", marginBottom: 10 }}>نقش کاربر <span style={{ color: "#dc2626" }}>*</span></div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+              {ALL_ROLES.map(r => {
+                const meta = ROLE_META[r];
+                const isAdminRole = ["ADMIN", "SUPER_ADMIN"].includes(r);
+                const canAssign = !isAdminRole || myRole === "SUPER_ADMIN";
+                return (
+                  <button key={r} onClick={() => canAssign && setDrawerRole(r)} disabled={!canAssign}
+                    style={{ background: drawerRole === r ? meta.bg : "var(--bg)", border: drawerRole === r ? `2px solid ${meta.color}` : "2px solid var(--border)", borderRadius: 8, padding: "10px 14px", cursor: canAssign ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 10, textAlign: "right", opacity: canAssign ? 1 : .4, transition: "all .15s" }}
+                  >
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: meta.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <i className={`ti ${meta.icon}`} style={{ fontSize: 16, color: meta.color }} />
+                    </div>
+                    <div style={{ flex: 1, fontSize: 13, fontWeight: 900, color: drawerRole === r ? meta.color : "var(--text)" }}>{meta.label}</div>
+                    {drawerRole === r && <i className="ti ti-check" style={{ fontSize: 16, color: meta.color }} />}
+                    {!canAssign && <i className="ti ti-lock" style={{ fontSize: 14, color: "var(--text3)" }} />}
+                  </button>
+                );
+              })}
+              {myRole !== "SUPER_ADMIN" && <p style={{ fontSize: 11, color: "var(--text3)", marginTop: 4 }}>برای اعطای نقش ادمین یا ارشد، دسترسی مدیر ارشد لازم است.</p>}
+            </div>
+
+            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text)", marginBottom: 10 }}>وضعیت حساب</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
+              {ALL_STATUSES.map(s => {
+                const smeta = STATUS_META[s];
+                const colors = { success: "#16a34a", danger: "#dc2626", warning: "#d97706", neutral: "#9ca3af" } as const;
+                const c = colors[smeta.variant];
+                return (
+                  <button key={s} onClick={() => setDrawerStatus(s)}
+                    style={{ background: drawerStatus === s ? c + "18" : "var(--bg)", border: drawerStatus === s ? `2px solid ${c}` : "2px solid var(--border)", borderRadius: 8, padding: "10px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "all .15s" }}
+                  >
+                    <span style={{ width: 10, height: 10, borderRadius: "50%", background: c, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, fontWeight: 900, color: drawerStatus === s ? c : "var(--text2)" }}>{smeta.label}</span>
+                    {drawerStatus === s && <i className="ti ti-check" style={{ fontSize: 13, color: c, marginRight: "auto" }} />}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <AdminBtn variant="primary" icon="ti-device-floppy" loading={saving} onClick={handleSave} style={{ flex: 1, justifyContent: "center" }}>
                 {saving ? "در حال ذخیره..." : "ذخیره تغییرات"}
-              </button>
-              <button
-                onClick={() => setEditing(null)}
-                style={{ background: "var(--surface)", color: "var(--text2)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "11px 18px", fontFamily: "Vazirmatn", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
-              >
-                انصراف
-              </button>
+              </AdminBtn>
+              <AdminBtn variant="secondary" onClick={() => setEditing(null)}>انصراف</AdminBtn>
             </div>
           </div>
-        </>
-      )}
+        )}
+      </AdminDrawer>
     </div>
   );
 }

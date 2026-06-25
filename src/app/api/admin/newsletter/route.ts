@@ -1,5 +1,4 @@
-﻿export const dynamic = 'force-dynamic'
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 
 import { prisma } from "@/lib/prisma";
@@ -52,24 +51,14 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ subscriber }, { status: 201 });
 }
 
-const patchSchema = z.object({
-  id: z.string().min(1, "شناسه الزامی است"),
-  isActive: z.boolean(),
-});
-
 export async function PATCH(req: NextRequest) {
   if (!(await requirePermission("VIEW_ADMIN"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const body = await req.json();
-  const parsed = patchSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
+  const { id, isActive } = await req.json();
+  if (!id) return NextResponse.json({ error: "شناسه الزامی است" }, { status: 400 });
 
-  try {
-    const subscriber = await prisma.newsletter.update({ where: { id: parsed.data.id }, data: { isActive: parsed.data.isActive } });
-    return NextResponse.json({ subscriber });
-  } catch {
-    return NextResponse.json({ error: "خطا در بروزرسانی" }, { status: 500 });
-  }
+  const subscriber = await prisma.newsletter.update({ where: { id }, data: { isActive } });
+  return NextResponse.json({ subscriber });
 }
 
 export async function DELETE(req: NextRequest) {

@@ -1,4 +1,3 @@
-﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
@@ -18,7 +17,7 @@ export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
   if (isRateLimited(`register:${ip}`, 5, 15 * 60_000)) {
     return NextResponse.json(
-      { error: "ØªØ¹Ø¯Ø§Ø¯ Ø¯Ø±Ø®ÙˆØ§Ø³Øªâ€ŒÙ‡Ø§ÛŒ Ø´Ù…Ø§ Ø¨ÛŒØ´ Ø§Ø² Ø­Ø¯ Ù…Ø¬Ø§Ø² Ø§Ø³Øª. Ù„Ø·ÙØ§Ù‹ Û±Û° Ø¯Ù‚ÛŒÙ‚Ù‡ ØµØ¨Ø± Ú©Ù†ÛŒØ¯." },
+      { error: "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً ۱۰ دقیقه صبر کنید." },
       { status: 429 }
     );
   }
@@ -37,7 +36,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (exists) {
-      return NextResponse.json({ error: "Ø§ÛŒÙ† Ø´Ù…Ø§Ø±Ù‡ ÛŒØ§ Ø§ÛŒÙ…ÛŒÙ„ Ù‚Ø¨Ù„Ø§Ù‹ Ø«Ø¨Øª Ø´Ø¯Ù‡ Ø§Ø³Øª" }, { status: 409 });
+      return NextResponse.json({ error: "این شماره یا ایمیل قبلاً ثبت شده است" }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(data.password, 12);
@@ -60,6 +59,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: err.issues[0]?.message }, { status: 400 });
     }
     console.error(err);
-    return NextResponse.json({ error: "Ø®Ø·Ø§ÛŒ Ø³Ø±ÙˆØ±" }, { status: 500 });
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
   }
 }

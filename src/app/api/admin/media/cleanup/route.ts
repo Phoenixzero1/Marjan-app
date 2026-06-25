@@ -1,5 +1,4 @@
-﻿export const dynamic = 'force-dynamic'
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { unlink } from "fs/promises";

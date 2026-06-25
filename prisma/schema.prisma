@@ -548,7 +548,20 @@ model BlogComment {
   isApproved  Boolean   @default(false)
   createdAt   DateTime  @default(now())
 
-  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post    BlogPost           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  replies BlogCommentReply[]
+}
+
+model BlogCommentReply {
+  id         String   @id @default(cuid())
+  commentId  String
+  content    String
+  authorName String?
+  createdAt  DateTime @default(now())
+
+  comment BlogComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([commentId])
 }
 
 // ─── REVIEWS ─────────────────────────────────────────────────────────────────
@@ -566,9 +579,22 @@ model Review {
 
   product Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  replies ReviewReply[]
 
   @@index([productId])
   @@index([userId])
+}
+
+model ReviewReply {
+  id         String   @id @default(cuid())
+  reviewId   String
+  content    String
+  authorName String?
+  createdAt  DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
 }
 
 // ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
@@ -600,6 +626,21 @@ model ContactMessage {
   isRead    Boolean  @default(false)
   repliedAt DateTime?
   createdAt DateTime @default(now())
+
+  replies ContactReply[]
+}
+
+model ContactReply {
+  id         String   @id @default(cuid())
+  contactId  String
+  content    String
+  sentVia    String   @default("panel") // panel | email | sms
+  authorName String?
+  createdAt  DateTime @default(now())
+
+  contact ContactMessage @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([contactId])
 }
 
 model Faq {

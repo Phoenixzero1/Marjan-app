@@ -7,6 +7,11 @@ import Megamenu from "@/components/layout/Megamenu";
 import Footer from "@/components/layout/Footer";
 import EmergencyBanner from "@/components/layout/EmergencyBanner";
 import { getSiteSettings } from "@/lib/settings";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSiteSettings();
@@ -33,13 +38,15 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const s = await getSiteSettings();
+
   return (
-    <html lang="fa" dir="rtl" data-scroll-behavior="smooth">
+    <html lang="fa" dir="rtl" data-scroll-behavior="smooth" className={cn("font-sans", geist.variable)}>
       <head>
         <link
           rel="stylesheet"
@@ -48,28 +55,16 @@ export default function RootLayout({
       </head>
       <body>
         <SessionProvider>
-          {/* Liquid Glass SVG filter — applied via backdrop-filter:url(#liquidGlass) */}
-          <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden focusable="false">
-            <defs>
-              <filter id="liquidGlass" x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
-                <feTurbulence type="fractalNoise" baseFrequency="0.65 0.25" numOctaves="3" seed="4" result="noise" />
-                <feColorMatrix in="noise" type="saturate" values="50" result="colorNoise" />
-                <feDisplacementMap in="SourceGraphic" in2="colorNoise" scale="14" xChannelSelector="R" yChannelSelector="G" result="displaced" />
-                <feComposite in="displaced" in2="SourceGraphic" operator="in" />
-              </filter>
-            </defs>
-          </svg>
-
-          {/* Fixed header — always visible on scroll */}
-          <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }}>
-            <EmergencyBanner />
-            <Topbar />
-            <NavbarWrapper />
+          {/* These scroll normally and disappear on scroll */}
+          <EmergencyBanner />
+          <Topbar />
+          <NavbarWrapper />
+          {/* Megamenu sticks at top once navbar scrolls away */}
+          <div style={{ position: "sticky", top: 0, zIndex: 50, width: "100%" }}>
             <Megamenu />
           </div>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-            {/* paddingTop matches fixed header height so content starts below it */}
-            <main style={{ flex: 1, paddingTop: 162 }}>{children}</main>
+            <main className="site-main" style={{ flex: 1 }}>{children}</main>
             <Footer />
           </div>
         </SessionProvider>

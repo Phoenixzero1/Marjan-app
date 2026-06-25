@@ -1,4 +1,3 @@
-﻿export const dynamic = 'force-dynamic'
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -22,7 +21,7 @@ export async function GET() {
     const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
     cached = {
       on: map.maintenance_mode === "true",
-      message: map.maintenance_message ?? "Ø¯Ø± Ø­Ø§Ù„ Ø¨Ù‡â€ŒØ±ÙˆØ²Ø±Ø³Ø§Ù†ÛŒ Ù‡Ø³ØªÛŒÙ…. Ø¨Ù‡ Ø²ÙˆØ¯ÛŒ Ø¨Ø±Ù…ÛŒâ€ŒÚ¯Ø±Ø¯ÛŒÙ….",
+      message: map.maintenance_message ?? "در حال به‌روزرسانی هستیم. به زودی برمی‌گردیم.",
       estimated: map.maintenance_estimated ?? "",
     };
     cachedAt = now;

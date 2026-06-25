@@ -1,4 +1,3 @@
-﻿export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -6,9 +5,8 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { audit } from "@/lib/audit";
 import { getClientIp } from "@/lib/rateLimit";
-import sharp from "sharp";
 
-// â”€â”€ Whitelist â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Whitelist ──────────────────────────────────────────────────────────────────
 const ALLOWED_MIME: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png":  "png",
@@ -16,7 +14,7 @@ const ALLOWED_MIME: Record<string, string> = {
   "application/pdf": "pdf",
 };
 
-// â”€â”€ Magic bytes signatures â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Magic bytes signatures ─────────────────────────────────────────────────────
 const MAGIC: Record<string, (b: Uint8Array) => boolean> = {
   "image/jpeg": (b) => b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF,
   "image/png":  (b) => b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47,
@@ -27,7 +25,7 @@ const MAGIC: Record<string, (b: Uint8Array) => boolean> = {
   "application/pdf": (b) => b[0] === 0x25 && b[1] === 0x50 && b[2] === 0x44 && b[3] === 0x46,
 };
 
-// â”€â”€ Dangerous extensions (always blocked regardless of MIME) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Dangerous extensions (always blocked regardless of MIME) ───────────────────
 const BLOCKED_EXT = new Set([
   "exe","bat","cmd","sh","bash","zsh","ps1","psm1","psd1",
   "php","php3","php4","php5","phtml","phar",
@@ -51,87 +49,75 @@ function sanitizeFolder(raw: string): string {
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Ù„Ø·ÙØ§Ù‹ ÙˆØ§Ø±Ø¯ Ø´ÙˆÛŒØ¯" }, { status: 401 });
+    return NextResponse.json({ error: "لطفاً وارد شوید" }, { status: 401 });
   }
   if (!ADMIN_ROLES.includes(session.user.role ?? "")) {
-    return NextResponse.json({ error: "Ø¯Ø³ØªØ±Ø³ÛŒ Ù†Ø¯Ø§Ø±ÛŒØ¯" }, { status: 403 });
+    return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
   }
 
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
-    // Sanitize folder â€” prevent path traversal
+    // Sanitize folder — prevent path traversal
     const rawFolder = (formData.get("folder") as string) || "uploads";
     const folder = sanitizeFolder(rawFolder);
 
     if (!file) {
-      return NextResponse.json({ error: "ÙØ§ÛŒÙ„ÛŒ Ø§Ù†ØªØ®Ø§Ø¨ Ù†Ø´Ø¯Ù‡" }, { status: 400 });
+      return NextResponse.json({ error: "فایلی انتخاب نشده" }, { status: 400 });
     }
 
-    // â”€â”€ 1. Size check BEFORE reading into memory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 1. Size check BEFORE reading into memory ───────────────────────────────
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
-        { error: `Ø­Ø¬Ù… ÙØ§ÛŒÙ„ Ù†Ø¨Ø§ÛŒØ¯ Ø¨ÛŒØ´ØªØ± Ø§Ø² ${Math.round(MAX_SIZE / 1024 / 1024)} Ù…Ú¯Ø§Ø¨Ø§ÛŒØª Ø¨Ø§Ø´Ø¯` },
+        { error: `حجم فایل نباید بیشتر از ${Math.round(MAX_SIZE / 1024 / 1024)} مگابایت باشد` },
         { status: 400 }
       );
     }
 
-    // â”€â”€ 2. MIME type whitelist â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 2. MIME type whitelist ────────────────────────────────────────────────
     if (!ALLOWED_MIME[file.type]) {
       return NextResponse.json(
-        { error: "Ù†ÙˆØ¹ ÙØ§ÛŒÙ„ Ù…Ø¬Ø§Ø² Ù†ÛŒØ³Øª. ÙÙ‚Ø· JPEGØŒ PNGØŒ WebP Ùˆ PDF Ù‚Ø¨ÙˆÙ„ Ù…ÛŒâ€ŒØ´ÙˆØ¯." },
+        { error: "نوع فایل مجاز نیست. فقط JPEG، PNG، WebP و PDF قبول می‌شود." },
         { status: 400 }
       );
     }
 
-    // â”€â”€ 3. Extension blacklist (from original filename) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 3. Extension blacklist (from original filename) ───────────────────────
     const originalExt = (file.name.split(".").pop() ?? "").toLowerCase();
     if (BLOCKED_EXT.has(originalExt)) {
       return NextResponse.json(
-        { error: `Ù¾Ø³ÙˆÙ†Ø¯ .${originalExt} Ù…Ø¬Ø§Ø² Ù†ÛŒØ³Øª` },
+        { error: `پسوند .${originalExt} مجاز نیست` },
         { status: 400 }
       );
     }
 
-    // â”€â”€ 4. Read bytes and check magic signature â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 4. Read bytes and check magic signature ────────────────────────────────
     const bytes = await file.arrayBuffer();
     const buf = new Uint8Array(bytes);
 
     const checkMagic = MAGIC[file.type];
     if (checkMagic && !checkMagic(buf)) {
       return NextResponse.json(
-        { error: "Ù…Ø­ØªÙˆØ§ÛŒ ÙØ§ÛŒÙ„ Ø¨Ø§ Ù†ÙˆØ¹ Ø§Ø¹Ù„Ø§Ù…â€ŒØ´Ø¯Ù‡ Ù…Ø·Ø§Ø¨Ù‚Øª Ù†Ø¯Ø§Ø±Ø¯ (magic bytes mismatch)" },
+        { error: "محتوای فایل با نوع اعلام‌شده مطابقت ندارد (magic bytes mismatch)" },
         { status: 400 }
       );
     }
 
-    // â”€â”€ 5. Image dimension limit via Sharp (images only, not PDF) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    if (file.type !== "application/pdf") {
-      try {
-        const meta = await sharp(Buffer.from(bytes)).metadata();
-        const MAX_DIM = 4000;
-        if ((meta.width ?? 0) > MAX_DIM || (meta.height ?? 0) > MAX_DIM) {
-          return NextResponse.json(
-            { error: `Ø§Ø¨Ø¹Ø§Ø¯ ØªØµÙˆÛŒØ± Ù†Ø¨Ø§ÛŒØ¯ Ø¨ÛŒØ´ØªØ± Ø§Ø² ${MAX_DIM}Ã—${MAX_DIM} Ù¾ÛŒÚ©Ø³Ù„ Ø¨Ø§Ø´Ø¯` },
-            { status: 400 }
-          );
-        }
-      } catch {
-        return NextResponse.json({ error: "ÙØ§ÛŒÙ„ ØªØµÙˆÛŒØ±ÛŒ Ù…Ø¹ØªØ¨Ø± Ù†ÛŒØ³Øª" }, { status: 400 });
-      }
-    }
+    // ── 5. Virus scan placeholder ─────────────────────────────────────────────
+    // TODO: pipe `buf` to ClamAV / VirusTotal API before saving
+    console.warn(`[Upload][VirusScan] Skipped for ${file.name} (${file.size} bytes) — integrate ClamAV here`);
 
-    // â”€â”€ 6. UUID filename â€” derived ext from MIME, never from user input â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 6. UUID filename — derived ext from MIME, never from user input ────────
     const safeExt = ALLOWED_MIME[file.type]; // e.g. "jpg", "png", "pdf"
     const filename = `${crypto.randomUUID()}.${safeExt}`;
 
-    // â”€â”€ 7. Write to disk â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 7. Write to disk ──────────────────────────────────────────────────────
     const uploadDir = path.join(process.cwd(), "public", folder);
     // Extra guard: resolved path must stay inside public/
     const publicRoot = path.join(process.cwd(), "public");
     if (!uploadDir.startsWith(publicRoot)) {
-      return NextResponse.json({ error: "Ù…Ø³ÛŒØ± Ø¢Ù¾Ù„ÙˆØ¯ ØºÛŒØ±Ù…Ø¬Ø§Ø²" }, { status: 400 });
+      return NextResponse.json({ error: "مسیر آپلود غیرمجاز" }, { status: 400 });
     }
 
     await mkdir(uploadDir, { recursive: true });
@@ -164,6 +150,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url, media }, { status: 201 });
   } catch (err) {
     console.error("[Upload Error]", err);
-    return NextResponse.json({ error: "Ø®Ø·Ø§ Ø¯Ø± Ø¢Ù¾Ù„ÙˆØ¯ ÙØ§ÛŒÙ„" }, { status: 500 });
+    return NextResponse.json({ error: "خطا در آپلود فایل" }, { status: 500 });
   }
 }

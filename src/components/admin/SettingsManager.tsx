@@ -1,117 +1,75 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import {
+  AdminCard, AdminCardHeader, AdminBtn, AdminField, AdminInput, AdminTextarea, AdminToggle,
+  AdminTable, AdminTh, AdminTd, AdminTr, AdminBadge, AdminEmptyState,
+  AdminToast, useAdminToast,
+} from "@/components/admin/AdminUI";
 
 type SettingsTab = "general" | "payment" | "seo" | "security";
-
 interface Props { tab: SettingsTab }
 
-type Toast = { msg: string; ok: boolean };
-
-const inp: React.CSSProperties = {
-  border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)",
-  padding: "9px 12px", fontFamily: "Vazirmatn", fontSize: 13,
-  color: "var(--text)", outline: "none", background: "#fff",
-  boxSizing: "border-box", width: "100%",
-};
-const lbl: React.CSSProperties = {
-  fontSize: 12, fontWeight: 900, color: "var(--text2)", display: "block", marginBottom: 5,
-};
-const hint: React.CSSProperties = { fontSize: 11, color: "var(--text3)", marginTop: 4 };
-
-function Section({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
-  return (
-    <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1.5rem", display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ fontSize: 14, fontWeight: 900, color: "var(--primary)", display: "flex", alignItems: "center", gap: 8, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
-        <i className={`ti ${icon}`} style={{ fontSize: 18 }} />{title}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function Row({ children }: { children: React.ReactNode }) {
-  return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>{children}</div>;
-}
+const Row = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>{children}</div>
+);
 
 interface SecLog { id: string; level: string; action: string; ipAddress: string | null; createdAt: string; user: { firstName: string; lastName: string } | null; }
+
+const LEVEL_V: Record<string, "info" | "warning" | "danger" | "purple"> = {
+  INFO: "info", WARNING: "warning", ERROR: "danger", CRITICAL: "purple",
+};
 
 function SecurityReport() {
   const [logs, setLogs] = useState<SecLog[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/admin/logs?limit=20")
-      .then(r => r.json())
-      .then(d => setLogs(d.logs ?? []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  const LEVEL_COLOR: Record<string, { bg: string; color: string }> = {
-    INFO: { bg: "#dbeafe", color: "#2563eb" },
-    WARNING: { bg: "#fef9c3", color: "#ca8a04" },
-    ERROR: { bg: "#fee2e2", color: "#dc2626" },
-    CRITICAL: { bg: "#fce7f3", color: "#be185d" },
-  };
-
   const fmtDate = (s: string) => new Date(s).toLocaleDateString("fa-IR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
+  useEffect(() => {
+    fetch("/api/admin/logs?limit=20").then(r => r.json()).then(d => setLogs(d.logs ?? [])).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
   return (
-    <Section title="گزارش امنیتی" icon="ti-shield-check">
-      {loading ? (
-        <div style={{ textAlign: "center", padding: "1.5rem", color: "var(--text3)" }}>
-          <i className="ti ti-loader-2" style={{ fontSize: 24, display: "block", marginBottom: 6 }} />در حال بارگذاری...
-        </div>
-      ) : logs.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "1.5rem", color: "var(--text3)" }}>
-          <i className="ti ti-file-off" style={{ fontSize: 32, display: "block", marginBottom: 6 }} />رویداد امنیتی ثبت نشده
-        </div>
-      ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-            <thead>
-              <tr>
-                {["رویداد", "سطح", "IP", "کاربر", "زمان"].map(h => (
-                  <th key={h} style={{ background: "var(--bg)", padding: "8px 10px", fontWeight: 900, color: "var(--text2)", textAlign: "right", borderBottom: "2px solid var(--border)", whiteSpace: "nowrap" }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((log, i) => {
-                const lc = LEVEL_COLOR[log.level] ?? LEVEL_COLOR.INFO;
-                return (
-                  <tr key={log.id} style={{ borderBottom: i < logs.length - 1 ? "1px solid var(--border)" : "none" }}>
-                    <td style={{ padding: "8px 10px", fontWeight: 700, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{log.action}</td>
-                    <td style={{ padding: "8px 10px" }}>
-                      <span style={{ background: lc.bg, color: lc.color, borderRadius: 6, padding: "2px 7px", fontSize: 10, fontWeight: 900 }}>{log.level}</span>
-                    </td>
-                    <td style={{ padding: "8px 10px", direction: "ltr", fontFamily: "monospace", fontSize: 11, color: "var(--text3)" }}>{log.ipAddress ?? "—"}</td>
-                    <td style={{ padding: "8px 10px", fontSize: 11, color: "var(--text3)" }}>{log.user ? `${log.user.firstName} ${log.user.lastName}` : "ناشناس"}</td>
-                    <td style={{ padding: "8px 10px", fontSize: 11, color: "var(--text3)", whiteSpace: "nowrap" }}>{fmtDate(log.createdAt)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+    <AdminCard>
+      <AdminCardHeader title="گزارش امنیتی اخیر" icon="ti-shield-check" />
+      {loading && <AdminEmptyState icon="ti-loader-2" title="در حال بارگذاری..." />}
+      {!loading && logs.length === 0 && <AdminEmptyState icon="ti-file-off" title="رویداد امنیتی ثبت نشده" />}
+      {!loading && logs.length > 0 && (
+        <AdminTable style={{ marginTop: 14 }}>
+          <thead>
+            <tr>
+              <AdminTh>رویداد</AdminTh>
+              <AdminTh>سطح</AdminTh>
+              <AdminTh>IP</AdminTh>
+              <AdminTh>کاربر</AdminTh>
+              <AdminTh>زمان</AdminTh>
+            </tr>
+          </thead>
+          <tbody>
+            {logs.map(log => (
+              <AdminTr key={log.id}>
+                <AdminTd style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 700 }}>{log.action}</AdminTd>
+                <AdminTd><AdminBadge variant={LEVEL_V[log.level] ?? "info"} size="xs">{log.level}</AdminBadge></AdminTd>
+                <AdminTd style={{ direction: "ltr", fontFamily: "monospace", fontSize: 11 }}>{log.ipAddress ?? "—"}</AdminTd>
+                <AdminTd style={{ fontSize: 11 }}>{log.user ? `${log.user.firstName} ${log.user.lastName}` : "ناشناس"}</AdminTd>
+                <AdminTd style={{ fontSize: 11, whiteSpace: "nowrap" }}>{fmtDate(log.createdAt)}</AdminTd>
+              </AdminTr>
+            ))}
+          </tbody>
+        </AdminTable>
       )}
-    </Section>
+    </AdminCard>
   );
 }
 
 export default function SettingsManager({ tab }: Props) {
+  const { toast, showToast } = useAdminToast();
   const [vals, setVals] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<Toast | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
 
-  const showToast = (msg: string, ok = true) => {
-    setToast({ msg, ok });
-    setTimeout(() => setToast(null), 4000);
-  };
-
-  // Map tab to the groups we load
   const groups: Record<SettingsTab, string[]> = {
     general:  ["general", "shipping", "contact"],
     payment:  ["payment"],
@@ -127,9 +85,7 @@ export default function SettingsManager({ tab }: Props) {
       const merged: Record<string, string> = {};
       for (const r of results) Object.assign(merged, r.map ?? {});
       setVals(merged);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
@@ -138,378 +94,291 @@ export default function SettingsManager({ tab }: Props) {
   const set = (key: string, value: string) => setVals(prev => ({ ...prev, [key]: value }));
   const get = (key: string, fallback = "") => vals[key] ?? fallback;
 
-  const logoInputRef = useRef<HTMLInputElement>(null);
-  const [logoUploading, setLogoUploading] = useState(false);
-
   async function uploadLogo(file: File) {
     setLogoUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("folder", "logos");
+      const fd = new FormData(); fd.append("file", file); fd.append("folder", "logos");
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       const data = await res.json();
-      if (res.ok && data.url) {
-        set("site_logo", data.url);
-        showToast("لوگو آپلود شد");
-      } else {
-        showToast(data.error ?? "خطا در آپلود لوگو", false);
-      }
-    } finally {
-      setLogoUploading(false);
-    }
+      if (res.ok && data.url) { set("site_logo", data.url); showToast("success", "لوگو آپلود شد"); }
+      else showToast("error", data.error ?? "خطا در آپلود لوگو");
+    } finally { setLogoUploading(false); }
   }
 
   async function save(groupName: string, keys: string[]) {
     setSaving(true);
     try {
       const settings = Object.fromEntries(keys.map(k => [k, String(get(k) ?? "")]));
-      const res = await fetch("/api/admin/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ settings, group: groupName }),
-      });
+      const res = await fetch("/api/admin/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ settings, group: groupName }) });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) showToast("تنظیمات ذخیره شد");
-      else showToast(data.error ?? `خطا در ذخیره (${res.status})`, false);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  if (loading) {
-    return (
-      <div style={{ textAlign: "center", padding: "4rem", color: "var(--text3)" }}>
-        <i className="ti ti-loader-2" style={{ fontSize: 36, display: "block", marginBottom: 8 }} />در حال بارگذاری...
-      </div>
-    );
+      if (res.ok) showToast("success", "تنظیمات ذخیره شد");
+      else showToast("error", data.error ?? `خطا در ذخیره (${res.status})`);
+    } finally { setSaving(false); }
   }
 
   const SaveBtn = ({ groupName, keys }: { groupName: string; keys: string[] }) => (
-    <button
-      onClick={() => save(groupName, keys)}
-      disabled={saving}
-      style={{ alignSelf: "flex-start", background: saving ? "#aaa" : "var(--primary)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "10px 24px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 6 }}
-    >
-      {saving ? <><i className="ti ti-loader-2" /> در حال ذخیره...</> : <><i className="ti ti-device-floppy" /> ذخیره تنظیمات</>}
-    </button>
+    <AdminBtn variant="primary" icon="ti-device-floppy" loading={saving} onClick={() => save(groupName, keys)} style={{ alignSelf: "flex-start" }}>
+      {saving ? "در حال ذخیره..." : "ذخیره تنظیمات"}
+    </AdminBtn>
+  );
+
+  if (loading) return (
+    <div style={{ textAlign: "center", padding: "4rem", color: "var(--text3)" }}>
+      <i className="ti ti-loader-2" style={{ fontSize: 36, display: "block", marginBottom: 8 }} />در حال بارگذاری...
+    </div>
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {toast && (
-        <div style={{ position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: toast.ok ? "#22c55e" : "#ef4444", color: "#fff", padding: "12px 28px", borderRadius: 10, fontWeight: 700, fontSize: 14, boxShadow: "0 4px 24px rgba(0,0,0,.18)" }}>
-          {toast.msg}
-        </div>
-      )}
+      <AdminToast toast={toast} />
 
       {/* ── GENERAL TAB ── */}
       {tab === "general" && (
         <>
-          <Section title="اطلاعات فروشگاه" icon="ti-building-store">
-            <Row>
-              <div>
-                <label style={lbl}>نام تجاری (برند)</label>
-                <input value={get("site_name")} onChange={e => set("site_name", e.target.value)} style={inp} />
-                <p style={hint}>این نام در نوار بالا، فوتر، عنوان مرورگر، فاکتورها و همه‌جا نمایش داده می‌شود</p>
-              </div>
-              <div>
-                <label style={lbl}>ایمیل</label>
-                <input value={get("site_email")} onChange={e => set("site_email", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-            </Row>
-            {/* Logo upload */}
-            <div>
-              <label style={lbl}>لوگوی سایت</label>
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                {get("site_logo") ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={get("site_logo")} alt="logo" style={{ height: 44, maxWidth: 140, objectFit: "contain", borderRadius: "var(--radius-sm)", border: "1.5px solid var(--border)", padding: 4, background: "#fff" }} />
-                ) : (
-                  <div style={{ height: 44, width: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--surface)", border: "1.5px dashed var(--border)", borderRadius: "var(--radius-sm)", fontSize: 12, color: "var(--text3)" }}>بدون لوگو</div>
-                )}
-                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                  <input
-                    ref={logoInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    style={{ display: "none" }}
-                    onChange={e => { const f = e.target.files?.[0]; if (f) uploadLogo(f); e.target.value = ""; }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => logoInputRef.current?.click()}
-                    disabled={logoUploading}
-                    style={{ background: "var(--primary)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "8px 16px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
-                  >
-                    {logoUploading ? <><i className="ti ti-loader-2" /> در حال آپلود...</> : <><i className="ti ti-upload" /> آپلود لوگو</>}
-                  </button>
-                  {get("site_logo") && (
-                    <button
-                      type="button"
-                      onClick={() => set("site_logo", "")}
-                      style={{ background: "transparent", color: "#ef4444", border: "1.5px solid #ef4444", borderRadius: "var(--radius-sm)", padding: "8px 12px", fontFamily: "Vazirmatn", fontSize: 12, cursor: "pointer" }}
-                    >
-                      <i className="ti ti-trash" /> حذف
-                    </button>
+          <AdminCard>
+            <AdminCardHeader title="اطلاعات فروشگاه" icon="ti-building-store" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
+              <Row>
+                <AdminField label="نام تجاری (برند)" hint="در نوار بالا، فوتر، فاکتورها و همه‌جا نمایش داده می‌شود">
+                  <AdminInput value={get("site_name")} onChange={v => set("site_name", v)} />
+                </AdminField>
+                <AdminField label="ایمیل">
+                  <AdminInput value={get("site_email")} onChange={v => set("site_email", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+              </Row>
+
+              {/* Logo */}
+              <AdminField label="لوگوی سایت" hint="فرمت‌های مجاز: JPG، PNG، WebP — حداکثر ۵ مگابایت">
+                <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                  {get("site_logo") ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={get("site_logo")} alt="logo" style={{ height: 44, maxWidth: 140, objectFit: "contain", borderRadius: 7, border: "1.5px solid var(--border)", padding: 4, background: "#fff" }} />
+                  ) : (
+                    <div style={{ height: 44, width: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)", border: "1.5px dashed var(--border)", borderRadius: 7, fontSize: 12, color: "var(--text3)" }}>بدون لوگو</div>
                   )}
+                  <input ref={logoInputRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadLogo(f); e.target.value = ""; }} />
+                  <AdminBtn icon="ti-upload" loading={logoUploading} onClick={() => logoInputRef.current?.click()}>
+                    {logoUploading ? "در حال آپلود..." : "آپلود لوگو"}
+                  </AdminBtn>
+                  {get("site_logo") && <AdminBtn icon="ti-trash" variant="danger" onClick={() => set("site_logo", "")}>حذف</AdminBtn>}
                 </div>
-              </div>
-              <p style={hint}>فرمت‌های مجاز: JPG، PNG، WebP — حداکثر ۵ مگابایت</p>
-            </div>
-            <Row>
-              <div>
-                <label style={lbl}>تلفن</label>
-                <input value={get("site_phone")} onChange={e => set("site_phone", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-              <div>
-                <label style={lbl}>شهر</label>
-                <input value={get("site_city", "")} onChange={e => set("site_city", e.target.value)} style={inp} />
-              </div>
-            </Row>
-            <div>
-              <label style={lbl}>آدرس</label>
-              <input value={get("site_address")} onChange={e => set("site_address", e.target.value)} style={inp} />
-            </div>
-            <div>
-              <label style={lbl}>درباره ما (خلاصه)</label>
-              <textarea value={get("site_about", "")} onChange={e => set("site_about", e.target.value)} rows={3} style={{ ...inp, resize: "vertical", lineHeight: 1.7 }} />
-            </div>
-            <SaveBtn groupName="general" keys={["site_name", "site_logo", "site_email", "site_phone", "site_city", "site_address", "site_about"]} />
-          </Section>
+              </AdminField>
 
-          <Section title="اطلاعات تماس و فوتر" icon="ti-phone">
-            <Row>
-              <div>
-                <label style={lbl}>تلفن (نمایش در هدر)</label>
-                <input value={get("site_phone", "۰۲۱-۴۴۵۵۶۶۷۷")} onChange={e => set("site_phone", e.target.value)} style={inp} />
-              </div>
-              <div>
-                <label style={lbl}>واتساپ</label>
-                <input value={get("site_whatsapp", "")} onChange={e => set("site_whatsapp", e.target.value)} style={inp} />
-              </div>
-            </Row>
-            <Row>
-              <div>
-                <label style={lbl}>ایمیل</label>
-                <input value={get("site_email", "")} onChange={e => set("site_email", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-              <div>
-                <label style={lbl}>آدرس</label>
-                <input value={get("site_address", "")} onChange={e => set("site_address", e.target.value)} style={inp} />
-              </div>
-            </Row>
-            <Row>
-              <div>
-                <label style={lbl}>ساعات کاری (هدر)</label>
-                <input value={get("site_hours", "شنبه تا پنجشنبه ۸ تا ۱۷")} onChange={e => set("site_hours", e.target.value)} style={inp} />
-              </div>
-              <div>
-                <label style={lbl}>متن ارسال رایگان (هدر)</label>
-                <input value={get("site_free_shipping_text", "")} onChange={e => set("site_free_shipping_text", e.target.value)} style={inp} />
-              </div>
-            </Row>
-            <div>
-              <label style={lbl}>متن فوتر (کپی‌رایت)</label>
-              <input value={get("site_footer_text", "© ۱۴۰۴ Marjan")} onChange={e => set("site_footer_text", e.target.value)} style={inp} />
+              <Row>
+                <AdminField label="تلفن">
+                  <AdminInput value={get("site_phone")} onChange={v => set("site_phone", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+                <AdminField label="شهر">
+                  <AdminInput value={get("site_city", "")} onChange={v => set("site_city", v)} />
+                </AdminField>
+              </Row>
+              <AdminField label="آدرس">
+                <AdminInput value={get("site_address")} onChange={v => set("site_address", v)} />
+              </AdminField>
+              <AdminField label="درباره ما (خلاصه)">
+                <AdminTextarea value={get("site_about", "")} onChange={v => set("site_about", v)} rows={3} />
+              </AdminField>
+              <SaveBtn groupName="general" keys={["site_name", "site_logo", "site_email", "site_phone", "site_city", "site_address", "site_about"]} />
             </div>
-            <Row>
-              <div>
-                <label style={lbl}>اینستاگرام (لینک)</label>
-                <input value={get("social_instagram", "#")} onChange={e => set("social_instagram", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-              <div>
-                <label style={lbl}>تلگرام (لینک)</label>
-                <input value={get("social_telegram", "#")} onChange={e => set("social_telegram", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-            </Row>
-            <Row>
-              <div>
-                <label style={lbl}>لینکدین (لینک)</label>
-                <input value={get("social_linkedin", "#")} onChange={e => set("social_linkedin", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-              <div>
-                <label style={lbl}>واتساپ (لینک)</label>
-                <input value={get("social_whatsapp", "#")} onChange={e => set("social_whatsapp", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-            </Row>
-            <SaveBtn groupName="contact" keys={["site_phone", "site_whatsapp", "site_email", "site_address", "site_hours", "site_free_shipping_text", "site_footer_text", "social_instagram", "social_telegram", "social_linkedin", "social_whatsapp"]} />
-          </Section>
+          </AdminCard>
 
-          <Section title="تنظیمات ارسال" icon="ti-truck-delivery">
-            <Row>
-              <div>
-                <label style={lbl}>حداقل سفارش برای ارسال رایگان (ریال)</label>
-                <input type="number" value={get("free_shipping_threshold")} onChange={e => set("free_shipping_threshold", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-                <p style={hint}>اگر ۰ باشد، ارسال رایگان برای همه سفارش‌ها</p>
-              </div>
-              <div>
-                <label style={lbl}>هزینه پیش‌فرض ارسال (ریال)</label>
-                <input type="number" value={get("default_shipping_cost", "50000")} onChange={e => set("default_shipping_cost", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-            </Row>
-            <Row>
-              <div>
-                <label style={lbl}>نرخ مالیات (%)</label>
-                <input type="number" min="0" max="100" value={get("tax_rate")} onChange={e => set("tax_rate", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-              <div>
-                <label style={lbl}>روزهای کاری ارسال</label>
-                <input value={get("shipping_days", "۲۴ تا ۷۲ ساعت")} onChange={e => set("shipping_days", e.target.value)} style={inp} />
-              </div>
-            </Row>
-            <SaveBtn groupName="shipping" keys={["free_shipping_threshold", "default_shipping_cost", "tax_rate", "shipping_days"]} />
-          </Section>
+          <AdminCard>
+            <AdminCardHeader title="اطلاعات تماس و فوتر" icon="ti-phone" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
+              <Row>
+                <AdminField label="تلفن (هدر و فوتر)">
+                  <AdminInput value={get("site_phone", "۰۲۱-۴۴۵۵۶۶۷۷")} onChange={v => set("site_phone", v)} />
+                </AdminField>
+                <AdminField label="واتساپ">
+                  <AdminInput value={get("site_whatsapp", "")} onChange={v => set("site_whatsapp", v)} />
+                </AdminField>
+              </Row>
+              <Row>
+                <AdminField label="ایمیل">
+                  <AdminInput value={get("site_email", "")} onChange={v => set("site_email", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+                <AdminField label="آدرس">
+                  <AdminInput value={get("site_address", "")} onChange={v => set("site_address", v)} />
+                </AdminField>
+              </Row>
+              <AdminField label="متن فوتر (کپی‌رایت)">
+                <AdminInput value={get("site_footer_text", "© ۱۴۰۴ Marjan")} onChange={v => set("site_footer_text", v)} />
+              </AdminField>
+              <Row>
+                <AdminField label="اینستاگرام (لینک)">
+                  <AdminInput value={get("social_instagram", "#")} onChange={v => set("social_instagram", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+                <AdminField label="تلگرام (لینک)">
+                  <AdminInput value={get("social_telegram", "#")} onChange={v => set("social_telegram", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+              </Row>
+              <Row>
+                <AdminField label="لینکدین (لینک)">
+                  <AdminInput value={get("social_linkedin", "#")} onChange={v => set("social_linkedin", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+                <AdminField label="واتساپ (لینک)">
+                  <AdminInput value={get("social_whatsapp", "#")} onChange={v => set("social_whatsapp", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+              </Row>
+              <SaveBtn groupName="contact" keys={["site_phone", "site_whatsapp", "site_email", "site_address", "site_footer_text", "social_instagram", "social_telegram", "social_linkedin", "social_whatsapp"]} />
+            </div>
+          </AdminCard>
+
+          <AdminCard>
+            <AdminCardHeader title="تنظیمات ارسال" icon="ti-truck-delivery" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
+              <Row>
+                <AdminField label="حداقل سفارش برای ارسال رایگان (ریال)" hint="اگر ۰ باشد، ارسال رایگان برای همه سفارش‌ها">
+                  <AdminInput type="number" value={get("free_shipping_threshold")} onChange={v => set("free_shipping_threshold", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+                <AdminField label="هزینه پیش‌فرض ارسال (ریال)">
+                  <AdminInput type="number" value={get("default_shipping_cost", "50000")} onChange={v => set("default_shipping_cost", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+              </Row>
+              <Row>
+                <AdminField label="نرخ مالیات (%)">
+                  <AdminInput type="number" value={get("tax_rate")} onChange={v => set("tax_rate", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+                <AdminField label="روزهای کاری ارسال">
+                  <AdminInput value={get("shipping_days", "۲۴ تا ۷۲ ساعت")} onChange={v => set("shipping_days", v)} />
+                </AdminField>
+              </Row>
+              <SaveBtn groupName="shipping" keys={["free_shipping_threshold", "default_shipping_cost", "tax_rate", "shipping_days"]} />
+            </div>
+          </AdminCard>
         </>
       )}
 
       {/* ── PAYMENT TAB ── */}
       {tab === "payment" && (
         <>
-          <Section title="درگاه زرین‌پال" icon="ti-credit-card">
-            <Row>
-              <div>
-                <label style={lbl}>Merchant ID</label>
-                <input value={get("zarinpal_merchant_id", "")} onChange={e => set("zarinpal_merchant_id", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left", fontFamily: "monospace" }} placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
-              </div>
-              <div>
-                <label style={lbl}>حالت</label>
-                <select value={get("zarinpal_mode", "sandbox")} onChange={e => set("zarinpal_mode", e.target.value)} style={inp}>
-                  <option value="sandbox">آزمایشی (Sandbox)</option>
-                  <option value="production">واقعی (Production)</option>
-                </select>
-              </div>
-            </Row>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, background: "var(--surface)", padding: "10px 14px", borderRadius: "var(--radius-sm)", border: "1.5px solid var(--border)" }}>
-              <input type="checkbox" id="zarinpal-enabled" checked={get("zarinpal_enabled", "true") === "true"} onChange={e => set("zarinpal_enabled", e.target.checked ? "true" : "false")} style={{ width: 16, height: 16, cursor: "pointer" }} />
-              <label htmlFor="zarinpal-enabled" style={{ fontSize: 13, fontWeight: 700, cursor: "pointer" }}>درگاه زرین‌پال فعال باشد</label>
+          <AdminCard>
+            <AdminCardHeader title="درگاه زرین‌پال" icon="ti-credit-card" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
+              <Row>
+                <AdminField label="Merchant ID">
+                  <AdminInput value={get("zarinpal_merchant_id", "")} onChange={v => set("zarinpal_merchant_id", v)} placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" style={{ direction: "ltr", fontFamily: "monospace" }} />
+                </AdminField>
+                <AdminField label="حالت">
+                  <select value={get("zarinpal_mode", "sandbox")} onChange={e => set("zarinpal_mode", e.target.value)} style={{ height: 36, padding: "0 10px", borderRadius: 7, border: "1.5px solid var(--border)", fontFamily: "Vazirmatn", fontSize: 13, width: "100%", background: "#fff" }}>
+                    <option value="sandbox">آزمایشی (Sandbox)</option>
+                    <option value="production">واقعی (Production)</option>
+                  </select>
+                </AdminField>
+              </Row>
+              <AdminToggle checked={get("zarinpal_enabled", "true") === "true"} onChange={v => set("zarinpal_enabled", v ? "true" : "false")} label="درگاه زرین‌پال فعال باشد" />
+              <SaveBtn groupName="payment" keys={["zarinpal_merchant_id", "zarinpal_mode", "zarinpal_enabled"]} />
             </div>
-            <SaveBtn groupName="payment" keys={["zarinpal_merchant_id", "zarinpal_mode", "zarinpal_enabled"]} />
-          </Section>
+          </AdminCard>
 
-          <Section title="تنظیمات کیف پول" icon="ti-wallet">
-            <Row>
-              <div>
-                <label style={lbl}>حداقل شارژ کیف پول (ریال)</label>
-                <input type="number" value={get("wallet_min_charge", "50000")} onChange={e => set("wallet_min_charge", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-              <div>
-                <label style={lbl}>حداکثر موجودی کیف پول (ریال)</label>
-                <input type="number" value={get("wallet_max_balance", "50000000")} onChange={e => set("wallet_max_balance", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-            </Row>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, background: "var(--surface)", padding: "10px 14px", borderRadius: "var(--radius-sm)", border: "1.5px solid var(--border)" }}>
-              <input type="checkbox" id="wallet-enabled" checked={get("wallet_enabled", "true") === "true"} onChange={e => set("wallet_enabled", e.target.checked ? "true" : "false")} style={{ width: 16, height: 16, cursor: "pointer" }} />
-              <label htmlFor="wallet-enabled" style={{ fontSize: 13, fontWeight: 700, cursor: "pointer" }}>کیف پول فعال باشد</label>
+          <AdminCard>
+            <AdminCardHeader title="تنظیمات کیف پول" icon="ti-wallet" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
+              <Row>
+                <AdminField label="حداقل شارژ کیف پول (ریال)">
+                  <AdminInput type="number" value={get("wallet_min_charge", "50000")} onChange={v => set("wallet_min_charge", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+                <AdminField label="حداکثر موجودی کیف پول (ریال)">
+                  <AdminInput type="number" value={get("wallet_max_balance", "50000000")} onChange={v => set("wallet_max_balance", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+              </Row>
+              <AdminToggle checked={get("wallet_enabled", "true") === "true"} onChange={v => set("wallet_enabled", v ? "true" : "false")} label="کیف پول فعال باشد" />
+              <SaveBtn groupName="payment" keys={["wallet_min_charge", "wallet_max_balance", "wallet_enabled"]} />
             </div>
-            <SaveBtn groupName="payment" keys={["wallet_min_charge", "wallet_max_balance", "wallet_enabled"]} />
-          </Section>
+          </AdminCard>
         </>
       )}
 
       {/* ── SEO TAB ── */}
       {tab === "seo" && (
         <>
-          <Section title="متا تگ‌های پیش‌فرض" icon="ti-search">
-            <div>
-              <label style={lbl}>عنوان پیش‌فرض سایت</label>
-              <input value={get("seo_default_title", "")} onChange={e => set("seo_default_title", e.target.value)} style={inp} placeholder="عنوان | نام فروشگاه" />
-              <p style={hint}>این عنوان در صفحاتی که متا عنوان خاصی ندارند استفاده می‌شود</p>
+          <AdminCard>
+            <AdminCardHeader title="متا تگ‌های پیش‌فرض" icon="ti-search" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
+              <AdminField label="عنوان پیش‌فرض سایت" hint="در صفحاتی که متا عنوان خاصی ندارند استفاده می‌شود">
+                <AdminInput value={get("seo_default_title", "")} onChange={v => set("seo_default_title", v)} placeholder="عنوان | نام فروشگاه" />
+              </AdminField>
+              <AdminField label="توضیح پیش‌فرض (Meta Description)" hint={`توصیه می‌شود بین ۱۵۰ تا ۱۶۰ کاراکتر باشد (${get("seo_default_desc", "").length} کاراکتر)`}>
+                <AdminTextarea value={get("seo_default_desc", "")} onChange={v => set("seo_default_desc", v)} rows={3} placeholder="توضیح کوتاه فروشگاه برای موتورهای جستجو..." />
+              </AdminField>
+              <AdminField label="کلمات کلیدی (Keywords)">
+                <AdminInput value={get("seo_keywords", "")} onChange={v => set("seo_keywords", v)} placeholder="شیرآلات، لوله، اتصالات، تهران" />
+              </AdminField>
+              <Row>
+                <AdminField label="آدرس کانونیکال سایت">
+                  <AdminInput value={get("seo_canonical_url", "")} onChange={v => set("seo_canonical_url", v)} placeholder="https://marjan.ir" style={{ direction: "ltr" }} />
+                </AdminField>
+                <AdminField label="Google Analytics ID">
+                  <AdminInput value={get("seo_ga_id", "")} onChange={v => set("seo_ga_id", v)} placeholder="G-XXXXXXXXXX" style={{ direction: "ltr", fontFamily: "monospace" }} />
+                </AdminField>
+              </Row>
+              <SaveBtn groupName="seo" keys={["seo_default_title", "seo_default_desc", "seo_keywords", "seo_canonical_url", "seo_ga_id"]} />
             </div>
-            <div>
-              <label style={lbl}>توضیح پیش‌فرض (Meta Description)</label>
-              <textarea value={get("seo_default_desc", "")} onChange={e => set("seo_default_desc", e.target.value)} rows={3} style={{ ...inp, resize: "vertical", lineHeight: 1.7 }} placeholder="توضیح کوتاه فروشگاه برای موتورهای جستجو..." />
-              <p style={hint}>توصیه می‌شود بین ۱۵۰ تا ۱۶۰ کاراکتر باشد ({get("seo_default_desc", "").length} کاراکتر)</p>
-            </div>
-            <div>
-              <label style={lbl}>کلمات کلیدی (Keywords)</label>
-              <input value={get("seo_keywords", "")} onChange={e => set("seo_keywords", e.target.value)} style={inp} placeholder="شیرآلات، لوله، اتصالات، تهران" />
-            </div>
-            <Row>
-              <div>
-                <label style={lbl}>آدرس کانونیکال سایت</label>
-                <input value={get("seo_canonical_url", "")} onChange={e => set("seo_canonical_url", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} placeholder="https://marjan.ir" />
-              </div>
-              <div>
-                <label style={lbl}>Google Analytics ID</label>
-                <input value={get("seo_ga_id", "")} onChange={e => set("seo_ga_id", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left", fontFamily: "monospace" }} placeholder="G-XXXXXXXXXX" />
-              </div>
-            </Row>
-            <SaveBtn groupName="seo" keys={["seo_default_title", "seo_default_desc", "seo_keywords", "seo_canonical_url", "seo_ga_id"]} />
-          </Section>
+          </AdminCard>
 
-          <Section title="Open Graph (شبکه‌های اجتماعی)" icon="ti-share">
-            <Row>
-              <div>
-                <label style={lbl}>عنوان OG</label>
-                <input value={get("og_title", "")} onChange={e => set("og_title", e.target.value)} style={inp} />
-              </div>
-              <div>
-                <label style={lbl}>تصویر OG (آدرس کامل)</label>
-                <input value={get("og_image", "")} onChange={e => set("og_image", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} placeholder="https://..." />
-              </div>
-            </Row>
-            <div>
-              <label style={lbl}>توضیح OG</label>
-              <textarea value={get("og_desc", "")} onChange={e => set("og_desc", e.target.value)} rows={2} style={{ ...inp, resize: "vertical", lineHeight: 1.7 }} />
+          <AdminCard>
+            <AdminCardHeader title="Open Graph (شبکه‌های اجتماعی)" icon="ti-share" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
+              <Row>
+                <AdminField label="عنوان OG">
+                  <AdminInput value={get("og_title", "")} onChange={v => set("og_title", v)} />
+                </AdminField>
+                <AdminField label="تصویر OG (آدرس کامل)">
+                  <AdminInput value={get("og_image", "")} onChange={v => set("og_image", v)} placeholder="https://..." style={{ direction: "ltr" }} />
+                </AdminField>
+              </Row>
+              <AdminField label="توضیح OG">
+                <AdminTextarea value={get("og_desc", "")} onChange={v => set("og_desc", v)} rows={2} />
+              </AdminField>
+              <SaveBtn groupName="seo" keys={["og_title", "og_image", "og_desc"]} />
             </div>
-            <SaveBtn groupName="seo" keys={["og_title", "og_image", "og_desc"]} />
-          </Section>
+          </AdminCard>
         </>
       )}
 
       {/* ── SECURITY TAB ── */}
       {tab === "security" && (
         <>
-          <Section title="تنظیمات امنیتی" icon="ti-lock">
-            <Row>
-              <div>
-                <label style={lbl}>حداکثر تلاش ورود ناموفق</label>
-                <input type="number" min="1" max="20" value={get("max_login_attempts", "5")} onChange={e => set("max_login_attempts", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-                <p style={hint}>بعد از این تعداد، حساب موقتاً قفل می‌شود</p>
+          <AdminCard>
+            <AdminCardHeader title="تنظیمات امنیتی" icon="ti-lock" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
+              <Row>
+                <AdminField label="حداکثر تلاش ورود ناموفق" hint="بعد از این تعداد، حساب موقتاً قفل می‌شود">
+                  <AdminInput type="number" value={get("max_login_attempts", "5")} onChange={v => set("max_login_attempts", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+                <AdminField label="مدت قفل حساب (دقیقه)">
+                  <AdminInput type="number" value={get("lockout_duration_min", "15")} onChange={v => set("lockout_duration_min", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+              </Row>
+              <Row>
+                <AdminField label="مدت اعتبار توکن تأیید ایمیل (ساعت)">
+                  <AdminInput type="number" value={get("email_verify_ttl_hours", "24")} onChange={v => set("email_verify_ttl_hours", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+                <AdminField label="مدت اعتبار توکن بازنشانی رمز (دقیقه)">
+                  <AdminInput type="number" value={get("password_reset_ttl_min", "30")} onChange={v => set("password_reset_ttl_min", v)} style={{ direction: "ltr" }} />
+                </AdminField>
+              </Row>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <AdminToggle checked={get("require_email_verify", "true") === "true"} onChange={v => set("require_email_verify", v ? "true" : "false")} label="تأیید ایمیل هنگام ثبت‌نام اجباری باشد" />
+                <AdminToggle checked={get("allow_google_login", "true") === "true"} onChange={v => set("allow_google_login", v ? "true" : "false")} label="ورود با گوگل فعال باشد" />
+                <AdminToggle checked={get("allow_guest_checkout", "true") === "true"} onChange={v => set("allow_guest_checkout", v ? "true" : "false")} label="خرید بدون ثبت‌نام مجاز باشد" />
               </div>
-              <div>
-                <label style={lbl}>مدت قفل حساب (دقیقه)</label>
-                <input type="number" min="1" value={get("lockout_duration_min", "15")} onChange={e => set("lockout_duration_min", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-            </Row>
-            <Row>
-              <div>
-                <label style={lbl}>مدت اعتبار توکن تأیید ایمیل (ساعت)</label>
-                <input type="number" min="1" value={get("email_verify_ttl_hours", "24")} onChange={e => set("email_verify_ttl_hours", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-              <div>
-                <label style={lbl}>مدت اعتبار توکن بازنشانی رمز (دقیقه)</label>
-                <input type="number" min="5" value={get("password_reset_ttl_min", "30")} onChange={e => set("password_reset_ttl_min", e.target.value)} style={{ ...inp, direction: "ltr", textAlign: "left" }} />
-              </div>
-            </Row>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {[
-                { key: "require_email_verify", label: "تأیید ایمیل هنگام ثبت‌نام اجباری باشد" },
-                { key: "allow_google_login", label: "ورود با گوگل فعال باشد" },
-                { key: "allow_guest_checkout", label: "خرید بدون ثبت‌نام مجاز باشد" },
-              ].map(item => (
-                <div key={item.key} style={{ display: "flex", alignItems: "center", gap: 10, background: "var(--surface)", padding: "10px 14px", borderRadius: "var(--radius-sm)", border: "1.5px solid var(--border)" }}>
-                  <input type="checkbox" id={item.key} checked={get(item.key, "true") === "true"} onChange={e => set(item.key, e.target.checked ? "true" : "false")} style={{ width: 16, height: 16, cursor: "pointer" }} />
-                  <label htmlFor={item.key} style={{ fontSize: 13, fontWeight: 700, cursor: "pointer" }}>{item.label}</label>
-                </div>
-              ))}
+              <SaveBtn groupName="security" keys={["max_login_attempts", "lockout_duration_min", "email_verify_ttl_hours", "password_reset_ttl_min", "require_email_verify", "allow_google_login", "allow_guest_checkout"]} />
             </div>
-            <SaveBtn groupName="security" keys={["max_login_attempts", "lockout_duration_min", "email_verify_ttl_hours", "password_reset_ttl_min", "require_email_verify", "allow_google_login", "allow_guest_checkout"]} />
-          </Section>
+          </AdminCard>
 
-          <Section title="CORS و دسترسی API" icon="ti-api">
-            <div>
-              <label style={lbl}>دامنه‌های مجاز CORS</label>
-              <textarea value={get("cors_origins", "")} onChange={e => set("cors_origins", e.target.value)} rows={3} style={{ ...inp, direction: "ltr", textAlign: "left", fontFamily: "monospace", lineHeight: 1.7, resize: "vertical" }} placeholder={"https://marjan.ir\nhttps://www.marjan.ir"} />
-              <p style={hint}>هر دامنه در یک خط جداگانه</p>
+          <AdminCard>
+            <AdminCardHeader title="CORS و دسترسی API" icon="ti-api" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
+              <AdminField label="دامنه‌های مجاز CORS" hint="هر دامنه در یک خط جداگانه">
+                <AdminTextarea value={get("cors_origins", "")} onChange={v => set("cors_origins", v)} rows={3} placeholder={"https://marjan.ir\nhttps://www.marjan.ir"} style={{ direction: "ltr", fontFamily: "monospace" }} />
+              </AdminField>
+              <AdminField label="IP‌های مسدود شده">
+                <AdminTextarea value={get("blocked_ips", "")} onChange={v => set("blocked_ips", v)} rows={3} placeholder="192.168.1.1" style={{ direction: "ltr", fontFamily: "monospace" }} />
+              </AdminField>
+              <SaveBtn groupName="security" keys={["cors_origins", "blocked_ips"]} />
             </div>
-            <div>
-              <label style={lbl}>IP‌های مسدود شده</label>
-              <textarea value={get("blocked_ips", "")} onChange={e => set("blocked_ips", e.target.value)} rows={3} style={{ ...inp, direction: "ltr", textAlign: "left", fontFamily: "monospace", lineHeight: 1.7, resize: "vertical" }} placeholder="192.168.1.1" />
-            </div>
-            <SaveBtn groupName="security" keys={["cors_origins", "blocked_ips"]} />
-          </Section>
+          </AdminCard>
 
           <SecurityReport />
         </>

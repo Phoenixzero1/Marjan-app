@@ -1,5 +1,4 @@
-﻿export const dynamic = 'force-dynamic'
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 
 import { prisma } from "@/lib/prisma";// POST — restore from a JSON backup file

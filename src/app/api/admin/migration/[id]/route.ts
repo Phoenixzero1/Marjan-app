@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic'
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
 import { readFile, unlink } from "fs/promises";
 import { existsSync } from "fs";

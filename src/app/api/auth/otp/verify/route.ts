@@ -55,12 +55,19 @@ export async function POST(req: NextRequest) {
     // Mark OTP as used
     await prisma.otpCode.update({ where: { id: otp.id }, data: { used: true } });
 
-    // For register/reset purpose: mark phone as verified on user record
+    // For register/reset purpose: mark the specific user's phone as verified
     if (purpose === "register" || purpose === "reset") {
-      await prisma.user.updateMany({
+      const user = await prisma.user.findFirst({
         where: { phone },
-        data: { phoneVerified: new Date(), status: "ACTIVE" },
+        orderBy: { createdAt: "desc" },
+        select: { id: true },
       });
+      if (user) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { phoneVerified: new Date(), status: "ACTIVE" },
+        });
+      }
     }
 
     return NextResponse.json({ success: true, verified: true });

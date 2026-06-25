@@ -1,255 +1,176 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import DatePicker from "@/components/ui/DatePicker";
-
-type LogLevel = "INFO" | "WARNING" | "ERROR" | "CRITICAL";
+import {
+  AdminPageHeader, AdminToolbar, AdminSearch, AdminSelect, AdminBtn, AdminBadge,
+  AdminEmptyState, AdminCard, AdminPagination, AdminConfirm,
+  AdminToast, useAdminToast,
+} from "@/components/admin/AdminUI";
 
 interface LogEntry {
-  id: string;
-  level: LogLevel;
-  action: string;
-  details: Record<string, unknown> | null;
-  ipAddress: string | null;
-  userAgent: string | null;
-  createdAt: string;
-  user: { firstName: string; lastName: string; email: string | null } | null;
+  id: string; level: string; message: string; context: string | null;
+  source: string | null; details: Record<string, unknown> | null; createdAt: string;
 }
 
-type Toast = { msg: string; ok: boolean };
+interface Summary { INFO: number; WARNING: number; ERROR: number; CRITICAL: number; }
 
-const LEVEL: Record<LogLevel, { label: string; bg: string; color: string; icon: string }> = {
-  INFO:     { label: "اطلاعات", bg: "#dbeafe", color: "#2563eb", icon: "ti-info-circle" },
-  WARNING:  { label: "هشدار",   bg: "#fef9c3", color: "#ca8a04", icon: "ti-alert-triangle" },
-  ERROR:    { label: "خطا",     bg: "#fee2e2", color: "#dc2626", icon: "ti-circle-x" },
-  CRITICAL: { label: "بحرانی", bg: "#fce7f3", color: "#be185d", icon: "ti-skull" },
+const LEVEL_CFG: Record<string, { label: string; variant: "info" | "warning" | "danger" | "purple"; icon: string; color: string }> = {
+  INFO:     { label: "اطلاعات", variant: "info",    icon: "ti-info-circle",    color: "#2563eb" },
+  WARNING:  { label: "هشدار",   variant: "warning",  icon: "ti-alert-triangle", color: "#d97706" },
+  ERROR:    { label: "خطا",     variant: "danger",   icon: "ti-circle-x",       color: "#dc2626" },
+  CRITICAL: { label: "بحرانی",  variant: "purple",   icon: "ti-flame",          color: "#7c3aed" },
 };
 
+const PURGE_OPTIONS = [7, 14, 30, 60, 90];
+const PAGE_SIZE = 25;
+
 export default function LogsManager() {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const { toast, showToast } = useAdminToast();
+  const [entries, setEntries] = useState<LogEntry[]>([]);
+  const [summary, setSummary] = useState<Summary>({ INFO: 0, WARNING: 0, ERROR: 0, CRITICAL: 0 });
   const [total, setTotal] = useState(0);
-  const [pages, setPages] = useState(1);
-  const [page, setPage] = useState(1);
-  const [levelCounts, setLevelCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [levelFilter, setLevelFilter] = useState("");
+  const [page, setPage] = useState(1);
   const [q, setQ] = useState("");
+  const [level, setLevel] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [purgeConfirm, setPurgeConfirm] = useState(false);
+  const [purgeDays, setPurgeDays] = useState(30);
   const [purging, setPurging] = useState(false);
-  const [toast, setToast] = useState<Toast | null>(null);
 
-  const showToast = (msg: string, ok = true) => {
-    setToast({ msg, ok });
-    setTimeout(() => setToast(null), 4000);
-  };
-
-  const load = useCallback(async (pg = 1) => {
+  const load = useCallback((pg: number) => {
     setLoading(true);
-    try {
-      const params = new URLSearchParams({ page: String(pg) });
-      if (levelFilter) params.set("level", levelFilter);
-      if (q.trim()) params.set("q", q.trim());
-      if (from) params.set("from", from);
-      if (to) params.set("to", to);
-      const res = await fetch(`/api/admin/logs?${params}`);
-      const data = await res.json();
-      setLogs(data.logs ?? []);
-      setTotal(data.pagination?.total ?? data.total ?? 0);
-      setPages(data.pagination?.totalPages ?? data.pages ?? 1);
-      setPage(pg);
-      if (data.levelCounts) setLevelCounts(data.levelCounts);
-    } finally {
-      setLoading(false);
-    }
-  }, [levelFilter, q, from, to]);
+    const qs = new URLSearchParams({ page: String(pg), pageSize: String(PAGE_SIZE) });
+    if (level) qs.set("level", level);
+    if (q.trim()) qs.set("q", q.trim());
+    if (from) qs.set("from", from);
+    if (to) qs.set("to", to);
+    fetch(`/api/admin/logs?${qs}`)
+      .then(r => r.json())
+      .then(d => { setEntries(d.entries ?? []); setTotal(d.total ?? 0); setSummary(d.summary ?? { INFO: 0, WARNING: 0, ERROR: 0, CRITICAL: 0 }); })
+      .catch(() => showToast("error", "خطا در بارگذاری لاگ‌ها"))
+      .finally(() => setLoading(false));
+  }, [level, q, from, to, showToast]);
 
-  useEffect(() => { load(1); }, [load]);
+  useEffect(() => { load(1); setPage(1); }, [level, from, to]); // eslint-disable-line
+  useEffect(() => { load(page); }, [page]); // eslint-disable-line
 
-  async function handlePurge(days: number) {
-    if (!confirm(`لاگ‌های قدیمی‌تر از ${days} روز حذف شوند؟`)) return;
+  async function handlePurge() {
     setPurging(true);
     try {
-      const res = await fetch("/api/admin/logs", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ olderThanDays: days }),
-      });
-      const data = await res.json();
-      if (res.ok) { showToast(`${data.deleted} لاگ حذف شد`); load(1); }
-      else showToast("خطا در حذف لاگ‌ها", false);
-    } finally {
-      setPurging(false);
-    }
+      const res = await fetch(`/api/admin/logs?days=${purgeDays}`, { method: "DELETE" });
+      const d = await res.json();
+      if (res.ok) { showToast("success", `${d.deleted ?? 0} لاگ پاک‌سازی شد`); load(1); }
+      else showToast("error", d.error ?? "خطا");
+    } catch { showToast("error", "خطای سرور"); }
+    finally { setPurging(false); setPurgeConfirm(false); }
   }
 
-  const fmtDate = (s: string) => new Date(s).toLocaleDateString("fa-IR", {
-    year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit",
-  });
-
-  const totalLogs = Object.values(levelCounts).reduce((a, b) => a + b, 0);
+  const LEVELS: (keyof Summary)[] = ["INFO", "WARNING", "ERROR", "CRITICAL"];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {toast && (
-        <div style={{ position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: toast.ok ? "#22c55e" : "#ef4444", color: "#fff", padding: "12px 28px", borderRadius: 10, fontWeight: 700, fontSize: 14, boxShadow: "0 4px 24px rgba(0,0,0,.18)" }}>
-          {toast.msg}
-        </div>
-      )}
+    <div>
+      <AdminToast toast={toast} />
 
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <h2 style={{ fontSize: 20, fontWeight: 900, color: "var(--primary)", margin: 0 }}>لاگ سیستم</h2>
-          <p style={{ fontSize: 12, color: "var(--text3)", margin: "4px 0 0" }}>{totalLogs.toLocaleString("fa-IR")} رویداد ثبت‌شده</p>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {[7, 30, 90].map(d => (
-            <button
-              key={d}
-              onClick={() => handlePurge(d)}
-              disabled={purging}
-              style={{ background: "#fef2f2", color: "#ef4444", border: "1px solid #fca5a5", borderRadius: "var(--radius-sm)", padding: "7px 12px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
-            >
-              حذف +{d} روز
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Level summary cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
-        {(Object.entries(LEVEL) as [LogLevel, typeof LEVEL[LogLevel]][]).map(([key, val]) => (
-          <div
-            key={key}
-            onClick={() => setLevelFilter(levelFilter === key ? "" : key)}
-            style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: levelFilter === key ? `0 0 0 2px ${val.color}` : "var(--shadow)", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, transition: "box-shadow .15s" }}
-          >
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: val.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className={`ti ${val.icon}`} style={{ fontSize: 20, color: val.color }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 20, fontWeight: 900, color: "var(--primary)" }}>
-                {(levelCounts[key] ?? 0).toLocaleString("fa-IR")}
-              </div>
-              <div style={{ fontSize: 11, color: "var(--text3)" }}>{val.label}</div>
-            </div>
+      <AdminPageHeader title="گزارش رویدادها" icon="ti-file-description" count={total}
+        subtitle="لاگ‌های سیستمی — جستجو، فیلتر و پاک‌سازی"
+        actions={
+          <div style={{ display: "flex", gap: 8 }}>
+            <AdminBtn icon="ti-refresh" onClick={() => load(page)}>بروزرسانی</AdminBtn>
+            <AdminBtn icon="ti-trash" variant="danger" onClick={() => setPurgeConfirm(true)}>پاک‌سازی</AdminBtn>
           </div>
-        ))}
-      </div>
+        }
+      />
 
-      {/* Filters */}
-      <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "12px 16px", display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-        <input
-          value={q}
-          onChange={e => setQ(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && load(1)}
-          placeholder="جستجو عملیات یا IP..."
-          style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 12px", fontFamily: "Vazirmatn", fontSize: 13, outline: "none", minWidth: 220 }}
-        />
-        <select value={levelFilter} onChange={e => setLevelFilter(e.target.value)} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 10px", fontFamily: "Vazirmatn", fontSize: 13, background: "#fff" }}>
-          <option value="">همه سطوح</option>
-          {(Object.entries(LEVEL) as [LogLevel, typeof LEVEL[LogLevel]][]).map(([k, v]) => (
-            <option key={k} value={k}>{v.label}</option>
-          ))}
-        </select>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text3)" }}>
-          <span>از:</span>
-          <DatePicker value={from} onChange={setFrom} />
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text3)" }}>
-          <span>تا:</span>
-          <DatePicker value={to} onChange={setTo} />
-        </div>
-        <button onClick={() => load(1)} style={{ background: "var(--primary)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "8px 16px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>اعمال</button>
-        {(levelFilter || q || from || to) && (
-          <button onClick={() => { setLevelFilter(""); setQ(""); setFrom(""); setTo(""); }} style={{ background: "var(--surface)", color: "var(--text2)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 12px", fontFamily: "Vazirmatn", fontSize: 13, cursor: "pointer" }}>پاک‌سازی</button>
-        )}
-        <div style={{ marginRight: "auto", fontSize: 13, color: "var(--text3)", fontWeight: 700 }}>{total.toLocaleString("fa-IR")} نتیجه</div>
-      </div>
-
-      {/* Log list */}
-      <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", overflow: "hidden" }}>
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
-            <i className="ti ti-loader-2" style={{ fontSize: 28, display: "block", marginBottom: 8 }} />در حال بارگذاری...
-          </div>
-        ) : logs.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
-            <i className="ti ti-terminal-2" style={{ fontSize: 40, display: "block", marginBottom: 8 }} />لاگی یافت نشد
-          </div>
-        ) : logs.map((log, i) => {
-          const lv = LEVEL[log.level];
-          const isExpanded = expanded === log.id;
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 16 }}>
+        {LEVELS.map(lv => {
+          const cfg = LEVEL_CFG[lv];
+          const active = level === lv;
           return (
-            <div
-              key={log.id}
-              style={{ borderBottom: i < logs.length - 1 ? "1px solid var(--border)" : "none" }}
-            >
-              <div
-                onClick={() => setExpanded(isExpanded ? null : log.id)}
-                style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", cursor: log.details ? "pointer" : "default", background: isExpanded ? "#f8fafc" : "#fff" }}
-              >
-                {/* Level badge */}
-                <span style={{ background: lv.bg, color: lv.color, borderRadius: 6, padding: "3px 8px", fontSize: 10, fontWeight: 900, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-                  <i className={`ti ${lv.icon}`} style={{ fontSize: 11 }} />{lv.label}
-                </span>
-
-                {/* Action */}
-                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {log.action}
-                </span>
-
-                {/* User */}
-                {log.user && (
-                  <span style={{ fontSize: 11, color: "var(--text3)", whiteSpace: "nowrap", flexShrink: 0 }}>
-                    <i className="ti ti-user" style={{ fontSize: 11 }} /> {log.user.firstName} {log.user.lastName}
-                  </span>
-                )}
-
-                {/* IP */}
-                {log.ipAddress && (
-                  <span style={{ fontSize: 11, color: "var(--text3)", direction: "ltr", fontFamily: "monospace", flexShrink: 0 }}>{log.ipAddress}</span>
-                )}
-
-                {/* Time */}
-                <span style={{ fontSize: 11, color: "var(--text3)", whiteSpace: "nowrap", flexShrink: 0 }}>{fmtDate(log.createdAt)}</span>
-
-                {/* Expand */}
-                {log.details && (
-                  <i className={`ti ${isExpanded ? "ti-chevron-up" : "ti-chevron-down"}`} style={{ fontSize: 14, color: "var(--text3)", flexShrink: 0 }} />
-                )}
+            <button key={lv} onClick={() => setLevel(active ? "" : lv)} style={{ all: "unset", cursor: "pointer" }}>
+              <div style={{ background: active ? "var(--primary)" : "#fff", border: `1.5px solid ${active ? "var(--primary)" : "var(--border)"}`, borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, transition: "all .15s" }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: active ? "rgba(255,255,255,0.15)" : "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <i className={`ti ${cfg.icon}`} style={{ fontSize: 18, color: active ? "#fff" : cfg.color }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: active ? "rgba(255,255,255,0.7)" : "var(--text3)", fontWeight: 700 }}>{cfg.label}</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: active ? "#fff" : "var(--text1)", lineHeight: 1.1 }}>{summary[lv].toLocaleString("fa-IR")}</div>
+                </div>
               </div>
+            </button>
+          );
+        })}
+      </div>
 
-              {/* Expanded details */}
-              {isExpanded && log.details && (
+      <AdminToolbar>
+        <AdminSearch value={q} onChange={setQ} placeholder="جستجو در پیام‌ها..." />
+        <AdminSelect value={level} onChange={setLevel}>
+          <option value="">همه سطوح</option>
+          {LEVELS.map(lv => <option key={lv} value={lv}>{LEVEL_CFG[lv].label}</option>)}
+        </AdminSelect>
+        <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={{ height: 32, padding: "0 8px", borderRadius: 7, border: "1.5px solid var(--border)", fontSize: 12, background: "#fff", color: "var(--text1)", direction: "ltr" }} title="از تاریخ" />
+        <input type="date" value={to} onChange={e => setTo(e.target.value)} style={{ height: 32, padding: "0 8px", borderRadius: 7, border: "1.5px solid var(--border)", fontSize: 12, background: "#fff", color: "var(--text1)", direction: "ltr" }} title="تا تاریخ" />
+        <AdminBtn icon="ti-search" onClick={() => { load(1); setPage(1); }}>جستجو</AdminBtn>
+        {(q || from || to || level) && <AdminBtn variant="ghost" icon="ti-x" onClick={() => { setQ(""); setFrom(""); setTo(""); setLevel(""); }}>پاک</AdminBtn>}
+      </AdminToolbar>
+
+      <AdminCard>
+        {loading && <AdminEmptyState icon="ti-loader-2" title="در حال بارگذاری..." />}
+        {!loading && entries.length === 0 && <AdminEmptyState icon="ti-file-off" title="لاگی یافت نشد" subtitle="فیلترها را تغییر دهید" />}
+        {!loading && entries.map((e, i) => {
+          const cfg = LEVEL_CFG[e.level] ?? LEVEL_CFG.INFO;
+          const isOpen = expanded === e.id;
+          return (
+            <div key={e.id} style={{ borderBottom: i < entries.length - 1 ? "1px solid var(--border)" : "none" }}>
+              <button onClick={() => setExpanded(isOpen ? null : e.id)} style={{ all: "unset", width: "100%", cursor: "pointer", display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 16px", boxSizing: "border-box" }}>
+                <div style={{ paddingTop: 1, flexShrink: 0 }}>
+                  <AdminBadge variant={cfg.variant} size="xs">{cfg.label}</AdminBadge>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: "monospace", fontSize: 12.5, color: "var(--text1)", whiteSpace: "pre-wrap", wordBreak: "break-all", lineHeight: 1.5 }}>{e.message}</div>
+                  <div style={{ display: "flex", gap: 12, marginTop: 4, flexWrap: "wrap" }}>
+                    {e.source && <span style={{ fontSize: 10, color: "var(--text3)", fontFamily: "monospace" }}>{e.source}</span>}
+                    {e.context && <span style={{ fontSize: 10, color: "var(--text3)" }}>{e.context}</span>}
+                    <span style={{ fontSize: 10, color: "var(--text3)", direction: "ltr", marginRight: "auto" }}>{new Date(e.createdAt).toLocaleString("fa-IR")}</span>
+                    {e.details && <i className="ti ti-code" style={{ fontSize: 12, color: "var(--text3)" }} />}
+                  </div>
+                </div>
+                <i className={`ti ${isOpen ? "ti-chevron-up" : "ti-chevron-down"}`} style={{ fontSize: 14, color: "var(--text3)", flexShrink: 0, marginTop: 2 }} />
+              </button>
+              {isOpen && e.details && (
                 <div style={{ padding: "0 16px 12px 16px" }}>
-                  <pre style={{ background: "#0f172a", color: "#e2e8f0", borderRadius: 8, padding: "12px 14px", fontSize: 11, lineHeight: 1.7, overflowX: "auto", margin: 0, fontFamily: "monospace" }}>
-                    {JSON.stringify(log.details, null, 2)}
+                  <pre style={{ background: "#0d1117", color: "#c9d1d9", borderRadius: 8, padding: "12px 14px", fontSize: 11.5, overflowX: "auto", margin: 0, direction: "ltr", lineHeight: 1.6 }}>
+                    {JSON.stringify(e.details, null, 2)}
                   </pre>
-                  {log.userAgent && (
-                    <div style={{ fontSize: 10, color: "var(--text3)", marginTop: 6, direction: "ltr", textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      UA: {log.userAgent}
-                    </div>
-                  )}
                 </div>
               )}
             </div>
           );
         })}
-      </div>
+      </AdminCard>
 
-      {/* Pagination */}
-      {pages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
-          <button onClick={() => load(page - 1)} disabled={page <= 1} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 14px", fontFamily: "Vazirmatn", fontSize: 13, cursor: "pointer", opacity: page <= 1 ? .5 : 1 }}>قبلی</button>
-          <span style={{ display: "flex", alignItems: "center", fontSize: 13, color: "var(--text2)", padding: "0 8px" }}>
-            {page.toLocaleString("fa-IR")} از {pages.toLocaleString("fa-IR")}
-          </span>
-          <button onClick={() => load(page + 1)} disabled={page >= pages} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 14px", fontFamily: "Vazirmatn", fontSize: 13, cursor: "pointer", opacity: page >= pages ? .5 : 1 }}>بعدی</button>
-        </div>
+      {total > PAGE_SIZE && (
+        <AdminPagination page={page} total={total} pageSize={PAGE_SIZE} onChange={p => { setPage(p); setExpanded(null); }} />
       )}
+
+      <AdminConfirm open={purgeConfirm} onClose={() => setPurgeConfirm(false)} onConfirm={handlePurge}
+        title="پاک‌سازی لاگ‌های قدیمی" danger
+        confirmLabel={purging ? "در حال پاک‌سازی..." : `حذف لاگ‌های قدیمی‌تر از ${purgeDays} روز`}
+        message={
+          <div>
+            <p style={{ marginBottom: 12 }}>لاگ‌های قدیمی‌تر از چند روز پاک شوند؟</p>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {PURGE_OPTIONS.map(d => (
+                <button key={d} onClick={() => setPurgeDays(d)} style={{ padding: "4px 12px", borderRadius: 6, border: `1.5px solid ${d === purgeDays ? "var(--primary)" : "var(--border)"}`, background: d === purgeDays ? "var(--primary)" : "#fff", color: d === purgeDays ? "#fff" : "var(--text1)", fontSize: 12, cursor: "pointer", fontWeight: d === purgeDays ? 900 : 400 }}>
+                  {d} روز
+                </button>
+              ))}
+            </div>
+          </div>
+        }
+      />
     </div>
   );
 }

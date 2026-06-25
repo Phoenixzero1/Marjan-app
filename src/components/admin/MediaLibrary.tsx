@@ -1,6 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import {
+  AdminPageHeader, AdminBtn, AdminCard, AdminCardHeader,
+  AdminToolbar, AdminSearch, AdminSelect,
+  AdminTable, AdminTh, AdminTd, AdminTr, AdminEmptyState,
+  AdminStatCard, AdminPagination, AdminTabs,
+  AdminToast, useAdminToast,
+} from "@/components/admin/AdminUI";
 
 interface MediaItem {
   id: string;
@@ -21,8 +28,6 @@ interface CleanupStats {
   unused: MediaItem[];
 }
 
-interface Toast { msg: string; ok: boolean }
-
 type ActiveTab = "library" | "cleanup";
 
 function formatBytes(n: number) {
@@ -36,6 +41,7 @@ function formatDate(s: string) {
 }
 
 export default function MediaLibrary() {
+  const { toast, showToast } = useAdminToast();
   const [activeTab, setActiveTab] = useState<ActiveTab>("library");
   const [items, setItems] = useState<MediaItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -49,16 +55,10 @@ export default function MediaLibrary() {
   const [selected, setSelected] = useState<MediaItem | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [toast, setToast] = useState<Toast | null>(null);
   const [cleanup, setCleanup] = useState<CleanupStats | null>(null);
   const [cleanupLoading, setCleanupLoading] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const showToast = (msg: string, ok = true) => {
-    setToast({ msg, ok });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const load = useCallback(async (pg = 1) => {
     setLoading(true);
@@ -73,9 +73,7 @@ export default function MediaLibrary() {
       setTotal(data.total ?? 0);
       setPages(data.pages ?? 1);
       setPage(pg);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, [q, mimeFilter, folderFilter]);
 
   useEffect(() => { load(1); }, [load]);
@@ -90,36 +88,27 @@ export default function MediaLibrary() {
       fd.append("folder", "uploads");
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) successCount++;
-      else { const d = await res.json(); showToast(d.error ?? "خطا در آپلود", false); }
+      else { const d = await res.json(); showToast("error", d.error ?? "خطا در آپلود"); }
     }
     setUploading(false);
-    if (successCount > 0) {
-      showToast(`${successCount} فایل با موفقیت آپلود شد`);
-      load(1);
-    }
+    if (successCount > 0) { showToast("success", `${successCount} فایل با موفقیت آپلود شد`); load(1); }
   }
 
   async function handleDelete(item: MediaItem) {
     if (!confirm(`آیا از حذف "${item.originalName}" مطمئن هستید؟`)) return;
     setDeleting(item.id);
     try {
-      const res = await fetch("/api/admin/media", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: item.id }),
-      });
+      const res = await fetch("/api/admin/media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: item.id }) });
       const data = await res.json();
-      if (!res.ok) { showToast(data.error ?? "خطا در حذف", false); return; }
-      showToast("فایل حذف شد");
+      if (!res.ok) { showToast("error", data.error ?? "خطا در حذف"); return; }
+      showToast("success", "فایل حذف شد");
       if (selected?.id === item.id) setSelected(null);
       load(page);
-    } finally {
-      setDeleting(null);
-    }
+    } finally { setDeleting(null); }
   }
 
   function copyUrl(url: string) {
-    navigator.clipboard.writeText(window.location.origin + url).then(() => showToast("آدرس کپی شد"));
+    navigator.clipboard.writeText(window.location.origin + url).then(() => showToast("success", "آدرس کپی شد"));
   }
 
   const isImage = (mime: string) => mime.startsWith("image/");
@@ -130,9 +119,7 @@ export default function MediaLibrary() {
       const res = await fetch("/api/admin/media/cleanup");
       const d = await res.json();
       setCleanup(d);
-    } finally {
-      setCleanupLoading(false);
-    }
+    } finally { setCleanupLoading(false); }
   }
 
   async function bulkDeleteUnused() {
@@ -142,362 +129,265 @@ export default function MediaLibrary() {
     try {
       const res = await fetch("/api/admin/media/cleanup", { method: "DELETE" });
       const d = await res.json();
-      if (res.ok) {
-        showToast(`${d.deleted} فایل حذف شد — ${formatBytes(d.freedBytes)} آزاد شد`);
-        loadCleanup();
-        load(1);
-      } else showToast("خطا در حذف فایل‌ها", false);
-    } finally {
-      setBulkDeleting(false);
-    }
+      if (res.ok) { showToast("success", `${d.deleted} فایل حذف شد — ${formatBytes(d.freedBytes)} آزاد شد`); loadCleanup(); load(1); }
+      else showToast("error", "خطا در حذف فایل‌ها");
+    } finally { setBulkDeleting(false); }
   }
 
   useEffect(() => {
     if (activeTab === "cleanup" && !cleanup) loadCleanup();
   }, [activeTab]);
 
+  const TABS = [
+    { id: "library", label: "کتابخانه", icon: "ti-photo" },
+    { id: "cleanup", label: `پاکسازی${cleanup ? ` (${cleanup.unusedCount})` : ""}`, icon: "ti-trash" },
+  ];
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {toast && (
-        <div style={{ position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: toast.ok ? "#22c55e" : "#ef4444", color: "#fff", padding: "12px 28px", borderRadius: 10, fontWeight: 700, fontSize: 14, boxShadow: "0 4px 24px rgba(0,0,0,.18)" }}>
-          {toast.msg}
-        </div>
-      )}
+      <AdminToast toast={toast} />
 
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <h2 style={{ fontSize: 20, fontWeight: 900, color: "var(--primary)", margin: 0 }}>کتابخانه رسانه</h2>
-          <p style={{ fontSize: 12, color: "var(--text3)", margin: "4px 0 0" }}>{total.toLocaleString("fa-IR")} فایل ذخیره شده</p>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {[
-            { id: "library" as ActiveTab, icon: "ti-photo", label: "کتابخانه" },
-            { id: "cleanup" as ActiveTab, icon: "ti-trash", label: `پاکسازی${cleanup ? ` (${cleanup.unusedCount})` : ""}` },
-          ].map((t) => (
-            <button key={t.id} onClick={() => setActiveTab(t.id)}
-              style={{ display: "flex", alignItems: "center", gap: 6, background: activeTab === t.id ? "var(--primary)" : "#fff", color: activeTab === t.id ? "#fff" : "var(--text2)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 14px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-              <i className={`ti ${t.icon}`} /> {t.label}
-            </button>
-          ))}
-          <input ref={fileRef} type="file" multiple accept="image/*,application/pdf" style={{ display: "none" }} onChange={e => handleUpload(e.target.files)} />
-          <button
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-            style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--accent)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "9px 18px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
-          >
-            <i className="ti ti-upload" />
-            {uploading ? "در حال آپلود..." : "آپلود فایل"}
-          </button>
-        </div>
-      </div>
+      <AdminPageHeader
+        title="کتابخانه رسانه"
+        icon="ti-photo"
+        count={total}
+        subtitle={`${total.toLocaleString("fa-IR")} فایل ذخیره شده`}
+        actions={
+          <>
+            <input ref={fileRef} type="file" multiple accept="image/*,application/pdf" style={{ display: "none" }} onChange={e => handleUpload(e.target.files)} />
+            <AdminBtn icon="ti-upload" variant="primary" loading={uploading} onClick={() => fileRef.current?.click()}>
+              {uploading ? "در حال آپلود..." : "آپلود فایل"}
+            </AdminBtn>
+          </>
+        }
+      />
+
+      <AdminTabs tabs={TABS} active={activeTab} onChange={(t) => setActiveTab(t as ActiveTab)} />
 
       {activeTab === "cleanup" && (
-        <div>
-          {/* Storage stats */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {cleanup && (
-            <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1rem 1.5rem", display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}>
-              {[
-                { icon: "ti-database", bg: "#dbeafe", color: "#2563eb", val: cleanup.totalCount.toLocaleString("fa-IR"), label: "کل فایل", sub: formatBytes(cleanup.totalSize) },
-                { icon: "ti-trash", bg: "#fee2e2", color: "#dc2626", val: cleanup.unusedCount.toLocaleString("fa-IR"), label: "فایل بلااستفاده", sub: formatBytes(cleanup.unusedSize) },
-                { icon: "ti-check", bg: "#dcfce7", color: "#16a34a", val: (cleanup.totalCount - cleanup.unusedCount).toLocaleString("fa-IR"), label: "فایل در استفاده", sub: formatBytes(cleanup.totalSize - cleanup.unusedSize) },
-              ].map((s) => (
-                <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 10, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <i className={`ti ${s.icon}`} style={{ fontSize: 20, color: s.color }} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 20, fontWeight: 900, color: "var(--primary)" }}>{s.val}</div>
-                    <div style={{ fontSize: 11, color: "var(--text3)" }}>{s.label} — {s.sub}</div>
-                  </div>
-                </div>
-              ))}
-              <div style={{ marginRight: "auto", display: "flex", gap: 8 }}>
-                <button onClick={loadCleanup} disabled={cleanupLoading}
-                  style={{ background: "var(--bg)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 14px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-                  <i className="ti ti-refresh" /> بروزرسانی
-                </button>
-                {cleanup.unusedCount > 0 && (
-                  <button onClick={bulkDeleteUnused} disabled={bulkDeleting}
-                    style={{ background: bulkDeleting ? "#aaa" : "#dc2626", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "8px 16px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: bulkDeleting ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-                    <i className="ti ti-trash" />
-                    {bulkDeleting ? "در حال حذف..." : `حذف ${cleanup.unusedCount} فایل بلااستفاده`}
-                  </button>
-                )}
-              </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+              <AdminStatCard icon="ti-database" label="کل فایل‌ها" value={cleanup.totalCount.toLocaleString("fa-IR")} sub={formatBytes(cleanup.totalSize)} color="#2563eb" />
+              <AdminStatCard icon="ti-trash" label="فایل بلااستفاده" value={cleanup.unusedCount.toLocaleString("fa-IR")} sub={formatBytes(cleanup.unusedSize)} color="#dc2626" />
+              <AdminStatCard icon="ti-circle-check" label="فایل در استفاده" value={(cleanup.totalCount - cleanup.unusedCount).toLocaleString("fa-IR")} sub={formatBytes(cleanup.totalSize - cleanup.unusedSize)} color="#16a34a" />
             </div>
           )}
 
-          {/* Unused files list */}
-          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "1.5rem" }}>
-            <h3 style={{ fontSize: 14, fontWeight: 900, color: "var(--primary)", marginBottom: "1rem" }}>
-              فایل‌های بلااستفاده
-              {cleanup && <span style={{ color: "var(--text3)", fontWeight: 400, fontSize: 12, marginRight: 8 }}>(هیچ محصول، مقاله یا دسته‌بندی به این فایل‌ها لینک نداده)</span>}
-            </h3>
-            {cleanupLoading ? (
-              <div style={{ textAlign: "center", padding: "2rem", color: "var(--text3)" }}>در حال بررسی...</div>
-            ) : !cleanup || cleanup.unused.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "2rem", color: "var(--text3)" }}>
-                <i className="ti ti-circle-check" style={{ fontSize: 40, display: "block", marginBottom: 8, color: "#16a34a" }} />
-                فایل بلااستفاده‌ای یافت نشد
-              </div>
-            ) : (
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead>
-                  <tr style={{ borderBottom: "2px solid var(--bg2)" }}>
-                    {["فایل", "نوع", "حجم", "پوشه", "تاریخ"].map((h) => (
-                      <th key={h} style={{ textAlign: "right", padding: "8px 10px", fontWeight: 900, color: "var(--text3)", fontSize: 11 }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {cleanup.unused.map((item) => (
-                    <tr key={item.id} style={{ borderBottom: "1px solid var(--bg)" }}>
-                      <td style={{ padding: 10 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          {isImage(item.mimeType) ? (
-                            <img src={item.url} alt="" style={{ width: 32, height: 32, objectFit: "cover", borderRadius: 4 }} />
-                          ) : (
-                            <div style={{ width: 32, height: 32, background: "#fee2e2", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 4 }}>
-                              <i className="ti ti-file-type-pdf" style={{ color: "#ef4444", fontSize: 14 }} />
-                            </div>
-                          )}
-                          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>{item.originalName}</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: 10, color: "var(--text3)", fontSize: 11 }}>{item.mimeType.split("/")[1]?.toUpperCase()}</td>
-                      <td style={{ padding: 10, color: "var(--text3)" }}>{formatBytes(item.size)}</td>
-                      <td style={{ padding: 10 }}>
-                        <span style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 4, padding: "2px 8px", fontSize: 11, color: "var(--text2)" }}>{item.folder}</span>
-                      </td>
-                      <td style={{ padding: 10, color: "var(--text3)", fontSize: 12 }}>{formatDate(item.createdAt)}</td>
+          <AdminCard>
+            <AdminCardHeader
+              title="فایل‌های بلااستفاده"
+              icon="ti-trash"
+              subtitle="هیچ محصول، مقاله یا دسته‌بندی به این فایل‌ها لینک نداده"
+              actions={
+                <div style={{ display: "flex", gap: 8 }}>
+                  <AdminBtn icon="ti-refresh" loading={cleanupLoading} onClick={loadCleanup}>بروزرسانی</AdminBtn>
+                  {cleanup && cleanup.unusedCount > 0 && (
+                    <AdminBtn icon="ti-trash" variant="danger" loading={bulkDeleting} onClick={bulkDeleteUnused}>
+                      حذف {cleanup.unusedCount} فایل بلااستفاده
+                    </AdminBtn>
+                  )}
+                </div>
+              }
+            />
+            <div style={{ marginTop: 12 }}>
+              {cleanupLoading ? (
+                <AdminEmptyState icon="ti-loader-2" title="در حال بررسی..." />
+              ) : !cleanup || cleanup.unused.length === 0 ? (
+                <AdminEmptyState icon="ti-circle-check" title="فایل بلااستفاده‌ای یافت نشد" />
+              ) : (
+                <AdminTable>
+                  <thead>
+                    <tr>
+                      <AdminTh>فایل</AdminTh>
+                      <AdminTh>نوع</AdminTh>
+                      <AdminTh>حجم</AdminTh>
+                      <AdminTh>پوشه</AdminTh>
+                      <AdminTh>تاریخ</AdminTh>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+                  </thead>
+                  <tbody>
+                    {cleanup.unused.map((item) => (
+                      <AdminTr key={item.id}>
+                        <AdminTd>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            {isImage(item.mimeType) ? (
+                              <img src={item.url} alt="" style={{ width: 32, height: 32, objectFit: "cover", borderRadius: 4 }} />
+                            ) : (
+                              <div style={{ width: 32, height: 32, background: "#fee2e2", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 4 }}>
+                                <i className="ti ti-file-type-pdf" style={{ color: "#ef4444", fontSize: 14 }} />
+                              </div>
+                            )}
+                            <span style={{ fontSize: 12, fontWeight: 600 }}>{item.originalName}</span>
+                          </div>
+                        </AdminTd>
+                        <AdminTd>{item.mimeType.split("/")[1]?.toUpperCase()}</AdminTd>
+                        <AdminTd>{formatBytes(item.size)}</AdminTd>
+                        <AdminTd>
+                          <span style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 4, padding: "2px 8px", fontSize: 11, color: "var(--text2)" }}>{item.folder}</span>
+                        </AdminTd>
+                        <AdminTd>{formatDate(item.createdAt)}</AdminTd>
+                      </AdminTr>
+                    ))}
+                  </tbody>
+                </AdminTable>
+              )}
+            </div>
+          </AdminCard>
         </div>
       )}
 
-      {activeTab === "library" && <>
+      {activeTab === "library" && (
+        <>
+          <AdminToolbar>
+            <AdminSearch value={q} onChange={setQ} placeholder="جستجو نام فایل..." />
+            <AdminSelect value={mimeFilter} onChange={setMimeFilter}>
+              <option value="">همه نوع‌ها</option>
+              <option value="image">تصاویر</option>
+              <option value="pdf">PDF</option>
+            </AdminSelect>
+            <AdminSearch value={folderFilter} onChange={setFolderFilter} placeholder="فیلتر پوشه..." />
+            <AdminBtn icon="ti-search" onClick={() => load(1)}>جستجو</AdminBtn>
+            <div style={{ marginRight: "auto", display: "flex", gap: 4 }}>
+              <AdminBtn size="sm" icon="ti-layout-grid" variant={viewMode === "grid" ? "primary" : "secondary"} onClick={() => setViewMode("grid")} />
+              <AdminBtn size="sm" icon="ti-list" variant={viewMode === "list" ? "primary" : "secondary"} onClick={() => setViewMode("list")} />
+            </div>
+          </AdminToolbar>
 
-      {/* Toolbar */}
-      <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: "14px 20px", display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-        <input
-          value={q}
-          onChange={e => setQ(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && load(1)}
-          placeholder="جستجو نام فایل..."
-          style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 12px", fontFamily: "Vazirmatn", fontSize: 13, outline: "none", minWidth: 200 }}
-        />
-        <select value={mimeFilter} onChange={e => setMimeFilter(e.target.value)} style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 10px", fontFamily: "Vazirmatn", fontSize: 13, background: "#fff" }}>
-          <option value="">همه نوع‌ها</option>
-          <option value="image">تصاویر</option>
-          <option value="pdf">PDF</option>
-        </select>
-        <input
-          value={folderFilter}
-          onChange={e => setFolderFilter(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && load(1)}
-          placeholder="فیلتر پوشه..."
-          style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 12px", fontFamily: "Vazirmatn", fontSize: 13, outline: "none", width: 140 }}
-        />
-        <button onClick={() => load(1)} style={{ background: "var(--primary)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "8px 16px", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>جستجو</button>
-        <div style={{ marginRight: "auto", display: "flex", gap: 4 }}>
-          <button onClick={() => setViewMode("grid")} title="نمای شبکه" style={{ background: viewMode === "grid" ? "var(--primary)" : "var(--surface)", color: viewMode === "grid" ? "#fff" : "var(--text2)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 10px", cursor: "pointer" }}>
-            <i className="ti ti-layout-grid" />
-          </button>
-          <button onClick={() => setViewMode("list")} title="نمای لیست" style={{ background: viewMode === "list" ? "var(--primary)" : "var(--surface)", color: viewMode === "list" ? "#fff" : "var(--text2)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 10px", cursor: "pointer" }}>
-            <i className="ti ti-list" />
-          </button>
-        </div>
-      </div>
-
-      {/* Content area */}
-      <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-        {/* Grid / List */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {loading ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
-              <i className="ti ti-loader-2" style={{ fontSize: 36, display: "block", marginBottom: 8 }} />
-              در حال بارگذاری...
-            </div>
-          ) : items.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3rem", background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", color: "var(--text3)" }}>
-              <i className="ti ti-photo-off" style={{ fontSize: 48, display: "block", marginBottom: 8 }} />
-              <p>فایلی یافت نشد</p>
-            </div>
-          ) : viewMode === "grid" ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
-              {items.map(item => (
-                <div
-                  key={item.id}
-                  onClick={() => setSelected(selected?.id === item.id ? null : item)}
-                  style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: selected?.id === item.id ? "0 0 0 2px var(--accent)" : "var(--shadow)", overflow: "hidden", cursor: "pointer", transition: "box-shadow .15s", position: "relative" }}
-                >
-                  <div style={{ height: 120, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                    {isImage(item.mimeType) ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.url} alt={item.originalName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    ) : (
-                      <i className="ti ti-file-type-pdf" style={{ fontSize: 48, color: "#ef4444" }} />
-                    )}
-                  </div>
-                  <div style={{ padding: "8px 10px" }}>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.originalName}</p>
-                    <p style={{ fontSize: 10, color: "var(--text3)", margin: "2px 0 0" }}>{formatBytes(item.size)}</p>
-                  </div>
-                  {deleting === item.id && (
-                    <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,.8)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <i className="ti ti-loader-2" style={{ fontSize: 24, color: "var(--accent)" }} />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            // List view
-            <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", overflow: "hidden" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead>
-                  <tr style={{ background: "var(--surface)", borderBottom: "1.5px solid var(--border)" }}>
-                    <th style={{ padding: "10px 16px", textAlign: "right", fontWeight: 700, color: "var(--text2)" }}>فایل</th>
-                    <th style={{ padding: "10px 16px", textAlign: "right", fontWeight: 700, color: "var(--text2)" }}>نوع</th>
-                    <th style={{ padding: "10px 16px", textAlign: "right", fontWeight: 700, color: "var(--text2)" }}>حجم</th>
-                    <th style={{ padding: "10px 16px", textAlign: "right", fontWeight: 700, color: "var(--text2)" }}>پوشه</th>
-                    <th style={{ padding: "10px 16px", textAlign: "right", fontWeight: 700, color: "var(--text2)" }}>تاریخ</th>
-                    <th style={{ padding: "10px 16px", textAlign: "center", fontWeight: 700, color: "var(--text2)" }}>عملیات</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item, i) => (
-                    <tr
+          <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {loading ? (
+                <AdminEmptyState icon="ti-loader-2" title="در حال بارگذاری..." />
+              ) : items.length === 0 ? (
+                <AdminEmptyState icon="ti-photo-off" title="فایلی یافت نشد" />
+              ) : viewMode === "grid" ? (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
+                  {items.map(item => (
+                    <div
                       key={item.id}
                       onClick={() => setSelected(selected?.id === item.id ? null : item)}
-                      style={{ background: selected?.id === item.id ? "rgba(var(--accent-rgb),.06)" : i % 2 === 0 ? "#fff" : "var(--surface)", borderBottom: "1px solid var(--border)", cursor: "pointer" }}
+                      style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: selected?.id === item.id ? "0 0 0 2px var(--accent)" : "var(--shadow)", overflow: "hidden", cursor: "pointer", transition: "box-shadow .15s", position: "relative" }}
                     >
-                      <td style={{ padding: "10px 16px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                          {isImage(item.mimeType) ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={item.url} alt="" style={{ width: 36, height: 36, objectFit: "cover", borderRadius: 4 }} />
-                          ) : (
-                            <div style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", background: "#fee2e2", borderRadius: 4 }}>
-                              <i className="ti ti-file-type-pdf" style={{ color: "#ef4444" }} />
-                            </div>
-                          )}
-                          <span style={{ fontSize: 12, color: "var(--text)", fontWeight: 600 }}>{item.originalName}</span>
+                      <div style={{ height: 120, background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                        {isImage(item.mimeType) ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.url} alt={item.originalName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <i className="ti ti-file-type-pdf" style={{ fontSize: 48, color: "#ef4444" }} />
+                        )}
+                      </div>
+                      <div style={{ padding: "8px 10px" }}>
+                        <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.originalName}</p>
+                        <p style={{ fontSize: 10, color: "var(--text3)", margin: "2px 0 0" }}>{formatBytes(item.size)}</p>
+                      </div>
+                      {deleting === item.id && (
+                        <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,.8)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <i className="ti ti-loader-2" style={{ fontSize: 24, color: "var(--accent)" }} />
                         </div>
-                      </td>
-                      <td style={{ padding: "10px 16px", color: "var(--text3)", fontSize: 11 }}>{item.mimeType.split("/")[1]?.toUpperCase()}</td>
-                      <td style={{ padding: "10px 16px", color: "var(--text3)" }}>{formatBytes(item.size)}</td>
-                      <td style={{ padding: "10px 16px" }}>
-                        <span style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 4, padding: "2px 8px", fontSize: 11, color: "var(--text2)" }}>{item.folder}</span>
-                      </td>
-                      <td style={{ padding: "10px 16px", color: "var(--text3)", fontSize: 12 }}>{formatDate(item.createdAt)}</td>
-                      <td style={{ padding: "10px 16px", textAlign: "center" }}>
-                        <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
-                          <button onClick={e => { e.stopPropagation(); copyUrl(item.url); }} title="کپی آدرس" style={{ background: "none", border: "1px solid var(--border)", borderRadius: 4, padding: "4px 8px", cursor: "pointer", color: "var(--text2)" }}>
-                            <i className="ti ti-copy" style={{ fontSize: 14 }} />
-                          </button>
-                          <button onClick={e => { e.stopPropagation(); handleDelete(item); }} disabled={deleting === item.id} title="حذف" style={{ background: "none", border: "1px solid #fca5a5", borderRadius: 4, padding: "4px 8px", cursor: "pointer", color: "#ef4444" }}>
-                            <i className="ti ti-trash" style={{ fontSize: 14 }} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                      )}
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Pagination */}
-          {pages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 16 }}>
-              <button onClick={() => load(page - 1)} disabled={page <= 1} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 14px", fontFamily: "Vazirmatn", fontSize: 13, cursor: "pointer", opacity: page <= 1 ? .5 : 1 }}>قبلی</button>
-              <span style={{ display: "flex", alignItems: "center", fontSize: 13, color: "var(--text2)", padding: "0 8px" }}>
-                صفحه {page.toLocaleString("fa-IR")} از {pages.toLocaleString("fa-IR")}
-              </span>
-              <button onClick={() => load(page + 1)} disabled={page >= pages} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "7px 14px", fontFamily: "Vazirmatn", fontSize: 13, cursor: "pointer", opacity: page >= pages ? .5 : 1 }}>بعدی</button>
-            </div>
-          )}
-        </div>
-
-        {/* Detail panel — shown when item is selected */}
-        {selected && (
-          <div style={{ width: 260, background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: 20, flexShrink: 0 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <h4 style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "var(--primary)" }}>جزئیات فایل</h4>
-              <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", padding: 4 }}>
-                <i className="ti ti-x" style={{ fontSize: 16 }} />
-              </button>
-            </div>
-
-            <div style={{ width: "100%", height: 160, background: "var(--surface)", borderRadius: 8, overflow: "hidden", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {isImage(selected.mimeType) ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={selected.url} alt={selected.originalName} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                </div>
               ) : (
-                <i className="ti ti-file-type-pdf" style={{ fontSize: 64, color: "#ef4444" }} />
+                <AdminCard>
+                  <AdminTable>
+                    <thead>
+                      <tr>
+                        <AdminTh>فایل</AdminTh>
+                        <AdminTh>نوع</AdminTh>
+                        <AdminTh>حجم</AdminTh>
+                        <AdminTh>پوشه</AdminTh>
+                        <AdminTh>تاریخ</AdminTh>
+                        <AdminTh>عملیات</AdminTh>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((item) => (
+                        <AdminTr
+                          key={item.id}
+                          onClick={() => setSelected(selected?.id === item.id ? null : item)}
+                          style={{ background: selected?.id === item.id ? "rgba(232,146,10,.06)" : undefined, cursor: "pointer" }}
+                        >
+                          <AdminTd>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              {isImage(item.mimeType) ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={item.url} alt="" style={{ width: 36, height: 36, objectFit: "cover", borderRadius: 4 }} />
+                              ) : (
+                                <div style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", background: "#fee2e2", borderRadius: 4 }}>
+                                  <i className="ti ti-file-type-pdf" style={{ color: "#ef4444" }} />
+                                </div>
+                              )}
+                              <span style={{ fontSize: 12, fontWeight: 600 }}>{item.originalName}</span>
+                            </div>
+                          </AdminTd>
+                          <AdminTd>{item.mimeType.split("/")[1]?.toUpperCase()}</AdminTd>
+                          <AdminTd>{formatBytes(item.size)}</AdminTd>
+                          <AdminTd>
+                            <span style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 4, padding: "2px 8px", fontSize: 11, color: "var(--text2)" }}>{item.folder}</span>
+                          </AdminTd>
+                          <AdminTd>{formatDate(item.createdAt)}</AdminTd>
+                          <AdminTd>
+                            <div style={{ display: "flex", gap: 6 }} onClick={e => e.stopPropagation()}>
+                              <AdminBtn size="sm" icon="ti-copy" onClick={() => copyUrl(item.url)} />
+                              <AdminBtn size="sm" icon="ti-trash" variant="danger" loading={deleting === item.id} onClick={() => handleDelete(item)} />
+                            </div>
+                          </AdminTd>
+                        </AdminTr>
+                      ))}
+                    </tbody>
+                  </AdminTable>
+                </AdminCard>
+              )}
+
+              {pages > 1 && (
+                <AdminPagination page={page} total={total} pageSize={40} onChange={pg => load(pg)} />
               )}
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 12 }}>
-              <div>
-                <span style={{ color: "var(--text3)", fontSize: 11 }}>نام فایل</span>
-                <p style={{ margin: "2px 0 0", fontWeight: 700, color: "var(--text)", wordBreak: "break-all" }}>{selected.originalName}</p>
-              </div>
-              <div style={{ display: "flex", gap: 16 }}>
-                <div>
-                  <span style={{ color: "var(--text3)", fontSize: 11 }}>حجم</span>
-                  <p style={{ margin: "2px 0 0", fontWeight: 700 }}>{formatBytes(selected.size)}</p>
+            {selected && (
+              <div style={{ width: 260, background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)", padding: 20, flexShrink: 0 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <h4 style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "var(--primary)" }}>جزئیات فایل</h4>
+                  <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", padding: 4 }}>
+                    <i className="ti ti-x" style={{ fontSize: 16 }} />
+                  </button>
                 </div>
-                <div>
-                  <span style={{ color: "var(--text3)", fontSize: 11 }}>نوع</span>
-                  <p style={{ margin: "2px 0 0", fontWeight: 700 }}>{selected.mimeType.split("/")[1]?.toUpperCase()}</p>
+                <div style={{ width: "100%", height: 160, background: "var(--bg)", borderRadius: 8, overflow: "hidden", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {isImage(selected.mimeType) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={selected.url} alt={selected.originalName} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                  ) : (
+                    <i className="ti ti-file-type-pdf" style={{ fontSize: 64, color: "#ef4444" }} />
+                  )}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 12 }}>
+                  <div>
+                    <span style={{ color: "var(--text3)", fontSize: 11 }}>نام فایل</span>
+                    <p style={{ margin: "2px 0 0", fontWeight: 700, color: "var(--text)", wordBreak: "break-all" }}>{selected.originalName}</p>
+                  </div>
+                  <div style={{ display: "flex", gap: 16 }}>
+                    <div><span style={{ color: "var(--text3)", fontSize: 11 }}>حجم</span><p style={{ margin: "2px 0 0", fontWeight: 700 }}>{formatBytes(selected.size)}</p></div>
+                    <div><span style={{ color: "var(--text3)", fontSize: 11 }}>نوع</span><p style={{ margin: "2px 0 0", fontWeight: 700 }}>{selected.mimeType.split("/")[1]?.toUpperCase()}</p></div>
+                  </div>
+                  <div><span style={{ color: "var(--text3)", fontSize: 11 }}>پوشه</span><p style={{ margin: "2px 0 0", fontWeight: 700 }}>{selected.folder}</p></div>
+                  <div><span style={{ color: "var(--text3)", fontSize: 11 }}>تاریخ آپلود</span><p style={{ margin: "2px 0 0", fontWeight: 700 }}>{formatDate(selected.createdAt)}</p></div>
+                  <div><span style={{ color: "var(--text3)", fontSize: 11 }}>آدرس</span><p style={{ margin: "2px 0 0", fontWeight: 600, color: "var(--accent)", wordBreak: "break-all", fontSize: 11 }}>{selected.url}</p></div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 14 }}>
+                  <AdminBtn icon="ti-copy" style={{ width: "100%", justifyContent: "center" }} onClick={() => copyUrl(selected.url)}>کپی آدرس</AdminBtn>
+                  {isImage(selected.mimeType) && (
+                    <a href={selected.url} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "var(--bg)", color: "var(--text)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 0", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+                      <i className="ti ti-external-link" /> مشاهده در تب جدید
+                    </a>
+                  )}
+                  <AdminBtn icon="ti-trash" variant="danger" loading={deleting === selected.id} style={{ width: "100%", justifyContent: "center" }} onClick={() => handleDelete(selected)}>حذف فایل</AdminBtn>
                 </div>
               </div>
-              <div>
-                <span style={{ color: "var(--text3)", fontSize: 11 }}>پوشه</span>
-                <p style={{ margin: "2px 0 0", fontWeight: 700 }}>{selected.folder}</p>
-              </div>
-              <div>
-                <span style={{ color: "var(--text3)", fontSize: 11 }}>تاریخ آپلود</span>
-                <p style={{ margin: "2px 0 0", fontWeight: 700 }}>{formatDate(selected.createdAt)}</p>
-              </div>
-              <div>
-                <span style={{ color: "var(--text3)", fontSize: 11 }}>آدرس</span>
-                <p style={{ margin: "2px 0 0", fontWeight: 600, color: "var(--accent)", wordBreak: "break-all", fontSize: 11 }}>{selected.url}</p>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 14 }}>
-              <button
-                onClick={() => copyUrl(selected.url)}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "var(--primary)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", padding: "9px 0", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, cursor: "pointer", width: "100%" }}
-              >
-                <i className="ti ti-copy" /> کپی آدرس
-              </button>
-              {isImage(selected.mimeType) && (
-                <a href={selected.url} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "var(--surface)", color: "var(--text)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "8px 0", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, textDecoration: "none", width: "100%" }}>
-                  <i className="ti ti-external-link" /> مشاهده در تب جدید
-                </a>
-              )}
-              <button
-                onClick={() => handleDelete(selected)}
-                disabled={deleting === selected.id}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "#fef2f2", color: "#ef4444", border: "1.5px solid #fca5a5", borderRadius: "var(--radius-sm)", padding: "9px 0", fontFamily: "Vazirmatn", fontSize: 13, fontWeight: 700, cursor: "pointer", width: "100%" }}
-              >
-                <i className="ti ti-trash" /> حذف فایل
-              </button>
-            </div>
+            )}
           </div>
-        )}
-      </div>
-
-      </> /* end activeTab === "library" */}
+        </>
+      )}
     </div>
   );
 }

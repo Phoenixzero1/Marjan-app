@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
-const DAY_LABELS = ["ی", "د", "س", "چ", "پ", "ج", "ش"]; // Sun→Sat
+// Persian week: Sat(0)=ش، Sun(1)=ی، Mon(2)=د، Tue(3)=س، Wed(4)=چ، Thu(5)=پ، Fri(6)=ج
+const PERSIAN_WEEK_LABELS = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
 
 export async function GET() {
   if (!(await requireAdmin()))
@@ -11,8 +12,15 @@ export async function GET() {
 
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const sevenDaysAgo = new Date(startOfToday);
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+
+  // Find start of current Persian week (last Saturday, JS getDay()===6)
+  const todayJsDay = now.getDay(); // 0=Sun … 6=Sat
+  const daysFromSaturday = todayJsDay === 6 ? 0 : todayJsDay + 1;
+  const persianWeekStart = new Date(startOfToday);
+  persianWeekStart.setDate(startOfToday.getDate() - daysFromSaturday);
+
+  // Keep sevenDaysAgo alias for the payment query window
+  const sevenDaysAgo = persianWeekStart;
 
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -54,15 +62,17 @@ export async function GET() {
       prisma.order.count({ where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } } }),
     ]);
 
-  // Build 7-day chart — one entry per day oldest→newest
+  // Build chart: Sat→Fri (Persian week order, i=0=Sat … i=6=Fri)
   const chart = Array.from({ length: 7 }, (_, i) => {
-    const day = new Date(sevenDaysAgo);
+    const day = new Date(persianWeekStart);
     day.setDate(day.getDate() + i);
     const dayStr = day.toISOString().slice(0, 10);
-    const total = chartPayments
+    const isFuture = day > startOfToday;
+    const total = isFuture ? 0 : chartPayments
       .filter(p => p.paidAt && p.paidAt.toISOString().slice(0, 10) === dayStr)
       .reduce((s, p) => s + p.amount, 0);
-    return { label: DAY_LABELS[day.getDay()], value: total };
+    const isFriday = day.getDay() === 5; // JS Friday = 5
+    return { label: PERSIAN_WEEK_LABELS[i], value: total, isFriday, isFuture };
   });
 
   // Build activity feed: mix orders + registrations, sort by time, take 8

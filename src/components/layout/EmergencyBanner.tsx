@@ -11,7 +11,7 @@ export default async function EmergencyBanner() {
     const message = map.emergency_banner_message || "پیام مهم از مارجان";
 
     return (
-      <div style={{
+      <div className="emergency-banner" style={{
         background: "linear-gradient(90deg, #1e40af, #2563eb)",
         color: "#fff",
         textAlign: "center",

@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic'
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
@@ -18,13 +17,6 @@ export async function GET(
           include: { parent: { select: { name: true, slug: true } } },
         },
         sizes: { orderBy: { label: "asc" } },
-        specs: { orderBy: { sortOrder: "asc" } },
-        questions: {
-          where: { isApproved: true, answer: { not: null } },
-          orderBy: { createdAt: "desc" },
-          take: 10,
-          select: { id: true, question: true, answer: true, answeredAt: true, createdAt: true, user: { select: { firstName: true, lastName: true } } },
-        },
         reviews: {
           where: { isApproved: true },
           include: { user: { select: { firstName: true, lastName: true, avatarUrl: true } } },

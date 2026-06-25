@@ -50,3 +50,10 @@ migration-packages/
 cloudflared.exe
 ngrok.exe
 ngrok.zip
+
+# ── local scratch / backups (not for repo) ──
+.home-backup/
+.home-backup-2/
+.claude/
+FX/
+DK/

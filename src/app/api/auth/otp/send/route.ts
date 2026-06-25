@@ -9,9 +9,11 @@ const schema = z.object({
   purpose: z.enum(["register", "login", "reset"]),
 });
 
-// Simple 6-digit OTP
+// Cryptographically secure 6-digit OTP
 function generateOtp(): string {
-  return String(Math.floor(100000 + Math.random() * 900000));
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return String(100000 + (buf[0] % 900000)).padStart(6, "0");
 }
 
 export async function POST(req: NextRequest) {
@@ -74,9 +76,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Ú©Ø¯ ØªØ£ÛŒÛŒØ¯ Ø§Ø±Ø³Ø§Ù„ Ø´Ø¯",
-      // Expose code only in development
-      ...(process.env.NODE_ENV === "development" ? { code } : {}),
+      message: "کد تأیید ارسال شد",
+      // Code is NEVER sent in response — only logged to server console in dev
     });
   } catch {
     return NextResponse.json({ error: "Ø®Ø·Ø§ÛŒ Ø³Ø±ÙˆØ±" }, { status: 500 });

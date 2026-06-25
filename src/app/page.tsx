@@ -6,6 +6,8 @@ import HeroSlider, { type SliderSettings } from "@/components/home/HeroSlider";
 import MarjanTime, { type FlashProduct } from "@/components/home/MarjanTime";
 import CategoryCircle from "@/components/home/CategoryCircle";
 import BrandCard from "@/components/home/BrandCard";
+import FeaturedShowcase, { type ShowcaseSlide } from "@/components/home/FeaturedShowcase";
+import HScrollSlider from "@/components/ui/HScrollSlider";
 
 // Always render fresh — flash deal config, sliders and products change via admin
 export const dynamic = "force-dynamic";
@@ -176,6 +178,17 @@ async function getPromoBanners() {
   }
 }
 
+async function getShowcaseSlides(): Promise<ShowcaseSlide[]> {
+  try {
+    const row = await prisma.siteSettings.findUnique({ where: { key: "featured_showcase" } });
+    if (!row) return [];
+    const cfg = JSON.parse(row.value) as { slides: ShowcaseSlide[] };
+    return cfg.slides ?? [];
+  } catch {
+    return [];
+  }
+}
+
 async function getBrands() {
   try {
     return await prisma.brand.findMany({
@@ -282,6 +295,7 @@ export default async function HomePage() {
     promoBanners,
     brands,
     posts,
+    showcaseSlides,
   ] = await Promise.all([
     getHeroBanners(),
     getSliderSettings(),
@@ -292,6 +306,7 @@ export default async function HomePage() {
     getPromoBanners(),
     getBrands(),
     getLatestPosts(),
+    getShowcaseSlides(),
   ]);
 
   const categories = dbCategories.length > 0
@@ -305,6 +320,9 @@ export default async function HomePage() {
       }))
     : FALLBACK_CATEGORIES;
 
+  // MarjanTime product ID set — lets ProductCard know which cards are in the deal
+  const marjanIds = new Set(flashDeal?.products.map((p) => p.id) ?? []);
+
   return (
     <>
       {/* ── HERO ─────────────────────────────────────────────────────── */}
@@ -313,9 +331,6 @@ export default async function HomePage() {
           slides={heroBanners.map((b) => ({
             id: b.id,
             imageUrl: b.imageUrl,
-            title: b.title,
-            subtitle: b.subtitle,
-            buttonText: b.buttonText,
             buttonLink: b.buttonLink,
           }))}
           settings={sliderSettings}
@@ -496,11 +511,11 @@ export default async function HomePage() {
       <div style={{ maxWidth: 1280, margin: "1.5rem auto 1rem", padding: "0 1rem" }}>
         <div className="section-card">
           <SectionHeader title="دسته‌بندی محصولات" href="/products" linkLabel="همه دسته‌ها" bar={{ bg: "var(--primary-mid)", icon: "ti-category" }} />
-          <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8, scrollbarWidth: "thin", scrollbarColor: "var(--border) transparent" }}>
+          <HScrollSlider gap={16} scrollAmount={220}>
             {categories.map((cat) => (
               <CategoryCircle key={cat.id} {...cat} />
             ))}
-          </div>
+          </HScrollSlider>
         </div>
       </div>
 
@@ -530,26 +545,33 @@ export default async function HomePage() {
               <p>پس از افزودن محصول توسط ادمین اینجا نمایش داده می‌شود.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <HScrollSlider gap={12} scrollAmount={200}>
               {bestsellers.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  id={p.id}
-                  name={p.name}
-                  slug={p.slug}
-                  price={p.price}
-                  comparePrice={p.comparePrice}
-                  brand={p.brand}
-                  images={p.images}
-                  sizes={p.sizes.map((s) => ({ ...s, price: s.price ?? null }))}
-                  isNew={p.isNew}
-                  isFeatured={p.isFeatured}
-                  stockQty={p.stockQty}
-                />
+                <div key={p.id} style={{ flexShrink: 0, width: 188 }}>
+                  <ProductCard
+                    id={p.id}
+                    name={p.name}
+                    slug={p.slug}
+                    price={p.price}
+                    comparePrice={p.comparePrice}
+                    brand={p.brand}
+                    images={p.images}
+                    sizes={p.sizes.map((s) => ({ ...s, price: s.price ?? null }))}
+                    isNew={p.isNew}
+                    isFeatured={p.isFeatured}
+                    stockQty={p.stockQty}
+                    marjanTime={marjanIds.has(p.id) && flashDeal ? { discountPct: flashDeal.discountPct } : undefined}
+                  />
+                </div>
               ))}
-            </div>
+            </HScrollSlider>
           )}
         </div>
+      </div>
+
+      {/* ── FEATURED SHOWCASE ────────────────────────────────────────── */}
+      <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
+        <FeaturedShowcase slides={showcaseSlides} />
       </div>
 
       {/* ── PROMO BANNERS ────────────────────────────────────────────── */}
@@ -598,29 +620,6 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* ── CATEGORY SHOWCASE ────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
-        <div className="section-card">
-          <SectionHeader
-            title="خرید بر اساس دسته‌بندی"
-            href="/products"
-            linkLabel="همه دسته‌ها"
-            bar={{ bg: "var(--primary)", icon: "ti-layout-grid" }}
-          />
-          <div className="cat-showcase-grid">
-            {categories.map((cat) => (
-              <Link key={cat.id} href={`/products?category=${cat.slug}`} className="cat-showcase-item">
-                <div className="cat-showcase-icon">
-                  <i className={`ti ${cat.iconClass}`} />
-                </div>
-                <span className="cat-showcase-name">{cat.name}</span>
-                {cat.count && <span className="cat-showcase-count">{cat.count} محصول</span>}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* ── NEWEST PRODUCTS ──────────────────────────────────────────── */}
       {newest.length > 0 && (
         <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
@@ -628,25 +627,28 @@ export default async function HomePage() {
             <SectionHeader
               title="جدیدترین محصولات"
               href="/products?sort=newest"
+              bar={{ bg: "var(--primary-mid)", icon: "ti-sparkles" }}
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <HScrollSlider gap={12} scrollAmount={200}>
               {newest.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  id={p.id}
-                  name={p.name}
-                  slug={p.slug}
-                  price={p.price}
-                  comparePrice={p.comparePrice}
-                  brand={p.brand}
-                  images={p.images}
-                  sizes={p.sizes.map((s) => ({ ...s, price: s.price ?? null }))}
-                  isNew={p.isNew}
-                  isFeatured={p.isFeatured}
-                  stockQty={p.stockQty}
-                />
+                <div key={p.id} style={{ flexShrink: 0, width: 188 }}>
+                  <ProductCard
+                    id={p.id}
+                    name={p.name}
+                    slug={p.slug}
+                    price={p.price}
+                    comparePrice={p.comparePrice}
+                    brand={p.brand}
+                    images={p.images}
+                    sizes={p.sizes.map((s) => ({ ...s, price: s.price ?? null }))}
+                    isNew={p.isNew}
+                    isFeatured={p.isFeatured}
+                    stockQty={p.stockQty}
+                    marjanTime={marjanIds.has(p.id) && flashDeal ? { discountPct: flashDeal.discountPct } : undefined}
+                  />
+                </div>
               ))}
-            </div>
+            </HScrollSlider>
           </div>
         </div>
       )}
@@ -656,11 +658,11 @@ export default async function HomePage() {
         <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
           <div className="section-card">
             <SectionHeader title="برندهای معتبر" href="/products" linkLabel="همه برندها" />
-            <div style={{ display: "flex", gap: 24, overflowX: "auto", alignItems: "center", paddingBottom: 8, scrollbarWidth: "thin", scrollbarColor: "var(--border) transparent" }}>
+            <HScrollSlider gap={24} scrollAmount={240}>
               {brands.map((b) => (
                 <BrandCard key={b.id} {...b} />
               ))}
-            </div>
+            </HScrollSlider>
           </div>
         </div>
       )}
