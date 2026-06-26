@@ -156,19 +156,16 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
     setMounted(true);
   }, []);
 
+  // Navbar is now sticky — use scroll position instead of IntersectionObserver.
+  // Floating buttons appear once the topbar (~42px) has scrolled away.
   useEffect(() => {
-    const el = navRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        const gone = !entry.isIntersecting;
-        setNavGone(gone);
-        if (!gone) setFloatingIn(false);
-      },
-      { threshold: 0 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
+    function onScroll() {
+      const scrolled = window.scrollY > 42;
+      setNavGone(scrolled);
+      if (!scrolled) setFloatingIn(false);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   // Animate in only after BOTH navGone AND shader/GPU are ready
@@ -663,7 +660,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
         <div
           style={{
             position: "fixed",
-            top: 60,
+            top: 92,
             left: "2rem",
             display: "flex",
             alignItems: "center",
