@@ -862,7 +862,7 @@ html {
   overflow-x: clip; /* clip instead of hidden — doesn't create new scroll container, keeps position:sticky working */
 }
 body {
-  overflow-x: hidden;
+  overflow-x: clip; /* clip (not hidden) — avoids creating a scroll container that breaks position:sticky */
   max-width: 100%;
 }
 
