@@ -156,11 +156,11 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
     setMounted(true);
   }, []);
 
-  // Navbar is now sticky — use scroll position instead of IntersectionObserver.
-  // Floating buttons appear once the topbar (~42px) has scrolled away.
+  // Navbar is sticky — use scroll to trigger floating buttons.
+  // Threshold ~100px: topbar(~42) + megabar(~52) scrolled past the sticky navbar.
   useEffect(() => {
     function onScroll() {
-      const scrolled = window.scrollY > 42;
+      const scrolled = window.scrollY > 100;
       setNavGone(scrolled);
       if (!scrolled) setFloatingIn(false);
     }
