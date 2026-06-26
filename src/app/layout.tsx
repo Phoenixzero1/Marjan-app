@@ -62,8 +62,10 @@ export default async function RootLayout({
           <div style={{ position: "sticky", top: 0, zIndex: 51, width: "100%" }}>
             <NavbarWrapper />
           </div>
-          {/* Megamenu scrolls normally — disappears behind sticky navbar */}
-          <Megamenu />
+          {/* Megamenu sticks just below the navbar (top: 84 = navbar height) */}
+          <div style={{ position: "sticky", top: 84, zIndex: 50, width: "100%" }}>
+            <Megamenu />
+          </div>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
             <main className="site-main" style={{ flex: 1 }}>{children}</main>
             <Footer />

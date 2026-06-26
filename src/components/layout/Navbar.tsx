@@ -156,11 +156,11 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
     setMounted(true);
   }, []);
 
-  // Navbar is sticky — use scroll to trigger floating buttons.
-  // Threshold ~100px: topbar(~42) + megabar(~52) scrolled past the sticky navbar.
+  // Navbar + megabar are both sticky. Show floating buttons once the
+  // topbar (~42px) has scrolled away (any real scroll = user is navigating).
   useEffect(() => {
     function onScroll() {
-      const scrolled = window.scrollY > 100;
+      const scrolled = window.scrollY > 42;
       setNavGone(scrolled);
       if (!scrolled) setFloatingIn(false);
     }
