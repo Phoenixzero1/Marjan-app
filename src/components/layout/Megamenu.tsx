@@ -104,7 +104,10 @@ export default function Megamenu() {
     function measure() {
       if (!barRef.current) return;
       const r = barRef.current.getBoundingClientRect();
-      setShaderUrl(getMegaShader(Math.round(r.width), Math.round(r.height)));
+      const w = Math.round(r.width);
+      const h = Math.round(r.height);
+      if (w <= 0 || h <= 0) return;
+      setShaderUrl(getMegaShader(w, h));
     }
     measure();
     window.addEventListener("resize", measure);
