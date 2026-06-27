@@ -125,7 +125,6 @@ export default function Megamenu() {
         width: "100%",
         zIndex: 50,
         background: "rgba(255, 255, 255, 0.05)",
-        borderTop: "1px solid rgba(255, 255, 255, 0.85)",
         borderLeft: "1px solid rgba(255, 255, 255, 0.35)",
         borderRight: "1px solid rgba(255, 255, 255, 0.35)",
         borderBottom: "1px solid rgba(255, 255, 255, 0.35)",
