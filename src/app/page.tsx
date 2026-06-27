@@ -327,14 +327,16 @@ export default async function HomePage() {
     <>
       {/* ── HERO ─────────────────────────────────────────────────────── */}
       {heroBanners.length > 0 ? (
-        <HeroSlider
-          slides={heroBanners.map((b) => ({
-            id: b.id,
-            imageUrl: b.imageUrl,
-            buttonLink: b.buttonLink,
-          }))}
-          settings={sliderSettings}
-        />
+        <div style={{ marginTop: "-52px" }}>
+          <HeroSlider
+            slides={heroBanners.map((b) => ({
+              id: b.id,
+              imageUrl: b.imageUrl,
+              buttonLink: b.buttonLink,
+            }))}
+            settings={sliderSettings}
+          />
+        </div>
       ) : (
         <section
           style={{
