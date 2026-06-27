@@ -59,10 +59,8 @@ export default async function RootLayout({
           <EmergencyBanner />
           <Topbar />
           <NavbarWrapper />
-          {/* Megamenu — manages its own fixed/relative pin via scroll detection.
-              Sticky is avoided: sticky + z-index promotes to isolated compositing layer
-              which breaks backdropFilter inside (samples empty layer, not slider).
-              The negative margin keeps page content starting at y=84 (under the navbar). */}
+          {/* Megamenu — zero-height wrapper so the bar floats over content.
+              Megamenu handles its own absolute (in-flow) / fixed (pinned) switching. */}
           <div style={{ position: "relative", height: 0 }}>
             <Megamenu />
           </div>
