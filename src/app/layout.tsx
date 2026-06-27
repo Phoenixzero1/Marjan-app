@@ -63,7 +63,7 @@ export default async function RootLayout({
               Sticky is avoided: sticky + z-index promotes to isolated compositing layer
               which breaks backdropFilter inside (samples empty layer, not slider).
               The negative margin keeps page content starting at y=84 (under the navbar). */}
-          <div style={{ position: "sticky", top: 0, width: "100%", zIndex: 50 }}>
+          <div style={{ position: "sticky", top: 0, width: "100%" }}>
             <Megamenu />
           </div>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
