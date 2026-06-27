@@ -679,6 +679,28 @@ button {
   background: var(--bg);
   color: var(--primary);
 }
+/* Underline for standalone mega-nav-links (وبلاگ, خرید سازمانی) */
+a.mega-nav-link {
+  position: relative;
+}
+a.mega-nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  right: 50%;
+  height: 2.5px;
+  background: var(--accent, #e8920a);
+  border-radius: 2px 2px 0 0;
+  transition: left 0.28s cubic-bezier(.4,0,.2,1), right 0.28s cubic-bezier(.4,0,.2,1);
+}
+a.mega-nav-link:hover::after {
+  left: 0;
+  right: 0;
+}
+a.mega-org-link::after {
+  background: var(--destructive, #c0392b);
+}
 
 /* ─── SIZE POPUP ─────────────────────────────────────────────────────────── */
 .size-popup {
