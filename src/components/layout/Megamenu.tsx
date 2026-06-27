@@ -118,7 +118,10 @@ export default function Megamenu() {
     <div
       ref={barRef}
       className="megabar"
-      style={pinned ? { position: "fixed", top: 0, left: 0, right: 0, width: "100%", zIndex: 50 } : {}}
+      style={pinned
+        ? { position: "fixed", top: 0, left: 0, right: 0, width: "100%", zIndex: 50 }
+        : { position: "absolute", top: 0, left: 0, right: 0, width: "100%", zIndex: 50 }
+      }
     >
       {shaderUrl && (
         <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden>
