@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState, useId } from "react";
+import { useRef, useEffect, useLayoutEffect, useState, useId } from "react";
 import Link from "next/link";
 import { ShaderDisplacementGenerator, fragmentShaders } from "@/lib/liquid-glass/shader-utils";
 
@@ -83,6 +83,22 @@ export default function Megamenu() {
   const rawId = useId().replace(/:/g, "");
   const filterId = `mgb-${rawId}`;
   const [shaderUrl, setShaderUrl] = useState("");
+  const [pinned, setPinned] = useState(false);
+
+  /* Switch between relative (in-flow) and fixed (pinned) based on navbar scroll.
+     position:sticky is avoided — sticky+z-index creates an isolated compositing layer
+     that breaks backdropFilter (samples empty layer instead of slider content).
+     position:fixed correctly uses the root compositing layer as backdrop. */
+  useLayoutEffect(() => {
+    function checkPin() {
+      const nav = document.querySelector<HTMLElement>("nav.site-nav");
+      if (!nav) { setPinned(window.scrollY > 10); return; }
+      setPinned(nav.getBoundingClientRect().bottom <= 0);
+    }
+    checkPin();
+    window.addEventListener("scroll", checkPin, { passive: true });
+    return () => window.removeEventListener("scroll", checkPin);
+  }, []);
 
   useEffect(() => {
     function measure() {
@@ -96,11 +112,11 @@ export default function Megamenu() {
   }, []);
 
   return (
-    <div ref={barRef} className="megabar">
-      {/* ── Glass layer — exact NavGlassWrap pattern, inside the megabar.
-          The sticky wrapper has no z-index (no stacking context), and .megabar::after
-          has no filter, so nothing promotes this element to an isolated compositing
-          layer. backdrop-filter here correctly samples the slider content behind. ── */}
+    <div
+      ref={barRef}
+      className="megabar"
+      style={pinned ? { position: "fixed", top: 0, left: 0, right: 0, width: "100%", zIndex: 50 } : {}}
+    >
       {shaderUrl && (
         <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden>
           <defs>
@@ -118,14 +134,24 @@ export default function Megamenu() {
           </defs>
         </svg>
       )}
+      {/* Layer 1: backdrop-filter ONLY — no filter property, so it samples real page content */}
       <span style={{
         position: "absolute", inset: 0,
         borderRadius: "0 0 18px 18px",
-        ...(shaderUrl ? { filter: `url(#${filterId})` } : {}),
-        backdropFilter: "blur(12px) saturate(140%)",
-        WebkitBackdropFilter: "blur(12px) saturate(140%)",
-        overflow: "hidden", pointerEvents: "none", zIndex: 0,
+        backdropFilter: "blur(14px) saturate(160%)",
+        WebkitBackdropFilter: "blur(14px) saturate(160%)",
+        pointerEvents: "none", zIndex: 0,
       }} />
+      {/* Layer 2: SVG displacement ONLY — no backdropFilter, so it doesn't break Layer 1 */}
+      {shaderUrl && (
+        <span style={{
+          position: "absolute", inset: 0,
+          borderRadius: "0 0 18px 18px",
+          filter: `url(#${filterId})`,
+          pointerEvents: "none", zIndex: 1,
+          opacity: 0.6,
+        }} />
+      )}
 
       {/* ── Nav content ── */}
       <div
