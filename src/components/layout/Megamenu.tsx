@@ -124,12 +124,12 @@ export default function Megamenu() {
           : { position: "absolute", top: 0, left: 0, right: 0 }),
         width: "100%",
         zIndex: 50,
-        background: "rgba(255, 255, 255, 0.08)",
-        borderTop: "2px solid rgba(255, 255, 255, 0.95)",
-        borderLeft: "1.5px solid rgba(255, 255, 255, 0.45)",
-        borderRight: "1.5px solid rgba(255, 255, 255, 0.45)",
-        borderBottom: "1.5px solid rgba(255, 255, 255, 0.48)",
-        boxShadow: "inset 0 1.5px 0 rgba(255,255,255,0.9), inset 1px 1px 6px rgba(255,255,255,0.2), 0 3px 12px rgba(0,0,0,0.2)",
+        background: "rgba(255, 255, 255, 0.05)",
+        borderTop: "1px solid rgba(255, 255, 255, 0.85)",
+        borderLeft: "1px solid rgba(255, 255, 255, 0.35)",
+        borderRight: "1px solid rgba(255, 255, 255, 0.35)",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.35)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.15)",
       }}
     >
       {shaderUrl && (
@@ -149,24 +149,16 @@ export default function Megamenu() {
           </defs>
         </svg>
       )}
-      {/* Layer 1: backdrop-filter ONLY — no filter property, so it samples real page content */}
+      {/* Glass span — same pattern as NavGlassWrap: filter+backdropFilter combined on one span */}
       <span style={{
         position: "absolute", inset: 0,
         borderRadius: "0 0 18px 18px",
-        backdropFilter: "blur(7px) saturate(140%)",
-        WebkitBackdropFilter: "blur(7px) saturate(140%)",
+        ...(shaderUrl ? { filter: `url(#${filterId})` } : {}),
+        backdropFilter: "blur(10px) saturate(150%)",
+        WebkitBackdropFilter: "blur(10px) saturate(150%)",
+        overflow: "hidden",
         pointerEvents: "none", zIndex: 0,
       }} />
-      {/* Layer 2: SVG displacement ONLY — no backdropFilter, so it doesn't break Layer 1 */}
-      {shaderUrl && (
-        <span style={{
-          position: "absolute", inset: 0,
-          borderRadius: "0 0 18px 18px",
-          filter: `url(#${filterId})`,
-          pointerEvents: "none", zIndex: 1,
-          opacity: 0.6,
-        }} />
-      )}
 
       {/* ── Nav content ── */}
       <div
