@@ -128,7 +128,7 @@ export default function Megamenu() {
         borderLeft: "1px solid rgba(255, 255, 255, 0.35)",
         borderRight: "1px solid rgba(255, 255, 255, 0.35)",
         borderBottom: "1px solid rgba(255, 255, 255, 0.35)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8), 0 4px 16px rgba(0,0,0,0.15)",
+        boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
       }}
     >
       {shaderUrl && (
