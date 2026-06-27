@@ -124,11 +124,9 @@ export default function Megamenu() {
           : { position: "absolute", top: 0, left: 0, right: 0 }),
         width: "100%",
         zIndex: 50,
-        background: "rgba(255, 255, 255, 0.05)",
-        borderLeft: "1px solid rgba(255, 255, 255, 0.35)",
-        borderRight: "1px solid rgba(255, 255, 255, 0.35)",
-        borderBottom: "0.5px solid rgba(255, 255, 255, 0.25)",
-        boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+        background: "rgba(255, 255, 255, 0.08)",
+        border: "1.5px solid rgba(255, 255, 255, 0.45)",
+        boxShadow: "inset 0 1.5px 0 rgba(255,255,255,0.9), inset 1px 1px 6px rgba(255,255,255,0.2), 0 3px 12px rgba(0,0,0,0.2)",
       }}
     >
       {shaderUrl && (
