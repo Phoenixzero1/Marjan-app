@@ -165,7 +165,7 @@ export default function Megamenu() {
         style={{
           position: "relative", zIndex: 10,
           width: "100%",
-          padding: "0 2rem",
+          padding: "0 2.5rem",
           display: "flex",
           alignItems: "stretch",
         }}
@@ -176,15 +176,15 @@ export default function Megamenu() {
               href={item.href}
               className="mega-nav-link"
               style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "14px 16px",
-                color: "var(--text2)", fontSize: 13.5, fontWeight: 700,
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "18px 20px",
+                color: "var(--text2)", fontSize: 15, fontWeight: 700,
                 whiteSpace: "nowrap", cursor: "pointer",
               }}
             >
-              <i className={`ti ${item.icon}`} style={{ fontSize: 14, color: "var(--primary)" }} />
+              <i className={`ti ${item.icon}`} style={{ fontSize: 17, color: "var(--primary)" }} />
               <span data-label>{item.label}</span>
-              <i className="ti ti-chevron-down" style={{ fontSize: 10, opacity: 0.5 }} />
+              <i className="ti ti-chevron-down" style={{ fontSize: 12, opacity: 0.5 }} />
             </Link>
 
             <div className="mega-drop">
@@ -211,17 +211,17 @@ export default function Megamenu() {
           <Link
             href="/blog"
             className="mega-nav-link"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "14px 16px", color: "var(--text2)", fontSize: 13.5, fontWeight: 700, whiteSpace: "nowrap" }}
+            style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 20px", color: "var(--text2)", fontSize: 15, fontWeight: 700, whiteSpace: "nowrap" }}
           >
-            <i className="ti ti-news" style={{ fontSize: 15, color: "var(--primary)" }} /> <span data-label>وبلاگ</span>
+            <i className="ti ti-news" style={{ fontSize: 17, color: "var(--primary)" }} /> <span data-label>وبلاگ</span>
           </Link>
 
           <div className="mega-item" style={{ position: "relative" }}>
-            <span className="mega-nav-link" style={{ display: "flex", alignItems: "center", gap: 6, padding: "14px 16px", color: "var(--text2)", fontSize: 13.5, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
-              <i className="ti ti-file-invoice" style={{ fontSize: 14, color: "var(--primary)" }} />
+            <span className="mega-nav-link" style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 20px", color: "var(--text2)", fontSize: 15, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+              <i className="ti ti-file-invoice" style={{ fontSize: 17, color: "var(--primary)" }} />
               <span data-label>فاکتورساز</span>
-              <span style={{ background: "#17a865", color: "#fff", fontSize: 10, fontWeight: 900, padding: "1px 7px", borderRadius: 20, lineHeight: 1.6 }}>جدید</span>
-              <i className="ti ti-chevron-down" style={{ fontSize: 10, opacity: 0.5 }} />
+              <span style={{ background: "#17a865", color: "#fff", fontSize: 11, fontWeight: 900, padding: "1px 8px", borderRadius: 20, lineHeight: 1.6 }}>جدید</span>
+              <i className="ti ti-chevron-down" style={{ fontSize: 12, opacity: 0.5 }} />
             </span>
             <div className="mega-drop" style={{ minWidth: 300, padding: 16, right: 0, left: "auto" }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text3)", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 10, paddingBottom: 8, borderBottom: "1px solid var(--border)" }}>
@@ -252,13 +252,13 @@ export default function Megamenu() {
             href="/organizational"
             className="mega-nav-link mega-org-link"
             style={{
-              display: "flex", alignItems: "center", gap: 6,
-              padding: "14px 18px",
-              color: "var(--accent)", fontSize: 13.5, fontWeight: 900,
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "18px 22px",
+              color: "var(--accent)", fontSize: 15, fontWeight: 900,
               whiteSpace: "nowrap",
             }}
           >
-            <i className="ti ti-building-skyscraper" style={{ fontSize: 14 }} />
+            <i className="ti ti-building-skyscraper" style={{ fontSize: 17 }} />
             <span data-label>خرید سازمانی</span>
           </Link>
         </div>
