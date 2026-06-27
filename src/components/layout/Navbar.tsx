@@ -148,6 +148,9 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
   const [navGone, setNavGone] = useState(false);
   const [floatingIn, setFloatingIn] = useState(false);
   const [shaderReady, setShaderReady] = useState(false);
+  const [megaGlassShader, setMegaGlassShader] = useState("");
+  const megaGlassRawId = useId().replace(/:/g, "");
+  const megaGlassFilterId = `mga-${megaGlassRawId}`;
   const navRef = useRef<HTMLElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -156,16 +159,30 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
     setMounted(true);
   }, []);
 
-  // Navbar + megabar are both sticky. Show floating buttons once the
-  // topbar (~42px) has scrolled away (any real scroll = user is navigating).
+  // Megabar glass shader — generated for full viewport width × 52px (megabar height)
   useEffect(() => {
-    function onScroll() {
-      const scrolled = window.scrollY > 42;
-      setNavGone(scrolled);
-      if (!scrolled) setFloatingIn(false);
+    function update() {
+      setMegaGlassShader(getNavShader(window.innerWidth, 52));
     }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  // Navbar is NOT sticky — watch when it scrolls out of view via IntersectionObserver
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        const gone = !entry.isIntersecting;
+        setNavGone(gone);
+        if (!gone) setFloatingIn(false);
+      },
+      { threshold: 0 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
   }, []);
 
   // Animate in only after BOTH navGone AND shader/GPU are ready
@@ -655,12 +672,60 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
         </div>
       </nav>
 
-      {/* ── Floating action buttons — pre-rendered for GPU warm-up, visible when navbar scrolls out ── */}
+      {/* ── Megabar glass overlay + floating action buttons ── */}
       {mounted && (
+        <>
+        {/* Megabar glass — position:fixed so backdrop-filter samples real page content,
+            not the empty compositing layer that position:sticky creates.
+            z-index 49: below navbar (51) and megabar nav links (50) but above page content.
+            Appears via transform (never opacity) when megabar becomes sticky (navGone). */}
+        <div
+          aria-hidden
+          style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0,
+            height: 52,
+            zIndex: 49,
+            pointerEvents: "none",
+            opacity: 1,
+            willChange: "transform",
+            transform: navGone ? "translateZ(0)" : "translateY(-100%)",
+            transition: "none",
+          }}
+        >
+          {megaGlassShader && (
+            <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden>
+              <defs>
+                <filter id={megaGlassFilterId} x="-150%" y="-150%" width="400%" height="400%" colorInterpolationFilters="sRGB">
+                  <feImage x="0" y="0" width="100%" height="100%" result="DMAP" href={megaGlassShader} preserveAspectRatio="xMidYMid slice" />
+                  <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="30" xChannelSelector="R" yChannelSelector="B" result="RED_D" />
+                  <feColorMatrix in="RED_D" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="R" />
+                  <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="27" xChannelSelector="R" yChannelSelector="B" result="GRN_D" />
+                  <feColorMatrix in="GRN_D" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="G" />
+                  <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="24" xChannelSelector="R" yChannelSelector="B" result="BLU_D" />
+                  <feColorMatrix in="BLU_D" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="B" />
+                  <feBlend in="G" in2="B" mode="screen" result="GB" />
+                  <feBlend in="R" in2="GB" mode="screen" />
+                </filter>
+              </defs>
+            </svg>
+          )}
+          <span style={{
+            position: "absolute", inset: 0,
+            borderRadius: "0 0 18px 18px",
+            ...(megaGlassShader ? { filter: `url(#${megaGlassFilterId})` } : {}),
+            backdropFilter: "blur(12px) saturate(140%)",
+            WebkitBackdropFilter: "blur(12px) saturate(140%)",
+            overflow: "hidden",
+            pointerEvents: "none",
+          }} />
+        </div>
+
+        {/* ── Floating action buttons — pre-rendered for GPU warm-up, visible when navbar scrolls out ── */}
         <div
           style={{
             position: "fixed",
-            top: 92,
+            top: 0,
             left: "2rem",
             display: "flex",
             alignItems: "center",
@@ -673,8 +738,8 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             // Fix: animate with transform only, never touch opacity on this container.
             opacity: 1,
             transform: floatingIn
-              ? "translateY(0)"
-              : "translateY(-120px)", // 120px above top:60 = -60px → off-screen
+              ? "translateY(60px)"   // 60px from top → visible just below megabar
+              : "translateY(-200px)", // fully above viewport, never visible
             transition: navGone ? "transform 0.4s cubic-bezier(0.34,1.56,0.64,1)" : "none",
             pointerEvents: navGone && floatingIn ? "auto" : "none",
           }}
@@ -807,6 +872,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             )}
           </div>
         </div>
+        </>
       )}
 
       {/* ── Mobile nav overlay ── */}

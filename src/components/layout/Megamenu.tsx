@@ -1,9 +1,4 @@
-"use client";
-
-import { useRef, useEffect, useState, useId } from "react";
 import Link from "next/link";
-import { GlassFilter } from "@/lib/liquid-glass";
-import { ShaderDisplacementGenerator, fragmentShaders } from "@/lib/liquid-glass/shader-utils";
 
 const categories = [
   {
@@ -69,64 +64,13 @@ const categories = [
 ];
 
 export default function Megamenu() {
-  const barRef = useRef<HTMLDivElement>(null);
-  const rawId = useId().replace(/:/g, "");
-  const filterId = `mgb-${rawId}`;
-  const [barSize, setBarSize] = useState({ width: 1440, height: 52 });
-  const [shaderUrl, setShaderUrl] = useState("");
-
-  useEffect(() => {
-    function measure() {
-      if (barRef.current) {
-        const r = barRef.current.getBoundingClientRect();
-        setBarSize({ width: Math.round(r.width), height: Math.round(r.height) });
-      }
-    }
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, []);
-
-  useEffect(() => {
-    if (barSize.width < 1) return;
-    const gen = new ShaderDisplacementGenerator({
-      width: barSize.width,
-      height: barSize.height,
-      fragment: fragmentShaders.liquidGlass,
-    });
-    setShaderUrl(gen.updateShader());
-    gen.destroy();
-  }, [barSize.width, barSize.height]);
-
   return (
-    <>
-    <div
-      ref={barRef}
-      className="megabar"
-      style={{ position: "relative", zIndex: 49 }}
-    >
-      {shaderUrl && (
-        <>
-          <GlassFilter
-            id={filterId}
-            displacementScale={80}
-            aberrationIntensity={2}
-            width={barSize.width}
-            height={barSize.height}
-            mode="shader"
-            shaderMapUrl={shaderUrl}
-          />
-          <span style={{
-            position: "absolute",
-            inset: 0,
-            filter: `url(#${filterId})`,
-            backdropFilter: "blur(16px) saturate(140%)",
-            WebkitBackdropFilter: "blur(16px) saturate(140%)",
-            pointerEvents: "none",
-            zIndex: 0,
-          }} />
-        </>
-      )}
+    <div className="megabar" style={{ position: "relative" }}>
+      {/* Glass blur is provided by the fixed MegaGlass layer in Navbar.tsx (z-index 49),
+          which sits behind this transparent megabar (z-index 50). That fixed element has
+          filter+backdropFilter on the same span, which works correctly because position:fixed
+          is outside the sticky compositing context. */}
+
       {/* Content */}
       <div
         style={{
@@ -252,6 +196,5 @@ export default function Megamenu() {
         </div>
       </div>
     </div>
-    </>
   );
 }

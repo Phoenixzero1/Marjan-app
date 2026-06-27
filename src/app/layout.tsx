@@ -58,12 +58,9 @@ export default async function RootLayout({
           {/* These scroll normally and disappear on scroll */}
           <EmergencyBanner />
           <Topbar />
-          {/* Navbar sticks at top — glass buttons always accessible */}
-          <div style={{ position: "sticky", top: 0, zIndex: 51, width: "100%" }}>
-            <NavbarWrapper />
-          </div>
-          {/* Megamenu sticks just below the navbar (top: 84 = navbar height) */}
-          <div style={{ position: "sticky", top: 84, zIndex: 50, width: "100%" }}>
+          <NavbarWrapper />
+          {/* Megamenu sticks at top once navbar scrolls away */}
+          <div style={{ position: "sticky", top: 0, zIndex: 50, width: "100%", marginBottom: "-52px" }}>
             <Megamenu />
           </div>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
