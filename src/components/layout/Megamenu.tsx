@@ -119,8 +119,8 @@ export default function Megamenu() {
       ref={barRef}
       className="megabar"
       style={pinned
-        ? { position: "fixed", top: 0, left: 0, right: 0, width: "100%", zIndex: 50 }
-        : { position: "absolute", top: 0, left: 0, right: 0, width: "100%", zIndex: 50 }
+        ? { position: "fixed", top: 0, left: 0, right: 0, width: "100%", zIndex: 9999, backgroundColor: "red" }
+        : { position: "absolute", top: 0, left: 0, right: 0, width: "100%", zIndex: 9999, backgroundColor: "red" }
       }
     >
       {shaderUrl && (
