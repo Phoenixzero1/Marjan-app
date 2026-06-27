@@ -67,7 +67,7 @@ export default async function RootLayout({
             <Megamenu />
           </div>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-            <main className="site-main" style={{ flex: 1, paddingTop: "52px" }}>{children}</main>
+            <main className="site-main" style={{ flex: 1 }}>{children}</main>
             <Footer />
           </div>
         </SessionProvider>
