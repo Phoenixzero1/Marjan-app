@@ -261,17 +261,6 @@ export default function Megamenu() {
             <i className="ti ti-building-skyscraper" style={{ fontSize: 14 }} />
             <span data-label>خرید سازمانی</span>
           </Link>
-          {/* Orange dot indicator */}
-          <div style={{
-            display: "flex", alignItems: "center", padding: "0 14px",
-          }}>
-            <span style={{
-              width: 8, height: 8, borderRadius: "50%",
-              background: "var(--accent, #e8920a)",
-              boxShadow: "0 0 6px rgba(232,146,10,0.6)",
-              flexShrink: 0,
-            }} />
-          </div>
         </div>
       </div>
     </div>
