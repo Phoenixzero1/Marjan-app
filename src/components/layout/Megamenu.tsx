@@ -148,8 +148,8 @@ export default function Megamenu() {
         WebkitBackdropFilter: "blur(14px) saturate(160%)",
         pointerEvents: "none", zIndex: 0,
       }} />
-      {/* Layer 2: SVG displacement ONLY — no backdropFilter, so it doesn't break Layer 1 */}
-      {shaderUrl && (
+      {/* Layer 2: SVG displacement ONLY — TEMPORARILY DISABLED FOR DIAGNOSTIC */}
+      {/* {shaderUrl && (
         <span style={{
           position: "absolute", inset: 0,
           borderRadius: "0 0 18px 18px",
@@ -157,7 +157,7 @@ export default function Megamenu() {
           pointerEvents: "none", zIndex: 1,
           opacity: 0.6,
         }} />
-      )}
+      )} */}
 
       {/* ── Nav content ── */}
       <div
