@@ -586,7 +586,6 @@ button {
   position: relative;
   z-index: 50;
   background: transparent;
-  border-top:    1px solid rgba(255, 255, 255, 0.85);
   border-left:   1px solid rgba(255, 255, 255, 0.45);
   border-right:  1px solid rgba(255, 255, 255, 0.45);
   border-bottom: 1.5px solid rgba(255, 255, 255, 0.48);
