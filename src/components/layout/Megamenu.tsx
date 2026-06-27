@@ -127,7 +127,7 @@ export default function Megamenu() {
         background: "rgba(255, 255, 255, 0.05)",
         borderLeft: "1px solid rgba(255, 255, 255, 0.35)",
         borderRight: "1px solid rgba(255, 255, 255, 0.35)",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.35)",
+        borderBottom: "0.5px solid rgba(255, 255, 255, 0.25)",
         boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
       }}
     >
