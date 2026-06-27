@@ -118,10 +118,16 @@ export default function Megamenu() {
     <div
       ref={barRef}
       className="megabar"
-      style={pinned
-        ? { position: "fixed", top: 0, left: 0, right: 0, width: "100%", zIndex: 9999, backgroundColor: "red" }
-        : { position: "absolute", top: 0, left: 0, right: 0, width: "100%", zIndex: 9999, backgroundColor: "red" }
-      }
+      style={{
+        ...(pinned
+          ? { position: "fixed", top: 0, left: 0, right: 0 }
+          : { position: "absolute", top: 0, left: 0, right: 0 }),
+        width: "100%",
+        zIndex: 50,
+        background: "rgba(255, 255, 255, 0.08)",
+        border: "1.5px solid rgba(255, 255, 255, 0.45)",
+        boxShadow: "inset 0 1.5px 0 rgba(255,255,255,0.9), inset 1px 1px 6px rgba(255,255,255,0.2), 0 3px 12px rgba(0,0,0,0.2)",
+      }}
     >
       {shaderUrl && (
         <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden>
@@ -148,8 +154,8 @@ export default function Megamenu() {
         WebkitBackdropFilter: "blur(14px) saturate(160%)",
         pointerEvents: "none", zIndex: 0,
       }} />
-      {/* Layer 2: SVG displacement ONLY — TEMPORARILY DISABLED FOR DIAGNOSTIC */}
-      {/* {shaderUrl && (
+      {/* Layer 2: SVG displacement ONLY — no backdropFilter, so it doesn't break Layer 1 */}
+      {shaderUrl && (
         <span style={{
           position: "absolute", inset: 0,
           borderRadius: "0 0 18px 18px",
@@ -157,7 +163,7 @@ export default function Megamenu() {
           pointerEvents: "none", zIndex: 1,
           opacity: 0.6,
         }} />
-      )} */}
+      )}
 
       {/* ── Nav content ── */}
       <div
