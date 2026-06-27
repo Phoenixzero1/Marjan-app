@@ -584,6 +584,7 @@ button {
 /* ── Liquid Glass megabar — source: msingh17122000/Apple-Liquid-Glass-Using-HTML-CSS ── */
 .megabar {
   position: relative;
+  z-index: 50; /* stacking context lives here, NOT on the sticky wrapper */
   background: transparent;
   border-top:    1px solid rgba(255, 255, 255, 0.85);
   border-left:   1px solid rgba(255, 255, 255, 0.38);
@@ -610,7 +611,9 @@ button {
   height: 2px;
   background: radial-gradient(ellipse at center, rgba(255,255,255,0.92) 0%, transparent 100%);
   border-radius: 50%;
-  filter: blur(0.8px);
+  /* no filter here — filter on a descendant promotes the megabar to a compositing
+     layer, causing backdrop-filter inside it to sample from that empty layer instead
+     of the page content (the slider). Soft glow from radial-gradient alone is enough. */
   pointer-events: none;
   z-index: 2;
 }

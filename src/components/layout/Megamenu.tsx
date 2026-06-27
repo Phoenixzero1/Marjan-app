@@ -1,4 +1,19 @@
+"use client";
+
+import { useRef, useEffect, useState, useId } from "react";
 import Link from "next/link";
+import { ShaderDisplacementGenerator, fragmentShaders } from "@/lib/liquid-glass/shader-utils";
+
+const _cache = new Map<string, string>();
+function getMegaShader(w: number, h: number): string {
+  const key = `${w}x${h}`;
+  if (!_cache.has(key)) {
+    const gen = new ShaderDisplacementGenerator({ width: w, height: h, fragment: fragmentShaders.liquidGlass });
+    _cache.set(key, gen.updateShader());
+    gen.destroy();
+  }
+  return _cache.get(key)!;
+}
 
 const categories = [
   {
@@ -64,14 +79,55 @@ const categories = [
 ];
 
 export default function Megamenu() {
-  return (
-    <div className="megabar" style={{ position: "relative" }}>
-      {/* Glass blur is provided by the fixed MegaGlass layer in Navbar.tsx (z-index 49),
-          which sits behind this transparent megabar (z-index 50). That fixed element has
-          filter+backdropFilter on the same span, which works correctly because position:fixed
-          is outside the sticky compositing context. */}
+  const barRef = useRef<HTMLDivElement>(null);
+  const rawId = useId().replace(/:/g, "");
+  const filterId = `mgb-${rawId}`;
+  const [shaderUrl, setShaderUrl] = useState("");
 
-      {/* Content */}
+  useEffect(() => {
+    function measure() {
+      if (!barRef.current) return;
+      const r = barRef.current.getBoundingClientRect();
+      setShaderUrl(getMegaShader(Math.round(r.width), Math.round(r.height)));
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  return (
+    <div ref={barRef} className="megabar">
+      {/* ── Glass layer — exact NavGlassWrap pattern, inside the megabar.
+          The sticky wrapper has no z-index (no stacking context), and .megabar::after
+          has no filter, so nothing promotes this element to an isolated compositing
+          layer. backdrop-filter here correctly samples the slider content behind. ── */}
+      {shaderUrl && (
+        <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }} aria-hidden>
+          <defs>
+            <filter id={filterId} x="-150%" y="-150%" width="400%" height="400%" colorInterpolationFilters="sRGB">
+              <feImage x="0" y="0" width="100%" height="100%" result="DMAP" href={shaderUrl} preserveAspectRatio="xMidYMid slice" />
+              <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="30" xChannelSelector="R" yChannelSelector="B" result="RED_D" />
+              <feColorMatrix in="RED_D" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="R" />
+              <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="27" xChannelSelector="R" yChannelSelector="B" result="GRN_D" />
+              <feColorMatrix in="GRN_D" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="G" />
+              <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="24" xChannelSelector="R" yChannelSelector="B" result="BLU_D" />
+              <feColorMatrix in="BLU_D" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="B" />
+              <feBlend in="G" in2="B" mode="screen" result="GB" />
+              <feBlend in="R" in2="GB" mode="screen" />
+            </filter>
+          </defs>
+        </svg>
+      )}
+      <span style={{
+        position: "absolute", inset: 0,
+        borderRadius: "0 0 18px 18px",
+        ...(shaderUrl ? { filter: `url(#${filterId})` } : {}),
+        backdropFilter: "blur(12px) saturate(140%)",
+        WebkitBackdropFilter: "blur(12px) saturate(140%)",
+        overflow: "hidden", pointerEvents: "none", zIndex: 0,
+      }} />
+
+      {/* ── Nav content ── */}
       <div
         style={{
           position: "relative", zIndex: 10,
@@ -81,22 +137,16 @@ export default function Megamenu() {
           alignItems: "stretch",
         }}
       >
-        {/* ── Category links with dropdowns ──────────────────────── */}
         {categories.map((item) => (
           <div key={item.href} className="mega-item" style={{ position: "relative" }}>
             <Link
               href={item.href}
               className="mega-nav-link"
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
+                display: "flex", alignItems: "center", gap: 6,
                 padding: "14px 16px",
-                color: "var(--text2)",
-                fontSize: 13.5,
-                fontWeight: 700,
-                whiteSpace: "nowrap",
-                cursor: "pointer",
+                color: "var(--text2)", fontSize: 13.5, fontWeight: 700,
+                whiteSpace: "nowrap", cursor: "pointer",
               }}
             >
               <i className={`ti ${item.icon}`} style={{ fontSize: 14, color: "var(--primary)" }} />
@@ -110,13 +160,9 @@ export default function Megamenu() {
                   key={child.href}
                   href={child.href}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "10px 18px",
-                    fontSize: 13,
-                    color: "var(--text2)",
-                    fontWeight: 700,
+                    display: "flex", alignItems: "center", gap: 10,
+                    padding: "10px 18px", fontSize: 13,
+                    color: "var(--text2)", fontWeight: 700,
                   }}
                 >
                   <i className={`ti ${child.icon}`} style={{ fontSize: 16, color: "var(--primary)" }} />
@@ -127,10 +173,8 @@ export default function Megamenu() {
           </div>
         ))}
 
-        {/* ── Left-side items ─────────────────────────────────────── */}
+        {/* ── Left-side items ── */}
         <div style={{ marginRight: "auto", display: "flex", alignItems: "stretch" }}>
-
-          {/* وبلاگ */}
           <Link
             href="/blog"
             className="mega-nav-link"
@@ -139,14 +183,11 @@ export default function Megamenu() {
             <i className="ti ti-news" style={{ fontSize: 15, color: "var(--primary)" }} /> <span data-label>وبلاگ</span>
           </Link>
 
-          {/* فاکتورساز — [جدید] badge */}
           <div className="mega-item" style={{ position: "relative" }}>
             <span className="mega-nav-link" style={{ display: "flex", alignItems: "center", gap: 6, padding: "14px 16px", color: "var(--text2)", fontSize: 13.5, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
               <i className="ti ti-file-invoice" style={{ fontSize: 14, color: "var(--primary)" }} />
               <span data-label>فاکتورساز</span>
-              <span style={{ background: "#17a865", color: "#fff", fontSize: 10, fontWeight: 900, padding: "1px 7px", borderRadius: 20, lineHeight: 1.6 }}>
-                جدید
-              </span>
+              <span style={{ background: "#17a865", color: "#fff", fontSize: 10, fontWeight: 900, padding: "1px 7px", borderRadius: 20, lineHeight: 1.6 }}>جدید</span>
               <i className="ti ti-chevron-down" style={{ fontSize: 10, opacity: 0.5 }} />
             </span>
             <div className="mega-drop" style={{ minWidth: 300, padding: 16, right: 0, left: "auto" }}>
@@ -174,20 +215,14 @@ export default function Megamenu() {
             </div>
           </div>
 
-          {/* خرید سازمانی — orange accent, far left */}
           <Link
             href="/organizational"
             className="mega-nav-link"
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
+              display: "flex", alignItems: "center", gap: 6,
               padding: "14px 18px",
-              color: "var(--accent)",
-              fontSize: 13.5,
-              fontWeight: 900,
-              whiteSpace: "nowrap",
-              borderRight: "1px solid var(--border)",
+              color: "var(--accent)", fontSize: 13.5, fontWeight: 900,
+              whiteSpace: "nowrap", borderRight: "1px solid var(--border)",
             }}
           >
             <i className="ti ti-building-skyscraper" style={{ fontSize: 14 }} />

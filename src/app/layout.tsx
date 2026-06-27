@@ -59,8 +59,11 @@ export default async function RootLayout({
           <EmergencyBanner />
           <Topbar />
           <NavbarWrapper />
-          {/* Megamenu sticks at top once navbar scrolls away */}
-          <div style={{ position: "sticky", top: 0, zIndex: 50, width: "100%", marginBottom: "-52px" }}>
+          {/* Megamenu sticks at top once navbar scrolls away.
+              z-index lives on .megabar CSS (not here) so this wrapper does NOT
+              create a stacking context — that stacking context would block the
+              backdrop-filter inside the megabar from sampling the slider content. */}
+          <div style={{ position: "sticky", top: 0, width: "100%", marginBottom: "-52px" }}>
             <Megamenu />
           </div>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
