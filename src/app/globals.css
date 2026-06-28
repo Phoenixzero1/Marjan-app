@@ -122,6 +122,13 @@ body {
   direction: rtl;
 }
 
+/* ── Aryan tile texture — 8-pointed star (ستاره هشت‌پر) tiling pattern ── */
+body:not(.admin-mode) {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><g fill='none' stroke='%231A3C6E' stroke-width='0.75'><polygon stroke-opacity='0.13' points='40,22 42.87,33.07 52.73,27.27 46.93,37.13 58,40 46.93,42.87 52.73,52.73 42.87,46.93 40,58 37.13,46.93 27.27,52.73 33.07,42.87 22,40 33.07,37.13 27.27,27.27 37.13,33.07'/><polygon stroke-opacity='0.08' points='42.87,33.07 46.93,37.13 46.93,42.87 42.87,46.93 37.13,46.93 33.07,42.87 33.07,37.13 37.13,33.07'/><circle stroke-opacity='0.08' cx='40' cy='40' r='2'/><polygon stroke-opacity='0.08' points='40,-5 41.77,-1.77 45,0 41.77,1.77 40,5 38.23,1.77 35,0 38.23,-1.77'/><polygon stroke-opacity='0.08' points='40,75 41.77,78.23 45,80 41.77,81.77 40,85 38.23,81.77 35,80 38.23,78.23'/><polygon stroke-opacity='0.08' points='75,40 78.23,38.23 80,35 81.77,38.23 85,40 81.77,41.77 80,45 78.23,41.77'/><polygon stroke-opacity='0.08' points='-5,40 -1.77,38.23 0,35 1.77,38.23 5,40 1.77,41.77 0,45 -1.77,41.77'/><circle stroke-opacity='0.06' cx='0' cy='0' r='1.5'/><circle stroke-opacity='0.06' cx='80' cy='0' r='1.5'/><circle stroke-opacity='0.06' cx='0' cy='80' r='1.5'/><circle stroke-opacity='0.06' cx='80' cy='80' r='1.5'/></g></svg>");
+  background-size: 80px 80px;
+  background-repeat: repeat;
+}
+
 a {
   text-decoration: none;
   color: inherit;
