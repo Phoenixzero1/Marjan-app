@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { createHash } from "crypto";
 import { audit } from "@/lib/audit";
 import { getClientIp } from "@/lib/rateLimit";
 
@@ -108,9 +109,16 @@ export async function POST(req: NextRequest) {
     // TODO: pipe `buf` to ClamAV / VirusTotal API before saving
     console.warn(`[Upload][VirusScan] Skipped for ${file.name} (${file.size} bytes) — integrate ClamAV here`);
 
-    // ── 6. UUID filename — derived ext from MIME, never from user input ────────
+    // ── 6. Content-hash filename — SHA-256 of file bytes (deduplication) ────
     const safeExt = ALLOWED_MIME[file.type]; // e.g. "jpg", "png", "pdf"
-    const filename = `${crypto.randomUUID()}.${safeExt}`;
+    const hash = createHash("sha256").update(Buffer.from(bytes)).digest("hex").slice(0, 40);
+    const filename = `${hash}.${safeExt}`;
+
+    // ── 6b. Deduplication — return existing record if hash already uploaded ──
+    const existing = await prisma.media.findFirst({ where: { filename, folder } });
+    if (existing) {
+      return NextResponse.json({ url: existing.url, media: existing }, { status: 200 });
+    }
 
     // ── 7. Write to disk ──────────────────────────────────────────────────────
     const uploadDir = path.join(process.cwd(), "public", folder);

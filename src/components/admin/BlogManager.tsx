@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   AdminPageHeader, AdminToolbar, AdminSearch, AdminSelect, AdminBtn, AdminTable, AdminTh, AdminTd, AdminTr,
   AdminBadge, AdminEmptyState, AdminDrawer, AdminField, AdminInput, AdminTextarea, AdminInputSelect,
   AdminToggle, AdminDivider, AdminTabs, AdminToast, useAdminToast,
 } from "@/components/admin/AdminUI";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 interface BlogCategory { id: string; name: string; slug: string; _count: { posts: number }; }
 interface BlogPost {
@@ -39,10 +40,8 @@ export default function BlogManager() {
   const [postFormOpen, setPostFormOpen] = useState(false);
   const [postForm, setPostForm] = useState<PostForm>(emptyPost);
   const [postSaving, setPostSaving] = useState(false);
-  const [imgUploading, setImgUploading] = useState(false);
   const [slugTouched, setSlugTouched] = useState(false);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
-  const imgInputRef = useRef<HTMLInputElement>(null);
 
   const [catForm, setCatForm] = useState<CatForm>(emptyCat);
   const [catSaving, setCatSaving] = useState(false);
@@ -66,18 +65,6 @@ export default function BlogManager() {
   useEffect(() => { loadPosts(); }, [publishedFilter, catFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onTitleChange = (v: string) => setPostForm(f => { const next = { ...f, title: v }; if (!slugTouched && !f.id) next.slug = v.toLowerCase().trim().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]+/g, "").replace(/-+/g, "-").replace(/^-|-$/g, ""); return next; });
-
-  const uploadImage = useCallback(async (file: File) => {
-    setImgUploading(true);
-    try {
-      const fd = new FormData(); fd.append("file", file); fd.append("folder", "blog");
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (res.ok && data.url) setPostForm(f => ({ ...f, imageUrl: data.url }));
-      else showToast("error", data.error ?? "خطا در آپلود");
-    } catch { showToast("error", "خطا در آپلود تصویر"); }
-    finally { setImgUploading(false); }
-  }, [showToast]);
 
   const openCreatePost = () => { setPostForm(emptyPost); setSlugTouched(false); setPostFormOpen(true); };
   const openEditPost = (p: BlogPost) => { setPostForm({ id: p.id, title: p.title, slug: p.slug, excerpt: p.excerpt ?? "", content: p.content, categoryId: p.categoryId ?? "", imageUrl: p.imageUrl ?? "", isPublished: p.isPublished, tags: (p.tags ?? []).join(", "), metaTitle: p.metaTitle ?? "", metaDesc: p.metaDesc ?? "" }); setSlugTouched(true); setPostFormOpen(true); };
@@ -274,19 +261,7 @@ export default function BlogManager() {
             <AdminTextarea value={postForm.content} onChange={v => setPostForm(f => ({ ...f, content: v }))} rows={10} placeholder="محتوای کامل مقاله..." />
           </AdminField>
           <AdminField label="تصویر شاخص">
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              {postForm.imageUrl ? (
-                <div style={{ position: "relative", width: 80, height: 56, borderRadius: 8, overflow: "hidden", border: "1.5px solid var(--border)", flexShrink: 0 }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={postForm.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  <button type="button" onClick={() => setPostForm(f => ({ ...f, imageUrl: "" }))} style={{ position: "absolute", top: 2, left: 2, background: "rgba(192,57,43,.9)", color: "#fff", border: "none", borderRadius: 4, width: 20, height: 20, cursor: "pointer", fontSize: 12, lineHeight: 1, padding: 0 }}>×</button>
-                </div>
-              ) : <div style={{ width: 80, height: 56, borderRadius: 8, border: "1.5px dashed var(--border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text3)", flexShrink: 0 }}><i className="ti ti-photo" style={{ fontSize: 24 }} /></div>}
-              <AdminBtn icon={imgUploading ? "ti-loader-2" : "ti-upload"} size="sm" loading={imgUploading} onClick={() => imgInputRef.current?.click()}>
-                {imgUploading ? "آپلود..." : "انتخاب تصویر"}
-              </AdminBtn>
-              <input ref={imgInputRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }} onChange={e => e.target.files?.[0] && uploadImage(e.target.files[0])} />
-            </div>
+            <ImageUploader value={postForm.imageUrl} onChange={v => setPostForm(f => ({ ...f, imageUrl: v }))} folder="blog" previewHeight={90} />
           </AdminField>
           <AdminField label="تگ‌ها (با کاما جدا کنید)">
             <AdminInput value={postForm.tags} onChange={v => setPostForm(f => ({ ...f, tags: v }))} placeholder="لوله‌کشی، شیرآلات، آموزش" />

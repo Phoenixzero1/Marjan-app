@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   AdminCard, AdminCardHeader, AdminBtn, AdminField, AdminInput, AdminTextarea, AdminToggle,
   AdminTable, AdminTh, AdminTd, AdminTr, AdminBadge, AdminEmptyState,
   AdminToast, useAdminToast,
 } from "@/components/admin/AdminUI";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 type SettingsTab = "general" | "payment" | "seo" | "security";
 interface Props { tab: SettingsTab }
@@ -67,8 +68,6 @@ export default function SettingsManager({ tab }: Props) {
   const [vals, setVals] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const logoInputRef = useRef<HTMLInputElement>(null);
-  const [logoUploading, setLogoUploading] = useState(false);
 
   const groups: Record<SettingsTab, string[]> = {
     general:  ["general", "shipping", "contact"],
@@ -93,17 +92,6 @@ export default function SettingsManager({ tab }: Props) {
 
   const set = (key: string, value: string) => setVals(prev => ({ ...prev, [key]: value }));
   const get = (key: string, fallback = "") => vals[key] ?? fallback;
-
-  async function uploadLogo(file: File) {
-    setLogoUploading(true);
-    try {
-      const fd = new FormData(); fd.append("file", file); fd.append("folder", "logos");
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (res.ok && data.url) { set("site_logo", data.url); showToast("success", "لوگو آپلود شد"); }
-      else showToast("error", data.error ?? "خطا در آپلود لوگو");
-    } finally { setLogoUploading(false); }
-  }
 
   async function save(groupName: string, keys: string[]) {
     setSaving(true);
@@ -148,20 +136,8 @@ export default function SettingsManager({ tab }: Props) {
               </Row>
 
               {/* Logo */}
-              <AdminField label="لوگوی سایت" hint="فرمت‌های مجاز: JPG، PNG، WebP — حداکثر ۵ مگابایت">
-                <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-                  {get("site_logo") ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={get("site_logo")} alt="logo" style={{ height: 44, maxWidth: 140, objectFit: "contain", borderRadius: 7, border: "1.5px solid var(--border)", padding: 4, background: "#fff" }} />
-                  ) : (
-                    <div style={{ height: 44, width: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)", border: "1.5px dashed var(--border)", borderRadius: 7, fontSize: 12, color: "var(--text3)" }}>بدون لوگو</div>
-                  )}
-                  <input ref={logoInputRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadLogo(f); e.target.value = ""; }} />
-                  <AdminBtn icon="ti-upload" loading={logoUploading} onClick={() => logoInputRef.current?.click()}>
-                    {logoUploading ? "در حال آپلود..." : "آپلود لوگو"}
-                  </AdminBtn>
-                  {get("site_logo") && <AdminBtn icon="ti-trash" variant="danger" onClick={() => set("site_logo", "")}>حذف</AdminBtn>}
-                </div>
+              <AdminField label="لوگوی سایت">
+                <ImageUploader value={get("site_logo")} onChange={v => set("site_logo", v)} folder="logos" previewHeight={60} compact />
               </AdminField>
 
               <Row>

@@ -6,6 +6,7 @@ import {
   AdminField, AdminEmptyState, AdminModal,
   AdminToast, useAdminToast,
 } from "@/components/admin/AdminUI";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 interface ShowcaseSlide {
   id: string;
@@ -172,8 +173,8 @@ export default function ShowcaseManager() {
                 </AdminField>
               </div>
               <div style={{ gridColumn: "1 / -1" }}>
-                <AdminField label="آدرس تصویر">
-                  <input style={inputSt} value={editing.imageUrl} onChange={e => setField("imageUrl", e.target.value)} placeholder="https://..." dir="ltr" />
+                <AdminField label="تصویر محصول">
+                  <ImageUploader value={editing.imageUrl} onChange={v => setField("imageUrl", v)} folder="showcase" previewHeight={80} />
                 </AdminField>
               </div>
 

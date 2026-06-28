@@ -6,6 +6,7 @@ import {
   AdminField, AdminInput, AdminTextarea, AdminToggle, AdminDivider, AdminCard, AdminCardHeader,
   AdminToast, useAdminToast,
 } from "@/components/admin/AdminUI";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 interface Slide {
   id: string; title: string | null; subtitle: string | null; imageUrl: string | null;
@@ -149,9 +150,8 @@ export default function SliderManager() {
       </div>
 
       <AdminDrawer open={showForm} onClose={() => { setShowForm(false); setEditingId(null); }} title={editingId ? "ویرایش اسلاید" : "اسلاید جدید"} width={540}>
-        <AdminField label="آدرس تصویر (URL)">
-          {form.imageUrl && <div style={{ width: "100%", height: 100, borderRadius: 8, marginBottom: 8, background: `url(${form.imageUrl}) center/cover no-repeat`, border: "1px solid var(--border)" }} />}
-          <AdminInput value={form.imageUrl} onChange={v => setForm(f => ({ ...f, imageUrl: v }))} placeholder="https://example.com/image.jpg" style={{ direction: "ltr" }} />
+        <AdminField label="تصویر اسلاید">
+          <ImageUploader value={form.imageUrl} onChange={v => setForm(f => ({ ...f, imageUrl: v }))} folder="slider" previewHeight={100} />
         </AdminField>
         <AdminField label="عنوان اسلاید" required>
           <AdminInput value={form.title} onChange={v => setForm(f => ({ ...f, title: v }))} placeholder="بهترین تجهیزات ساختمانی" />

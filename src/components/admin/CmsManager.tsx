@@ -6,6 +6,7 @@ import {
   AdminBtn, AdminField, AdminInput, AdminTextarea,
   AdminToast, useAdminToast,
 } from "@/components/admin/AdminUI";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 type CmsTab = "pages" | "banners" | "slider" | "menus" | "status" | "topbar";
 
@@ -360,7 +361,7 @@ export default function CmsManager() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 14 }}>
                 <div><label style={lbl}>عنوان <span style={{ color: "red" }}>*</span></label><input style={inp} value={editBanner.title ?? ""} onChange={e => setEditBanner(p => ({ ...p, title: e.target.value }))} /></div>
                 <div><label style={lbl}>زیرعنوان</label><input style={inp} value={editBanner.subtitle ?? ""} onChange={e => setEditBanner(p => ({ ...p, subtitle: e.target.value }))} /></div>
-                <div><label style={lbl}>آدرس تصویر</label><input style={{ ...inp, direction: "ltr" }} value={editBanner.imageUrl ?? ""} onChange={e => setEditBanner(p => ({ ...p, imageUrl: e.target.value }))} placeholder="/uploads/..." /></div>
+                <div style={{ gridColumn: "1 / -1" }}><label style={lbl}>تصویر بنر</label><ImageUploader value={editBanner.imageUrl ?? ""} onChange={v => setEditBanner(p => ({ ...p, imageUrl: v || null }))} folder="banners" previewHeight={80} /></div>
                 <div><label style={lbl}>صفحه هدف</label>
                   <select style={inp} value={editBanner.targetPage ?? ""} onChange={e => setEditBanner(p => ({ ...p, targetPage: e.target.value || null }))}>
                     <option value="">همه صفحات</option><option value="home">صفحه اصلی</option><option value="all">همه</option>
@@ -492,8 +493,8 @@ export default function CmsManager() {
                   />
                   <div style={{ padding: "1rem 0", display: "flex", gap: 20 }}>
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
-                      <AdminField label="آدرس تصویر (URL)" required>
-                        <input value={slideForm.imageUrl} onChange={e => setSlideForm(f => ({ ...f, imageUrl: e.target.value }))} placeholder="https://..." style={{ ...inp, direction: "ltr" }} />
+                      <AdminField label="تصویر اسلاید" required>
+                        <ImageUploader value={slideForm.imageUrl} onChange={v => setSlideForm(f => ({ ...f, imageUrl: v }))} folder="slider" previewHeight={90} />
                       </AdminField>
                       <AdminField label="لینک اسلاید (کلیک روی تصویر)">
                         <input value={slideForm.buttonLink} onChange={e => setSlideForm(f => ({ ...f, buttonLink: e.target.value }))} placeholder="/category/... یا https://..." style={{ ...inp, direction: "ltr" }} />

@@ -6,6 +6,7 @@ import {
   AdminBadge, AdminEmptyState, AdminDrawer, AdminField, AdminInput, AdminTextarea,
   AdminToggle, AdminToast, AdminDivider, useAdminToast,
 } from "@/components/admin/AdminUI";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 interface Brand {
   id: string; name: string; slug: string; logoUrl: string | null;
@@ -131,8 +132,8 @@ export default function BrandManager() {
               <AdminInput value={form.slug} onChange={v => setForm(f => ({ ...f, slug: v }))} placeholder="samsung" style={{ direction: "ltr" }} />
             </AdminField>
           </div>
-          <AdminField label="آدرس لوگو">
-            <AdminInput value={form.logoUrl} onChange={v => setForm(f => ({ ...f, logoUrl: v }))} placeholder="/uploads/brand.png" style={{ direction: "ltr" }} />
+          <AdminField label="لوگوی برند">
+            <ImageUploader value={form.logoUrl} onChange={v => setForm(f => ({ ...f, logoUrl: v }))} folder="brands" previewHeight={70} compact />
           </AdminField>
           <AdminField label="کشور / مبدأ">
             <AdminInput value={form.country} onChange={v => setForm(f => ({ ...f, country: v }))} placeholder="ایران، آلمان، ایتالیا..." />

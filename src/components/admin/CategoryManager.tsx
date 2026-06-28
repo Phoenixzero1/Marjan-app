@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   AdminPageHeader, AdminToolbar, AdminBtn, AdminTable, AdminTh, AdminTd, AdminTr,
   AdminBadge, AdminEmptyState, AdminDrawer, AdminField, AdminInput, AdminTextarea,
@@ -8,6 +8,7 @@ import {
 } from "@/components/admin/AdminUI";
 import CategorySizesModal from "@/components/admin/CategorySizesModal";
 import UnitPicker from "@/components/admin/UnitPicker";
+import ImageUploader from "@/components/admin/ImageUploader";
 
 interface Category {
   id: string; name: string; slug: string; parentId: string | null;
@@ -31,11 +32,9 @@ export default function CategoryManager() {
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [slugTouched, setSlugTouched] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Category default unit (loaded/saved with the edit drawer)
   const [categoryUnit, setCategoryUnit] = useState("");
@@ -81,18 +80,6 @@ export default function CategoryManager() {
       return next;
     });
   };
-
-  const uploadImage = useCallback(async (file: File) => {
-    setUploading(true);
-    try {
-      const fd = new FormData(); fd.append("file", file); fd.append("folder", "categories");
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (res.ok && data.url) setForm(f => ({ ...f, imageUrl: data.url }));
-      else showToast("error", data.error ?? "خطا در آپلود");
-    } catch { showToast("error", "خطا در آپلود تصویر"); }
-    finally { setUploading(false); }
-  }, [showToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -293,23 +280,7 @@ export default function CategoryManager() {
           </AdminField>
 
           <AdminField label="تصویر دسته‌بندی">
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              {form.imageUrl ? (
-                <div style={{ position: "relative", width: 60, height: 60, borderRadius: 8, overflow: "hidden", border: "1.5px solid var(--border)", flexShrink: 0 }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={form.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  <button type="button" onClick={() => setForm(f => ({ ...f, imageUrl: "" }))} style={{ position: "absolute", top: 2, left: 2, background: "rgba(192,57,43,.9)", color: "#fff", border: "none", borderRadius: 4, width: 18, height: 18, cursor: "pointer", fontSize: 11, padding: 0 }}>×</button>
-                </div>
-              ) : (
-                <div style={{ width: 60, height: 60, borderRadius: 8, border: "1.5px dashed var(--border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text3)", flexShrink: 0 }}>
-                  <i className="ti ti-photo" style={{ fontSize: 22 }} />
-                </div>
-              )}
-              <AdminBtn icon={uploading ? "ti-loader" : "ti-upload"} loading={uploading} onClick={() => fileInputRef.current?.click()} size="sm">
-                {uploading ? "آپلود..." : "انتخاب تصویر"}
-              </AdminBtn>
-              <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={e => e.target.files?.[0] && uploadImage(e.target.files[0])} />
-            </div>
+            <ImageUploader value={form.imageUrl} onChange={v => setForm(f => ({ ...f, imageUrl: v }))} folder="categories" previewHeight={90} compact />
           </AdminField>
           <AdminDivider label="سئو" />
           <AdminField label="عنوان سئو"><AdminInput value={form.metaTitle} onChange={v => setForm(f => ({ ...f, metaTitle: v }))} placeholder="عنوان برای موتورهای جستجو" /></AdminField>
@@ -317,7 +288,7 @@ export default function CategoryManager() {
           <AdminField label="وضعیت"><AdminToggle checked={form.isActive} onChange={v => setForm(f => ({ ...f, isActive: v }))} label="دسته‌بندی فعال باشد" /></AdminField>
           <AdminDivider />
           <div style={{ display: "flex", gap: 8 }}>
-            <AdminBtn variant="primary" icon="ti-device-floppy" loading={saving || uploading} style={{ flex: 1, justifyContent: "center" }}>{saving ? "ذخیره..." : form.id ? "ذخیره تغییرات" : "ایجاد دسته‌بندی"}</AdminBtn>
+            <AdminBtn variant="primary" icon="ti-device-floppy" loading={saving} style={{ flex: 1, justifyContent: "center" }}>{saving ? "ذخیره..." : form.id ? "ذخیره تغییرات" : "ایجاد دسته‌بندی"}</AdminBtn>
             <AdminBtn variant="secondary" onClick={() => setFormOpen(false)}>انصراف</AdminBtn>
           </div>
         </form>
