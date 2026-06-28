@@ -557,6 +557,7 @@ export default async function HomePage() {
                     brand={p.brand}
                     images={p.images}
                     sizes={p.sizes.map((s) => ({ ...s, price: s.price ?? null }))}
+                    sizeSummary={p.sizeSummary}
                     isNew={p.isNew}
                     isFeatured={p.isFeatured}
                     stockQty={p.stockQty}
@@ -641,6 +642,7 @@ export default async function HomePage() {
                     brand={p.brand}
                     images={p.images}
                     sizes={p.sizes.map((s) => ({ ...s, price: s.price ?? null }))}
+                    sizeSummary={p.sizeSummary}
                     isNew={p.isNew}
                     isFeatured={p.isFeatured}
                     stockQty={p.stockQty}

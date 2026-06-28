@@ -289,6 +289,7 @@ model Product {
   saleCount     Int           @default(0)
   metaTitle     String?
   metaDesc      String?
+  sizeSummary   String?
   tags          String[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt

@@ -183,6 +183,7 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
   const [sizes, setSizes] = useState<PSize[]>([]);
   const [sizeUnit, setSizeUnit] = useState<string>("INCH");
   const [categorySizes, setCategorySizes] = useState<Record<string, string[]>>({});
+  const [sizeSummary, setSizeSummary] = useState("");
   const [unit, setUnit] = useState("");
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -240,6 +241,7 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
         setStockQty(String(p.stockQty ?? 0));
         setDescription(p.description ?? "");
         setShortDesc(p.shortDesc ?? "");
+        setSizeSummary(p.sizeSummary ?? "");
         setCategoryId(p.categoryId ?? "");
         setBrandId(p.brandId ?? "");
         setStatus(p.status ?? "DRAFT");
@@ -322,6 +324,7 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
         stockQty: Number(stockQty) || 0,
         description: description.trim() || null,
         shortDesc: shortDesc.trim() || null,
+        sizeSummary: sizeSummary.trim() || null,
         categoryId: categoryId || null,
         brandId: brandId || null,
         status,
@@ -481,6 +484,25 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Size Summary — editable display text for product cards */}
+          <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)" }}>
+            <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border)", fontSize: 14, fontWeight: 900, color: "var(--primary)" }}>
+              خلاصه سایز (نمایش در کارت)
+            </div>
+            <div style={{ padding: "1rem 1.5rem" }}>
+              <input
+                value={sizeSummary}
+                onChange={e => setSizeSummary(e.target.value)}
+                style={inp}
+                placeholder={`مثال: ۱/۴" تا ۶" — اگر خالی باشد از سایزبندی محصول استفاده می‌شود`}
+              />
+              <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 6 }}>
+                <i className="ti ti-info-circle" style={{ fontSize: 11, marginLeft: 3 }} />
+                این متن در صفحه اصلی زیر نام محصول نشان داده می‌شود. اگر پر باشد جایگزین بازه سایزهای اضافه‌شده می‌شود.
+              </div>
             </div>
           </div>
 

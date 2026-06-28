@@ -25,6 +25,7 @@ const updateSchema = z.object({
   status: z.enum(["PUBLISHED", "DRAFT", "ARCHIVED"]).optional(),
   isFeatured: z.boolean().optional(),
   isNew: z.boolean().optional(),
+  sizeSummary: z.string().optional().nullable(),
   tags: z.array(z.string()).optional(),
   images: z.array(imageSchema).optional(),
 });

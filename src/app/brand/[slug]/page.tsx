@@ -94,6 +94,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
                 brand={p.brand}
                 images={p.images}
                 sizes={p.sizes.map(s => ({ ...s, price: s.price ?? null }))}
+                sizeSummary={p.sizeSummary}
                 isNew={p.isNew}
                 isFeatured={p.isFeatured}
                 stockQty={p.stockQty}

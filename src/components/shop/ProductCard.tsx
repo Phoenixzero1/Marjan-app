@@ -22,6 +22,7 @@ interface ProductCardProps {
   brand?: { name: string } | null;
   images: { url: string; isPrimary: boolean }[];
   sizes?: Size[];
+  sizeSummary?: string | null;
   isNew?: boolean;
   isFeatured?: boolean;
   stockQty?: number;
@@ -51,7 +52,7 @@ function useCountdown(endTime?: string) {
 }
 
 export default function ProductCard({
-  id, name, slug, price, comparePrice, brand, images, sizes = [],
+  id, name, slug, price, comparePrice, brand, images, sizes = [], sizeSummary,
   isNew, stockQty = 0, marjanTime,
 }: ProductCardProps) {
   const { addItem, openCart } = useCart();
@@ -197,15 +198,19 @@ export default function ProductCard({
           </div>
         </Link>
 
-        {/* Sizes — show range from first to last */}
-        {sizes.length > 0 && (
-          <div style={{ fontSize: 11, color: "var(--text3)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-            <i className="ti ti-arrows-horizontal" style={{ fontSize: 11, opacity: .7 }} />
-            {sizes.length === 1
-              ? sizes[0].label
-              : `${sizes[0].label} تا ${sizes[sizes.length - 1].label}`
-            }
-          </div>
+        {/* Sizes — custom summary or auto-generated range, shown as link */}
+        {(sizeSummary || sizes.length > 0) && (
+          <Link href={`/product/${slug}`} style={{ textDecoration: "none" }}>
+            <div style={{ fontSize: 11, color: "var(--text3)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+              <i className="ti ti-arrows-horizontal" style={{ fontSize: 11, opacity: .7 }} />
+              {sizeSummary
+                ? sizeSummary
+                : sizes.length === 1
+                  ? sizes[0].label
+                  : `${sizes[0].label} تا ${sizes[sizes.length - 1].label}`
+              }
+            </div>
+          </Link>
         )}
 
         {stockQty > 0 && stockQty <= 5 && (

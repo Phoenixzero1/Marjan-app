@@ -34,8 +34,10 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
   const { toast, showToast } = useAdminToast();
   const [units, setUnits] = useState<UnitMap>({});
   const [activeUnit, setActiveUnit] = useState<string | null>(null);
+  const [categorySummary, setCategorySummary] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [applying, setApplying] = useState(false);
   const [addingUnit, setAddingUnit] = useState(false);
   const [newUnitName, setNewUnitName] = useState("");
   const newUnitRef = useRef<HTMLInputElement>(null);
@@ -47,11 +49,11 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
       .then(r => r.json())
       .then(d => {
         const loaded: UnitMap = d.units ?? {};
-        // defaults first, saved data overrides — so اینچ/میلیمتر always appear
         const merged: UnitMap = { ...DEFAULT_UNITS, ...loaded };
         setUnits(merged);
         const keys = Object.keys(merged);
         if (keys.length > 0) setActiveUnit(keys[0]);
+        setCategorySummary(d.categorySummary ?? "");
       })
       .catch(() => showToast("error", "خطا در بارگذاری"))
       .finally(() => setLoading(false));
@@ -127,12 +129,27 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
       const res = await fetch(`/api/admin/categories/${categoryId}/sizes`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ units }),
+        body: JSON.stringify({ units, categorySummary }),
       });
       if (!res.ok) { showToast("error", "خطا در ذخیره"); return; }
       showToast("success", "سایزبندی ذخیره شد");
     } catch { showToast("error", "خطای سرور"); }
     finally { setSaving(false); }
+  };
+
+  const applySummaryToAll = async () => {
+    setApplying(true);
+    try {
+      const res = await fetch(`/api/admin/categories/${categoryId}/apply-summary`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ summary: categorySummary }),
+      });
+      if (!res.ok) { showToast("error", "خطا در اعمال"); return; }
+      const d = await res.json();
+      showToast("success", `خلاصه سایز روی ${d.updated} محصول اعمال شد`);
+    } catch { showToast("error", "خطای سرور"); }
+    finally { setApplying(false); }
   };
 
   return (
@@ -273,9 +290,38 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
             </div>
 
             {/* hint */}
-            <div style={{ margin: "0 20px 16px", padding: "10px 14px", background: "#f5f7fc", borderRadius: 10, fontSize: 11.5, color: "#888", lineHeight: 1.8 }}>
+            <div style={{ margin: "0 20px 12px", padding: "10px 14px", background: "#f5f7fc", borderRadius: 10, fontSize: 11.5, color: "#888", lineHeight: 1.8 }}>
               <i className="ti ti-info-circle" style={{ fontSize: 12, marginLeft: 4 }} />
               سایزهای تعریف‌شده در فرم ویرایش محصولات این دسته‌بندی به عنوان گزینه‌های انتخابی نمایش داده می‌شوند
+            </div>
+
+            <div style={{ height: 1.5, background: "#eef0f4" }} />
+
+            {/* Category-level size summary */}
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: "#888", letterSpacing: ".4px", padding: "14px 20px 8px" }}>خلاصه سایز دسته‌بندی</div>
+            <div style={{ padding: "0 20px 16px" }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  value={categorySummary}
+                  onChange={e => setCategorySummary(e.target.value)}
+                  placeholder={`مثال: ۱/۴" تا ۶"`}
+                  style={{ flex: 1, height: 40, border: "1.5px solid #dde1ea", borderRadius: 10, padding: "0 14px", fontSize: 13.5, fontFamily: "Vazirmatn, sans-serif", color: "#222", background: "#fafbfc", outline: "none" }}
+                />
+                <button
+                  onClick={applySummaryToAll}
+                  disabled={applying}
+                  style={{ height: 40, padding: "0 16px", background: applying ? "#5a6e9e" : "#2f4172", color: "#fff", border: "none", borderRadius: 10, fontSize: 13, fontFamily: "Vazirmatn, sans-serif", fontWeight: 700, cursor: applying ? "not-allowed" : "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}
+                >
+                  {applying
+                    ? <><i className="ti ti-loader-2" style={{ fontSize: 14 }} /> اعمال...</>
+                    : <><i className="ti ti-device-floppy" style={{ fontSize: 14 }} /> اعمال بر همه</>
+                  }
+                </button>
+              </div>
+              <div style={{ fontSize: 11, color: "#aaa", marginTop: 6 }}>
+                <i className="ti ti-info-circle" style={{ fontSize: 11, marginLeft: 3 }} />
+                این متن در کارت محصولات این دسته نشان داده می‌شود. «اعمال بر همه» خلاصه را روی تمام محصولات این دسته ذخیره می‌کند.
+              </div>
             </div>
           </>
         )}

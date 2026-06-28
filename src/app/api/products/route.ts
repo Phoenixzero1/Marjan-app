@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
         isFeatured: boolean; isNew: boolean; tags: string[];
         createdAt: Date; saleCount: number; slug: string;
         categoryId: string | null; brandId: string | null;
+        sizeSummary: string | null;
       };
 
       const filterClauses: Prisma.Sql[] = [
@@ -61,7 +62,7 @@ export async function GET(req: NextRequest) {
       const ftsQuery = Prisma.sql`
         SELECT p.id, p.name, p.sku, p.price, p."comparePrice", p."stockQty",
                p.status, p."isFeatured", p."isNew", p.tags, p."createdAt",
-               p."saleCount", p.slug, p."categoryId", p."brandId",
+               p."saleCount", p.slug, p."categoryId", p."brandId", p."sizeSummary",
                ts_rank(
                  to_tsvector('simple', p.name || ' ' || COALESCE(p.description, '') || ' ' || COALESCE(p.sku, '')),
                  plainto_tsquery('simple', ${search})
@@ -77,7 +78,7 @@ export async function GET(req: NextRequest) {
       const trgmQuery = Prisma.sql`
         SELECT p.id, p.name, p.sku, p.price, p."comparePrice", p."stockQty",
                p.status, p."isFeatured", p."isNew", p.tags, p."createdAt",
-               p."saleCount", p.slug, p."categoryId", p."brandId",
+               p."saleCount", p.slug, p."categoryId", p."brandId", p."sizeSummary",
                similarity(p.name, ${search}) AS rank
         FROM "Product" p
         WHERE ${filterSql}
