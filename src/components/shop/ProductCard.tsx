@@ -196,14 +196,20 @@ export default function ProductCard({
           </div>
         </Link>
 
-        {/* Sizes */}
+        {/* Sizes — horizontal scroll, never wraps */}
         {sizes.length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
-            {sizes.slice(0, 5).map((s) => (
+          <div style={{
+            display: "flex", gap: 3,
+            overflowX: "auto", overflowY: "hidden",
+            scrollbarWidth: "none",
+            WebkitOverflowScrolling: "touch",
+          }}>
+            {sizes.map((s) => (
               <button
                 key={s.id}
                 onClick={() => handleAddToCart(s.label, s.price ?? price)}
                 className="size-btn"
+                style={{ flexShrink: 0 }}
               >
                 {s.label}
               </button>
