@@ -197,24 +197,14 @@ export default function ProductCard({
           </div>
         </Link>
 
-        {/* Sizes — single-row horizontal scroll, never wraps */}
+        {/* Sizes — show range from first to last */}
         {sizes.length > 0 && (
-          <div className="size-scroll" style={{
-            display: "flex", gap: 3, minWidth: 0,
-            overflowX: "auto", overflowY: "hidden",
-            msOverflowStyle: "none",
-            scrollbarWidth: "none" as const,
-          }}>
-            {sizes.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => handleAddToCart(s.label, s.price ?? price)}
-                className="size-btn"
-                style={{ flexShrink: 0 }}
-              >
-                {s.label}
-              </button>
-            ))}
+          <div style={{ fontSize: 11, color: "var(--text3)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+            <i className="ti ti-arrows-horizontal" style={{ fontSize: 11, opacity: .7 }} />
+            {sizes.length === 1
+              ? sizes[0].label
+              : `${sizes[0].label} تا ${sizes[sizes.length - 1].label}`
+            }
           </div>
         )}
 

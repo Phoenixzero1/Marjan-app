@@ -11,6 +11,12 @@ interface Props {
 
 type UnitMap = Record<string, string[]>;
 
+// These are always visible as defaults — saved data overrides them if modified
+const DEFAULT_UNITS: UnitMap = {
+  "اینچ":    ['1/4"', '3/8"', '1/2"', '3/4"', '1"', '1 1/4"', '1 1/2"', '2"', '2 1/2"', '3"', '4"', '5"', '6"'],
+  "میلیمتر": ["16", "20", "25", "32", "40", "50", "63", "75", "90", "110", "125", "160", "200", "250", "315"],
+};
+
 const chipBase: React.CSSProperties = {
   height: 38, padding: "0 14px 0 8px", borderRadius: 20,
   fontSize: 13, fontFamily: "Vazirmatn, sans-serif",
@@ -41,8 +47,10 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
       .then(r => r.json())
       .then(d => {
         const loaded: UnitMap = d.units ?? {};
-        setUnits(loaded);
-        const keys = Object.keys(loaded);
+        // defaults first, saved data overrides — so اینچ/میلیمتر always appear
+        const merged: UnitMap = { ...DEFAULT_UNITS, ...loaded };
+        setUnits(merged);
+        const keys = Object.keys(merged);
         if (keys.length > 0) setActiveUnit(keys[0]);
       })
       .catch(() => showToast("error", "خطا در بارگذاری"))
