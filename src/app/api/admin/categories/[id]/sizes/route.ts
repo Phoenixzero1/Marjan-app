@@ -4,10 +4,7 @@ import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
-const sizePresetSchema = z.object({
-  label: z.string().min(1),
-  unit: z.enum(["INCH", "MM", "METER", "PIECE"]),
-});
+const unitsSchema = z.record(z.string().min(1), z.array(z.string()));
 
 export async function GET(
   _req: NextRequest,
@@ -17,8 +14,15 @@ export async function GET(
     return NextResponse.json({ error: "دسترسی ممنوع" }, { status: 403 });
   const { id } = await params;
   const setting = await prisma.siteSettings.findUnique({ where: { key: `category_sizes_${id}` } });
-  const sizes = setting ? JSON.parse(setting.value) : [];
-  return NextResponse.json({ sizes });
+  if (!setting) return NextResponse.json({ units: {} });
+  try {
+    const parsed = JSON.parse(setting.value);
+    // old format was an array — treat as empty
+    if (Array.isArray(parsed)) return NextResponse.json({ units: {} });
+    return NextResponse.json({ units: parsed });
+  } catch {
+    return NextResponse.json({ units: {} });
+  }
 }
 
 export async function PUT(
@@ -30,13 +34,13 @@ export async function PUT(
   const { id } = await params;
   const body = await req.json();
   try {
-    const sizes = z.array(sizePresetSchema).parse(body.sizes ?? []);
+    const units = unitsSchema.parse(body.units ?? {});
     await prisma.siteSettings.upsert({
       where: { key: `category_sizes_${id}` },
-      update: { value: JSON.stringify(sizes) },
-      create: { key: `category_sizes_${id}`, value: JSON.stringify(sizes), group: "category" },
+      update: { value: JSON.stringify(units) },
+      create: { key: `category_sizes_${id}`, value: JSON.stringify(units), group: "category" },
     });
-    return NextResponse.json({ sizes });
+    return NextResponse.json({ units });
   } catch (err) {
     if (err instanceof z.ZodError)
       return NextResponse.json({ error: err.issues[0]?.message }, { status: 400 });

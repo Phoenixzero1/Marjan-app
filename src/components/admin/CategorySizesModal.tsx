@@ -1,12 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { AdminBtn, AdminToast, useAdminToast } from "./AdminUI";
-
-interface SizePreset {
-  label: string;
-  unit: "INCH" | "MM" | "METER" | "PIECE";
-}
+import { useState, useEffect, useCallback, useRef } from "react";
+import { AdminToast, useAdminToast } from "./AdminUI";
 
 interface Props {
   categoryId: string;
@@ -14,236 +9,254 @@ interface Props {
   onClose: () => void;
 }
 
-const UNIT_LABELS: Record<string, string> = {
-  INCH: "اینچ",
-  MM: "میلیمتر",
-  METER: "متر",
-  PIECE: "عدد",
+type UnitMap = Record<string, string[]>;
+
+const chipBase: React.CSSProperties = {
+  height: 38, padding: "0 16px", borderRadius: 20,
+  fontSize: 13, fontFamily: "Vazirmatn, sans-serif",
+  cursor: "pointer", fontWeight: 500, transition: "all .18s",
+  border: "1.5px solid #dde1ea", background: "#f7f8fb", color: "#444",
 };
 
-const UNIT_COLORS: Record<string, string> = {
-  INCH: "#1d4ed8",
-  MM: "#7c3aed",
-  METER: "#059669",
-  PIECE: "#d97706",
-};
-
-const INP: React.CSSProperties = {
-  border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)",
-  padding: "8px 12px", fontFamily: "Vazirmatn", fontSize: 13,
-  color: "var(--text)", outline: "none", background: "#fff",
-  boxSizing: "border-box", width: "100%",
-};
-
-const SEL: React.CSSProperties = {
-  ...{} as React.CSSProperties,
-  border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)",
-  padding: "8px 10px", fontFamily: "Vazirmatn", fontSize: 12,
-  color: "var(--text)", background: "#fff", cursor: "pointer", outline: "none",
+const chipActive: React.CSSProperties = {
+  ...chipBase,
+  background: "#2f4172", color: "#fff", borderColor: "#2f4172", fontWeight: 600,
 };
 
 export default function CategorySizesModal({ categoryId, categoryName, onClose }: Props) {
   const { toast, showToast } = useAdminToast();
-  const [sizes, setSizes] = useState<SizePreset[]>([]);
+  const [units, setUnits] = useState<UnitMap>({});
+  const [activeUnit, setActiveUnit] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [applying, setApplying] = useState(false);
-  const [newLabel, setNewLabel] = useState("");
-  const [newUnit, setNewUnit] = useState<"INCH" | "MM" | "METER" | "PIECE">("INCH");
+  const [addingUnit, setAddingUnit] = useState(false);
+  const [newUnitName, setNewUnitName] = useState("");
+  const newUnitRef = useRef<HTMLInputElement>(null);
+  const lastSizeRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(() => {
     setLoading(true);
     fetch(`/api/admin/categories/${categoryId}/sizes`)
-      .then((r) => r.json())
-      .then((d) => setSizes(d.sizes ?? []))
+      .then(r => r.json())
+      .then(d => {
+        const loaded: UnitMap = d.units ?? {};
+        setUnits(loaded);
+        const keys = Object.keys(loaded);
+        if (keys.length > 0) setActiveUnit(keys[0]);
+      })
       .catch(() => showToast("error", "خطا در بارگذاری"))
       .finally(() => setLoading(false));
   }, [categoryId, showToast]);
 
   useEffect(() => { load(); }, [load]);
 
-  const addSize = () => {
-    const label = newLabel.trim();
-    if (!label) return;
-    if (sizes.some((s) => s.label === label && s.unit === newUnit)) {
-      showToast("error", "این سایز قبلاً اضافه شده");
-      return;
-    }
-    setSizes((p) => [...p, { label, unit: newUnit }]);
-    setNewLabel("");
+  useEffect(() => {
+    if (addingUnit) newUnitRef.current?.focus();
+  }, [addingUnit]);
+
+  const confirmUnit = () => {
+    const name = newUnitName.trim();
+    if (!name) return;
+    if (name in units) { showToast("error", "این واحد قبلاً وجود دارد"); return; }
+    setUnits(prev => ({ ...prev, [name]: [] }));
+    setActiveUnit(name);
+    setAddingUnit(false);
+    setNewUnitName("");
   };
 
-  const removeSize = (index: number) =>
-    setSizes((p) => p.filter((_, i) => i !== index));
+  const activeSizes = activeUnit ? (units[activeUnit] ?? []) : [];
 
-  const save = async () => {
+  const addSizeRow = () => {
+    if (!activeUnit) return;
+    setUnits(prev => ({ ...prev, [activeUnit]: [...(prev[activeUnit] ?? []), ""] }));
+    setTimeout(() => lastSizeRef.current?.focus(), 30);
+  };
+
+  const updateSize = (index: number, value: string) => {
+    if (!activeUnit) return;
+    setUnits(prev => {
+      const arr = [...(prev[activeUnit] ?? [])];
+      arr[index] = value;
+      return { ...prev, [activeUnit]: arr };
+    });
+  };
+
+  const removeSize = (index: number) => {
+    if (!activeUnit) return;
+    setUnits(prev => ({
+      ...prev,
+      [activeUnit]: (prev[activeUnit] ?? []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const saveAndApply = async () => {
+    const totalSizes = Object.values(units).reduce((s, arr) => s + arr.filter(v => v.trim()).length, 0);
+    if (totalSizes === 0) { showToast("error", "ابتدا سایزهایی اضافه کنید"); return; }
+    if (!confirm(
+      `آیا می‌خواهید ${totalSizes} سایز را روی تمام محصولات دسته «${categoryName}» اعمال کنید؟\n\nسایزهای قبلی محصولات جایگزین می‌شوند.`
+    )) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/admin/categories/${categoryId}/sizes`, {
+      const saveRes = await fetch(`/api/admin/categories/${categoryId}/sizes`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sizes }),
+        body: JSON.stringify({ units }),
       });
-      if (!res.ok) { showToast("error", "خطا در ذخیره"); return; }
-      showToast("success", "سایزها ذخیره شدند");
+      if (!saveRes.ok) { showToast("error", "خطا در ذخیره"); return; }
+
+      const applyRes = await fetch(`/api/admin/categories/${categoryId}/apply-sizes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ units }),
+      });
+      const data = await applyRes.json();
+      if (!applyRes.ok) { showToast("error", data.error ?? "خطا"); return; }
+      showToast(
+        "success",
+        data.updated > 0 ? `${data.updated} محصول بروزرسانی شد` : "محصولی در این دسته یافت نشد"
+      );
     } catch { showToast("error", "خطای سرور"); }
     finally { setSaving(false); }
   };
 
-  const applyToAll = async () => {
-    if (sizes.length === 0) { showToast("error", "ابتدا سایزهایی اضافه کنید"); return; }
-    if (!confirm(
-      `آیا می‌خواهید این ${sizes.length} سایز را روی تمام محصولات دسته «${categoryName}» اعمال کنید؟\n\nسایزهای قبلی محصولات جایگزین می‌شوند.`
-    )) return;
-    setApplying(true);
-    try {
-      const res = await fetch(`/api/admin/categories/${categoryId}/apply-sizes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sizes }),
-      });
-      const data = await res.json();
-      if (!res.ok) { showToast("error", data.error ?? "خطا"); return; }
-      showToast("success", data.updated > 0 ? `${data.updated} محصول بروزرسانی شد` : "محصولی در این دسته یافت نشد");
-    } catch { showToast("error", "خطای سرور"); }
-    finally { setApplying(false); }
-  };
-
   return (
     <div
-      style={{
-        position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0,0,0,0.55)", backdropFilter: "blur(3px)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: 16,
-      }}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(3px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+      onClick={e => e.target === e.currentTarget && onClose()}
     >
-      <div style={{
-        background: "#fff", borderRadius: 16, width: "100%", maxWidth: 580,
-        maxHeight: "85vh", display: "flex", flexDirection: "column",
-        boxShadow: "0 24px 64px rgba(0,0,0,.22)", overflow: "hidden",
-      }}>
+      <AdminToast toast={toast} />
+      <div style={{ background: "#fff", borderRadius: 18, width: "100%", maxWidth: 540, boxShadow: "0 24px 64px rgba(0,0,0,.22)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+
         {/* ── Header ── */}
-        <div style={{
-          padding: "18px 24px", borderBottom: "1px solid var(--border)",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          background: "linear-gradient(135deg, rgba(10,42,94,0.04) 0%, #fff 100%)",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: "rgba(10,42,94,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <i className="ti ti-ruler-measure" style={{ fontSize: 18, color: "var(--primary)" }} />
+        <div style={{ padding: "18px 20px 16px", borderBottom: "1.5px solid #eef0f4", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 38, height: 38, background: "#f0f2f7", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <i className="ti ti-ruler-measure" style={{ fontSize: 18, color: "#2f4172" }} />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 900, color: "var(--primary)" }}>سایزبندی دسته‌بندی</div>
-              <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 2 }}>{categoryName}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1e2e" }}>سایزبندی دسته‌بندی</div>
+              <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>{categoryName}</div>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text3)", fontSize: 18, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8 }}
-          >
-            <i className="ti ti-x" />
-          </button>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: "#bbb", padding: "2px 8px", borderRadius: 8, lineHeight: 1 }}>×</button>
         </div>
 
-        {/* ── Body ── */}
-        <div style={{ padding: "20px 24px", flex: 1, overflowY: "auto" }}>
-          <AdminToast toast={toast} />
-
-          {/* Add row */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 20, alignItems: "center" }}>
-            <input
-              value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSize(); } }}
-              placeholder="برچسب سایز — مثلاً: ۱/۲ اینچ"
-              style={{ ...INP, flex: 1 }}
-            />
-            <select
-              value={newUnit}
-              onChange={(e) => setNewUnit(e.target.value as "INCH" | "MM" | "METER" | "PIECE")}
-              style={{ ...SEL, flexShrink: 0 }}
-            >
-              <option value="INCH">اینچ</option>
-              <option value="MM">میلیمتر</option>
-              <option value="METER">متر</option>
-              <option value="PIECE">عدد</option>
-            </select>
-            <AdminBtn icon="ti-plus" variant="primary" onClick={addSize}>افزودن</AdminBtn>
+        {loading ? (
+          <div style={{ padding: "56px 0", textAlign: "center", color: "#ccc" }}>
+            <i className="ti ti-loader-2" style={{ fontSize: 32 }} />
           </div>
-
-          {/* Size chips */}
-          {loading ? (
-            <div style={{ textAlign: "center", padding: "32px 0", color: "var(--text3)" }}>
-              <i className="ti ti-loader-2" style={{ fontSize: 28 }} />
-            </div>
-          ) : sizes.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "32px 0", color: "var(--text3)", fontSize: 13 }}>
-              <i className="ti ti-ruler" style={{ fontSize: 32, display: "block", marginBottom: 8, opacity: 0.4 }} />
-              هیچ سایزی تعریف نشده — از فرم بالا سایز اضافه کنید
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {sizes.map((s, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: 6,
-                    background: "#f8f9fb", border: "1.5px solid var(--border)",
-                    borderRadius: 8, padding: "5px 8px 5px 5px",
-                  }}
-                >
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{s.label}</span>
-                  <span style={{
-                    fontSize: 10, fontWeight: 900, padding: "1px 6px", borderRadius: 10,
-                    background: `${UNIT_COLORS[s.unit]}18`, color: UNIT_COLORS[s.unit],
-                    border: `1px solid ${UNIT_COLORS[s.unit]}40`,
-                  }}>
-                    {UNIT_LABELS[s.unit]}
-                  </span>
+        ) : (
+          <>
+            {/* ── Panel A: واحدها ── */}
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: "#888", letterSpacing: ".4px", padding: "14px 20px 8px" }}>واحدها</div>
+            <div style={{ padding: "0 20px 16px" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", minHeight: 42 }}>
+                {Object.keys(units).map(unit => (
                   <button
-                    onClick={() => removeSize(i)}
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "#c0392b", padding: 2, display: "flex", alignItems: "center", borderRadius: 4 }}
+                    key={unit}
+                    onClick={() => setActiveUnit(unit)}
+                    style={activeUnit === unit ? chipActive : chipBase}
                   >
-                    <i className="ti ti-x" style={{ fontSize: 11 }} />
+                    {unit}
                   </button>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
 
-          {/* Info note */}
-          {sizes.length > 0 && (
-            <div style={{ marginTop: 20, padding: "10px 14px", background: "rgba(10,42,94,0.04)", borderRadius: 8, border: "1px solid rgba(10,42,94,0.1)", fontSize: 11, color: "var(--text3)", lineHeight: 1.7 }}>
-              <i className="ti ti-info-circle" style={{ fontSize: 12, marginLeft: 4 }} />
-              ذخیره فقط قالب‌های سایز را ثبت می‌کند.
-              برای اعمال روی محصولات موجود، از دکمه <strong>«اعمال روی همه محصولات»</strong> استفاده کنید.
-              سایزهای قبلی محصولات جایگزین خواهند شد.
+                {addingUnit ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, height: 38 }}>
+                    <input
+                      ref={newUnitRef}
+                      value={newUnitName}
+                      onChange={e => setNewUnitName(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter") confirmUnit(); if (e.key === "Escape") { setAddingUnit(false); setNewUnitName(""); } }}
+                      placeholder="نام واحد..."
+                      style={{ height: 38, border: "1.5px solid #2f4172", borderRadius: 20, padding: "0 14px", fontSize: 13, fontFamily: "Vazirmatn, sans-serif", outline: "none", width: 130, color: "#222" }}
+                    />
+                    <button
+                      onClick={confirmUnit}
+                      style={{ height: 34, padding: "0 14px", background: "#27ae60", color: "#fff", border: "none", borderRadius: 20, fontSize: 13, fontFamily: "Vazirmatn, sans-serif", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}
+                    >
+                      ✓ ثبت
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setAddingUnit(true)}
+                    style={{ height: 38, padding: "0 14px", border: "1.5px dashed #b0b8cc", borderRadius: 20, background: "none", color: "#888", fontSize: 13, fontFamily: "Vazirmatn, sans-serif", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
+                  >
+                    + افزودن
+                  </button>
+                )}
+              </div>
             </div>
-          )}
-        </div>
+
+            <div style={{ height: 1.5, background: "#eef0f4" }} />
+
+            {/* ── Panel B: سایزها ── */}
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: "#888", letterSpacing: ".4px", padding: "14px 20px 8px" }}>
+              {activeUnit ? `سایزهای «${activeUnit}»` : "سایزها"}
+            </div>
+            <div style={{ padding: "0 20px 16px", maxHeight: 280, overflowY: "auto" }}>
+              {!activeUnit ? (
+                <div style={{ padding: "28px 0 10px", textAlign: "center", color: "#ccc", fontSize: 13, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                  <i className="ti ti-ruler" style={{ fontSize: 28, opacity: .5 }} />
+                  یک واحد از بالا انتخاب کنید
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 4 }}>
+                    {activeSizes.map((val, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <input
+                          ref={i === activeSizes.length - 1 ? lastSizeRef : undefined}
+                          value={val}
+                          onChange={e => updateSize(i, e.target.value)}
+                          onKeyDown={e => { if (e.key === "Enter") addSizeRow(); }}
+                          placeholder="مثلاً: ۱/۲"
+                          style={{ flex: 1, height: 40, border: "1.5px solid #dde1ea", borderRadius: 10, padding: "0 14px", fontSize: 13.5, fontFamily: "Vazirmatn, sans-serif", color: "#222", background: "#fafbfc", outline: "none", transition: "border-color .2s" }}
+                        />
+                        <div style={{ height: 40, minWidth: 80, border: "1.5px solid #dde1ea", borderRadius: 10, padding: "0 12px", fontSize: 13, fontFamily: "Vazirmatn, sans-serif", color: "#555", background: "#f7f8fb", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {activeUnit}
+                        </div>
+                        <button
+                          onClick={() => removeSize(i)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#ddd", fontSize: 20, padding: 4, borderRadius: 8, lineHeight: 1, transition: "color .15s" }}
+                          onMouseEnter={e => (e.currentTarget.style.color = "#cc3333")}
+                          onMouseLeave={e => (e.currentTarget.style.color = "#ddd")}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={addSizeRow}
+                    style={{ marginTop: 10, height: 40, width: "100%", border: "1.5px dashed #c5cad8", borderRadius: 10, background: "none", color: "#999", fontSize: 13, fontFamily: "Vazirmatn, sans-serif", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                  >
+                    + افزودن سایز
+                  </button>
+                </>
+              )}
+            </div>
+          </>
+        )}
 
         {/* ── Footer ── */}
-        <div style={{
-          padding: "14px 24px", borderTop: "1px solid var(--border)",
-          display: "flex", gap: 8, justifyContent: "space-between", alignItems: "center",
-          background: "var(--bg)",
-        }}>
-          <AdminBtn
-            icon={applying ? "ti-loader" : "ti-wand"}
-            variant="secondary"
-            loading={applying}
-            onClick={applyToAll}
-            disabled={sizes.length === 0}
-          >
-            اعمال روی همه محصولات
-          </AdminBtn>
-          <div style={{ display: "flex", gap: 8 }}>
-            <AdminBtn variant="ghost" onClick={onClose}>انصراف</AdminBtn>
-            <AdminBtn icon="ti-device-floppy" variant="primary" loading={saving} onClick={save}>
-              ذخیره سایزها
-            </AdminBtn>
+        <div style={{ borderTop: "1.5px solid #eef0f4", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              onClick={saveAndApply}
+              disabled={saving}
+              style={{ height: 42, padding: "0 22px", background: saving ? "#5a9e75" : "#27ae60", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, fontFamily: "Vazirmatn, sans-serif", cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, transition: "background .2s" }}
+            >
+              {saving
+                ? <><i className="ti ti-loader-2" style={{ fontSize: 16 }} /> در حال ثبت...</>
+                : "✓ ثبت برای همه محصولات"
+              }
+            </button>
+            <button onClick={onClose} style={{ background: "none", border: "none", color: "#888", fontSize: 13.5, fontFamily: "Vazirmatn, sans-serif", cursor: "pointer", padding: "0 4px" }}>انصراف</button>
+          </div>
+          <div style={{ fontSize: 11.5, color: "#bbb", textAlign: "left", lineHeight: 1.6 }}>
+            تغییرات روی<br />همه محصولات اعمال می‌شود
           </div>
         </div>
       </div>

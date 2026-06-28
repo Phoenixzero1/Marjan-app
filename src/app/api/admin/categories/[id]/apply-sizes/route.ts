@@ -4,10 +4,7 @@ import { requirePermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
-const sizePresetSchema = z.object({
-  label: z.string().min(1),
-  unit: z.enum(["INCH", "MM", "METER", "PIECE"]),
-});
+const unitsSchema = z.record(z.string().min(1), z.array(z.string()));
 
 export async function POST(
   req: NextRequest,
@@ -18,7 +15,12 @@ export async function POST(
   const { id } = await params;
   const body = await req.json();
   try {
-    const sizes = z.array(sizePresetSchema).parse(body.sizes ?? []);
+    const units = unitsSchema.parse(body.units ?? {});
+
+    // Flatten to ProductSize rows: label = "value unitName", unit = PIECE
+    const sizeRows = Object.entries(units).flatMap(([unitName, values]) =>
+      values.filter(v => v.trim()).map(v => ({ label: `${v.trim()} ${unitName}`, unit: "PIECE" as const }))
+    );
 
     const products = await prisma.product.findMany({
       where: { categoryId: id, deletedAt: null },
@@ -26,17 +28,17 @@ export async function POST(
     });
 
     if (products.length === 0)
-      return NextResponse.json({ updated: 0, message: "محصولی در این دسته‌بندی یافت نشد" });
+      return NextResponse.json({ updated: 0 });
 
-    const productIds = products.map((p) => p.id);
+    const productIds = products.map(p => p.id);
 
     await prisma.$transaction([
       prisma.productSize.deleteMany({ where: { productId: { in: productIds } } }),
-      ...(sizes.length > 0
+      ...(sizeRows.length > 0
         ? [
             prisma.productSize.createMany({
-              data: productIds.flatMap((productId) =>
-                sizes.map((s) => ({ productId, label: s.label, unit: s.unit, stock: 0 }))
+              data: productIds.flatMap(productId =>
+                sizeRows.map(s => ({ productId, label: s.label, unit: s.unit, stock: 0 }))
               ),
             }),
           ]
