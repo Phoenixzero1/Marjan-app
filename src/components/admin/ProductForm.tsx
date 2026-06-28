@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import UnitPicker from "@/components/admin/UnitPicker";
 
 interface Category { id: string; name: string; parentId: string | null; }
 interface Brand { id: string; name: string; }
@@ -42,6 +43,7 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
   const [specs, setSpecs] = useState<{ key: string; value: string }[]>([]);
   const [sizes, setSizes] = useState<PSize[]>([]);
   const [sizeUnit, setSizeUnit] = useState<"INCH" | "MM">("INCH");
+  const [unit, setUnit] = useState("");
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,7 +96,12 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
       })
       .then(() => {
         if (productId) {
-          fetch(`/api/admin/products/${productId}/specs`).then(r => r.json()).then(d => setSpecs((d.specs ?? []).map((s: { key: string; value: string }) => ({ key: s.key, value: s.value }))));
+          fetch(`/api/admin/products/${productId}/specs`).then(r => r.json()).then(d => {
+            const allSpecs: { key: string; value: string }[] = d.specs ?? [];
+            const unitSpec = allSpecs.find((s) => s.key === "__unit__");
+            if (unitSpec) setUnit(unitSpec.value);
+            setSpecs(allSpecs.filter((s) => s.key !== "__unit__").map((s) => ({ key: s.key, value: s.value })));
+          });
           fetch(`/api/admin/products/${productId}/sizes`).then(r => r.json()).then(d => {
             const loaded: PSize[] = (d.sizes ?? []).map((s: { label: string; unit: "INCH" | "MM"; stock: number }) => ({ label: s.label, unit: s.unit, stock: s.stock }));
             setSizes(loaded);
@@ -193,10 +200,12 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
 
       const savedProductId = productId ?? data.product?.id;
       if (savedProductId) {
+        const specsToSave = specs.filter((s) => s.key.trim() && s.value.trim());
+        if (unit.trim()) specsToSave.push({ key: "__unit__", value: unit.trim() });
         await fetch(`/api/admin/products/${savedProductId}/specs`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ specs: specs.filter(s => s.key.trim() && s.value.trim()) }),
+          body: JSON.stringify({ specs: specsToSave }),
         });
         await fetch(`/api/admin/products/${savedProductId}/sizes`, {
           method: "POST",
@@ -279,9 +288,14 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
                   <input value={sku} onChange={(e) => setSku(e.target.value)} style={inp} placeholder="TB-V100" />
                 </div>
               </div>
-              <div>
-                <label style={lbl}>توضیح کوتاه</label>
-                <input value={shortDesc} onChange={(e) => setShortDesc(e.target.value)} style={inp} placeholder="توضیح یک‌خطی برای نمایش در کارت محصول" />
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={lbl}>توضیح کوتاه</label>
+                  <input value={shortDesc} onChange={(e) => setShortDesc(e.target.value)} style={inp} placeholder="توضیح یک‌خطی برای نمایش در کارت محصول" />
+                </div>
+                <div style={{ flexShrink: 0, paddingTop: 20 }}>
+                  <UnitPicker value={unit} onChange={setUnit} />
+                </div>
               </div>
               <div>
                 <label style={lbl}>توضیحات کامل</label>

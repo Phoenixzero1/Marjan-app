@@ -6,6 +6,8 @@ import {
   AdminBadge, AdminEmptyState, AdminDrawer, AdminField, AdminInput, AdminTextarea,
   AdminInputSelect, AdminToggle, AdminToast, AdminDivider, useAdminToast,
 } from "@/components/admin/AdminUI";
+import CategorySizesModal from "@/components/admin/CategorySizesModal";
+import UnitPicker from "@/components/admin/UnitPicker";
 
 interface Category {
   id: string; name: string; slug: string; parentId: string | null;
@@ -35,6 +37,12 @@ export default function CategoryManager() {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Category default unit (loaded/saved with the edit drawer)
+  const [categoryUnit, setCategoryUnit] = useState("");
+
+  // Sizes modal — holds { id, name } of the category being configured
+  const [sizesModal, setSizesModal] = useState<{ id: string; name: string } | null>(null);
+
   const toggleCollapse = (id: string) => setCollapsed(prev => {
     const next = new Set(prev);
     if (next.has(id)) next.delete(id); else next.add(id);
@@ -48,10 +56,22 @@ export default function CategoryManager() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => { setForm(emptyForm); setSlugTouched(false); setFormOpen(true); };
+  const openCreate = () => {
+    setForm(emptyForm);
+    setCategoryUnit("");
+    setSlugTouched(false);
+    setFormOpen(true);
+  };
+
   const openEdit = (c: Category) => {
     setForm({ id: c.id, name: c.name, slug: c.slug, parentId: c.parentId ?? "", description: c.description ?? "", iconClass: c.iconClass ?? "", imageUrl: c.imageUrl ?? "", sortOrder: String(c.sortOrder), isActive: c.isActive, metaTitle: c.metaTitle ?? "", metaDesc: c.metaDesc ?? "" });
-    setSlugTouched(true); setFormOpen(true);
+    setSlugTouched(true);
+    setCategoryUnit("");
+    fetch(`/api/admin/categories/${c.id}/unit`)
+      .then((r) => r.json())
+      .then((d) => setCategoryUnit(d.unit ?? ""))
+      .catch(() => {});
+    setFormOpen(true);
   };
 
   const onNameChange = (value: string) => {
@@ -84,6 +104,17 @@ export default function CategoryManager() {
       const res = await fetch("/api/admin/categories", { method: form.id ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form.id ? { id: form.id, ...payload } : payload) });
       const data = await res.json();
       if (!res.ok) { showToast("error", data.error ?? "خطا در ذخیره"); return; }
+
+      // Save category unit alongside category data
+      const savedId = form.id ?? data.category?.id;
+      if (savedId) {
+        await fetch(`/api/admin/categories/${savedId}/unit`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ unit: categoryUnit }),
+        }).catch(() => {});
+      }
+
       showToast("success", form.id ? "دسته‌بندی ویرایش شد" : "دسته‌بندی ایجاد شد");
       setFormOpen(false); load();
     } catch { showToast("error", "خطای سرور"); }
@@ -106,7 +137,6 @@ export default function CategoryManager() {
 
   const parentOptions = categories.filter(c => c.id !== form.id && c.parentId === null);
 
-  // Build the category tree from the flat list
   const tree = useMemo(() => {
     const map = new Map<string, CatNode>();
     categories.forEach(c => map.set(c.id, { ...c, children: [] }));
@@ -158,7 +188,16 @@ export default function CategoryManager() {
           <AdminTd>{countCell(node._count.children)}</AdminTd>
           <AdminTd><AdminBadge variant={node.isActive ? "success" : "neutral"} dot>{node.isActive ? "فعال" : "غیرفعال"}</AdminBadge></AdminTd>
           <AdminTd>
-            <div style={{ display: "flex", gap: 4 }}>
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+              <AdminBtn
+                icon="ti-ruler-measure"
+                size="sm"
+                variant="ghost"
+                title="مدیریت سایزبندی"
+                onClick={() => setSizesModal({ id: node.id, name: node.name })}
+              >
+                سایزها
+              </AdminBtn>
               <AdminBtn icon="ti-edit" size="sm" onClick={() => openEdit(node)}>ویرایش</AdminBtn>
               <AdminBtn icon="ti-trash" size="sm" variant="danger" loading={deletingId === node.id} onClick={() => handleDelete(node)} />
             </div>
@@ -174,6 +213,16 @@ export default function CategoryManager() {
   return (
     <div>
       <AdminToast toast={toast} />
+
+      {/* Sizes modal — rendered at root so it overlays everything */}
+      {sizesModal && (
+        <CategorySizesModal
+          categoryId={sizesModal.id}
+          categoryName={sizesModal.name}
+          onClose={() => setSizesModal(null)}
+        />
+      )}
+
       <AdminPageHeader title="دسته‌بندی‌ها" icon="ti-category" count={categories.length}
         subtitle="ساختار سلسله‌مراتبی محصولات"
         actions={<AdminBtn icon="ti-plus" variant="primary" onClick={openCreate}>دسته‌بندی جدید</AdminBtn>}
@@ -202,7 +251,7 @@ export default function CategoryManager() {
             <AdminTh>محصولات</AdminTh>
             <AdminTh>زیردسته</AdminTh>
             <AdminTh>وضعیت</AdminTh>
-            <AdminTh style={{ width: 130 }}>عملیات</AdminTh>
+            <AdminTh style={{ width: 210 }}>عملیات</AdminTh>
           </tr>
         </thead>
         <tbody>
@@ -237,6 +286,12 @@ export default function CategoryManager() {
               <AdminInput type="number" value={form.sortOrder} onChange={v => setForm(f => ({ ...f, sortOrder: v }))} />
             </AdminField>
           </div>
+
+          {/* Default unit for products in this category */}
+          <AdminField label="واحد پیش‌فرض محصولات" hint="واحد فروش پیش‌فرض برای محصولات این دسته — قابل override در هر محصول">
+            <UnitPicker value={categoryUnit} onChange={setCategoryUnit} />
+          </AdminField>
+
           <AdminField label="تصویر دسته‌بندی">
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               {form.imageUrl ? (
