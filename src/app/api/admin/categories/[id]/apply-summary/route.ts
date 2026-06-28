@@ -13,17 +13,19 @@ export async function POST(
   const body = await req.json();
   const summary: string | null = typeof body.summary === "string" ? body.summary || null : null;
 
-  const [result] = await Promise.all([
-    prisma.product.updateMany({
+  try {
+    const result = await prisma.product.updateMany({
       where: { categoryId: id, deletedAt: null },
       data: { sizeSummary: summary },
-    }),
-    prisma.siteSettings.upsert({
+    });
+    await prisma.siteSettings.upsert({
       where: { key: `category_size_summary_${id}` },
       update: { value: summary ?? "" },
       create: { key: `category_size_summary_${id}`, value: summary ?? "", group: "category" },
-    }),
-  ]);
-
-  return NextResponse.json({ updated: result.count });
+    });
+    return NextResponse.json({ updated: result.count });
+  } catch (err) {
+    console.error("[apply-summary POST]", err);
+    return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
+  }
 }

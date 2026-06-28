@@ -39,25 +39,21 @@ export async function PUT(
   try {
     const units = unitsSchema.parse(body.units ?? {});
     const categorySummary = typeof body.categorySummary === "string" ? body.categorySummary : undefined;
-    const ops: Promise<unknown>[] = [
-      prisma.siteSettings.upsert({
-        where: { key: `category_sizes_${id}` },
-        update: { value: JSON.stringify(units) },
-        create: { key: `category_sizes_${id}`, value: JSON.stringify(units), group: "category" },
-      }),
-    ];
+    await prisma.siteSettings.upsert({
+      where: { key: `category_sizes_${id}` },
+      update: { value: JSON.stringify(units) },
+      create: { key: `category_sizes_${id}`, value: JSON.stringify(units), group: "category" },
+    });
     if (categorySummary !== undefined) {
-      ops.push(
-        prisma.siteSettings.upsert({
-          where: { key: `category_size_summary_${id}` },
-          update: { value: categorySummary },
-          create: { key: `category_size_summary_${id}`, value: categorySummary, group: "category" },
-        })
-      );
+      await prisma.siteSettings.upsert({
+        where: { key: `category_size_summary_${id}` },
+        update: { value: categorySummary },
+        create: { key: `category_size_summary_${id}`, value: categorySummary, group: "category" },
+      });
     }
-    await Promise.all(ops);
     return NextResponse.json({ units, categorySummary });
   } catch (err) {
+    console.error("[category sizes PUT]", err);
     if (err instanceof z.ZodError)
       return NextResponse.json({ error: err.issues[0]?.message }, { status: 400 });
     return NextResponse.json({ error: "خطای سرور" }, { status: 500 });
