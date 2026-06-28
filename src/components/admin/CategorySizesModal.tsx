@@ -110,6 +110,17 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
     }));
   };
 
+  const moveSize = (index: number, dir: -1 | 1) => {
+    if (!activeUnit) return;
+    const target = index + dir;
+    setUnits(prev => {
+      const arr = [...(prev[activeUnit] ?? [])];
+      if (target < 0 || target >= arr.length) return prev;
+      [arr[index], arr[target]] = [arr[target], arr[index]];
+      return { ...prev, [activeUnit]: arr };
+    });
+  };
+
   const save = async () => {
     setSaving(true);
     try {
@@ -215,7 +226,22 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
                 <>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 4 }}>
                     {activeSizes.map((val, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        {/* Up/Down reorder buttons */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                          <button
+                            onClick={() => moveSize(i, -1)}
+                            disabled={i === 0}
+                            style={{ background: "none", border: "none", cursor: i === 0 ? "default" : "pointer", color: i === 0 ? "#e0e0e0" : "#aaa", fontSize: 12, padding: "1px 3px", lineHeight: 1, borderRadius: 4 }}
+                            title="انتقال به بالا"
+                          >▲</button>
+                          <button
+                            onClick={() => moveSize(i, 1)}
+                            disabled={i === activeSizes.length - 1}
+                            style={{ background: "none", border: "none", cursor: i === activeSizes.length - 1 ? "default" : "pointer", color: i === activeSizes.length - 1 ? "#e0e0e0" : "#aaa", fontSize: 12, padding: "1px 3px", lineHeight: 1, borderRadius: 4 }}
+                            title="انتقال به پایین"
+                          >▼</button>
+                        </div>
                         <input
                           ref={i === activeSizes.length - 1 ? lastSizeRef : undefined}
                           value={val}

@@ -98,15 +98,18 @@ export async function GET(req: NextRequest) {
 
       // Fetch related data for result rows
       const ids = pageRows.map((r) => r.id);
-      const [images, brands, categories] = await Promise.all([
+      const [images, brands, categories, sizes] = await Promise.all([
         prisma.productImage.findMany({ where: { productId: { in: ids }, isPrimary: true }, take: ids.length }),
         prisma.brand.findMany({ where: { id: { in: pageRows.map(r => r.brandId).filter(Boolean) as string[] } }, select: { id: true, name: true, slug: true } }),
         prisma.category.findMany({ where: { id: { in: pageRows.map(r => r.categoryId).filter(Boolean) as string[] } }, select: { id: true, name: true, slug: true } }),
+        prisma.productSize.findMany({ where: { productId: { in: ids } } }),
       ]);
 
       const imgMap = Object.fromEntries(images.map(i => [i.productId, i]));
       const brandMap = Object.fromEntries(brands.map(b => [b.id, b]));
       const catMap = Object.fromEntries(categories.map(c => [c.id, c]));
+      const sizeMap: Record<string, typeof sizes> = {};
+      for (const s of sizes) { (sizeMap[s.productId] ??= []).push(s); }
 
       const products = pageRows.map((r) => ({
         ...r,
@@ -115,7 +118,7 @@ export async function GET(req: NextRequest) {
         images: imgMap[r.id] ? [imgMap[r.id]] : [],
         brand: r.brandId ? brandMap[r.brandId] ?? null : null,
         category: r.categoryId ? catMap[r.categoryId] ?? null : null,
-        sizes: [],
+        sizes: sizeMap[r.id] ?? [],
         marjanTime: flashDeal?.productIds.has(r.id)
           ? { discountPct: flashDeal.discountPct, endTime: flashDeal.endTime }
           : undefined,
