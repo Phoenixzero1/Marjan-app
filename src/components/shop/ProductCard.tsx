@@ -104,7 +104,7 @@ export default function ProductCard({
       {hasDiscount && (
         <>
           <div style={{
-            padding: "6px 12px",
+            padding: "5px 10px",
             display: "flex", alignItems: "center", justifyContent: "space-between",
           }}>
             {isMarjan ? (
@@ -156,10 +156,10 @@ export default function ProductCard({
 
         <Link href={`/product/${slug}`} style={{ display: "block" }}>
           <div style={{
-            aspectRatio: "1",
+            height: 140,
             background: "#f8f9fb",
             display: "flex", alignItems: "center", justifyContent: "center",
-            padding: 10, overflow: "hidden",
+            padding: 8, overflow: "hidden",
           }}>
             {primaryImage ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -177,9 +177,10 @@ export default function ProductCard({
 
       {/* ── Body ─────────────────────────────────────────────────────────── */}
       <div style={{
-        padding: "10px 12px", flex: 1, display: "flex",
-        flexDirection: "column", gap: 6,
+        padding: "8px 10px", flex: 1, display: "flex",
+        flexDirection: "column", gap: 5,
         borderTop: "1px solid #f0f0f0",
+        minWidth: 0,
       }}>
         {brand && (
           <div style={{ fontSize: 10, color: "#9ca3af", fontWeight: 600 }}>{brand.name}</div>
@@ -188,7 +189,7 @@ export default function ProductCard({
         <Link href={`/product/${slug}`} style={{ textDecoration: "none", flex: 1 }}>
           <div style={{
             fontSize: 12.5, fontWeight: 600, color: "#111827",
-            lineHeight: 1.5, minHeight: 38,
+            lineHeight: 1.45, minHeight: 34,
             overflow: "hidden", display: "-webkit-box",
             WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
           }}>
@@ -196,13 +197,13 @@ export default function ProductCard({
           </div>
         </Link>
 
-        {/* Sizes — horizontal scroll, never wraps */}
+        {/* Sizes — single-row horizontal scroll, never wraps */}
         {sizes.length > 0 && (
-          <div style={{
-            display: "flex", gap: 3,
+          <div className="size-scroll" style={{
+            display: "flex", gap: 3, minWidth: 0,
             overflowX: "auto", overflowY: "hidden",
-            scrollbarWidth: "none",
-            WebkitOverflowScrolling: "touch",
+            msOverflowStyle: "none",
+            scrollbarWidth: "none" as const,
           }}>
             {sizes.map((s) => (
               <button
@@ -228,7 +229,7 @@ export default function ProductCard({
           <div style={{
             display: "flex", alignItems: "center",
             justifyContent: hasDiscount ? "space-between" : "flex-end",
-            marginBottom: 7,
+            marginBottom: 5,
           }}>
             {hasDiscount && (
               <span style={{

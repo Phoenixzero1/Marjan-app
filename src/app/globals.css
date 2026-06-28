@@ -371,6 +371,9 @@ button {
   background: #fff0f0;
 }
 
+/* Hide scrollbar on size-chips row */
+.size-scroll::-webkit-scrollbar { display: none; }
+
 /* Size/variant chip on product cards */
 .size-btn {
   background: #fff;
