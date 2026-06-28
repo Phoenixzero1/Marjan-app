@@ -137,11 +137,11 @@ export default function Megamenu() {
           <defs>
             <filter id={filterId} x="-150%" y="-150%" width="400%" height="400%" colorInterpolationFilters="sRGB">
               <feImage x="0" y="0" width="100%" height="100%" result="DMAP" href={shaderUrl} preserveAspectRatio="xMidYMid slice" />
-              <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="55" xChannelSelector="R" yChannelSelector="B" result="RED_D" />
+              <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="30" xChannelSelector="R" yChannelSelector="B" result="RED_D" />
               <feColorMatrix in="RED_D" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="R" />
-              <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="50" xChannelSelector="R" yChannelSelector="B" result="GRN_D" />
+              <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="27" xChannelSelector="R" yChannelSelector="B" result="GRN_D" />
               <feColorMatrix in="GRN_D" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="G" />
-              <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="45" xChannelSelector="R" yChannelSelector="B" result="BLU_D" />
+              <feDisplacementMap in="SourceGraphic" in2="DMAP" scale="24" xChannelSelector="R" yChannelSelector="B" result="BLU_D" />
               <feColorMatrix in="BLU_D" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="B" />
               <feBlend in="G" in2="B" mode="screen" result="GB" />
               <feBlend in="R" in2="GB" mode="screen" />
@@ -154,8 +154,8 @@ export default function Megamenu() {
         position: "absolute", inset: 0,
         borderRadius: "0 0 18px 18px",
         ...(shaderUrl ? { filter: `url(#${filterId})` } : {}),
-        backdropFilter: "blur(10px) saturate(150%)",
-        WebkitBackdropFilter: "blur(10px) saturate(150%)",
+        backdropFilter: "blur(11.5px) saturate(150%)",
+        WebkitBackdropFilter: "blur(11.5px) saturate(150%)",
         overflow: "hidden",
         pointerEvents: "none", zIndex: 0,
       }} />

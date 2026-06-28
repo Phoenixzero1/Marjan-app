@@ -677,7 +677,7 @@ export default function Navbar({ siteName, siteLogo }: NavbarProps) {
             // Fix: animate with transform only, never touch opacity on this container.
             opacity: 1,
             transform: floatingIn
-              ? "translateY(70px)"   // 70px from top → visible just below megabar
+              ? "translateY(62px)"   // 62px from top → visible just below megabar
               : "translateY(-200px)", // fully above viewport, never visible
             transition: navGone ? "transform 0.4s cubic-bezier(0.34,1.56,0.64,1)" : "none",
             pointerEvents: navGone && floatingIn ? "auto" : "none",
