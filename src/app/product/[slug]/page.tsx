@@ -260,7 +260,7 @@ export default function ProductDetailPage() {
           </h1>
 
           {/* Rating */}
-          {product.reviews.length > 0 && (
+          {(product.reviews?.length ?? 0) > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               {[1,2,3,4,5].map((s) => (
                 <i
@@ -397,9 +397,9 @@ export default function ProductDetailPage() {
         <div style={{ display: "flex", borderBottom: "2px solid var(--border)" }}>
           {([
             ["description", "توضیحات"],
-            ["specs", `مشخصات فنی${product.specs.length > 0 ? ` (${product.specs.length})` : ""}`],
-            ["reviews", `نظرات (${product.reviews.length})`],
-            ["qa", `پرسش و پاسخ (${product.questions.length})`],
+            ["specs", `مشخصات فنی${(product.specs?.length ?? 0) > 0 ? ` (${product.specs.length})` : ""}`],
+            ["reviews", `نظرات (${product.reviews?.length ?? 0})`],
+            ["qa", `پرسش و پاسخ (${product.questions?.length ?? 0})`],
           ] as const).map(([t, l]) => (
             <button
               key={t}
@@ -423,7 +423,7 @@ export default function ProductDetailPage() {
 
           {/* Specs Tab */}
           {activeTab === "specs" && (
-            product.specs.length > 0 ? (
+            (product.specs?.length ?? 0) > 0 ? (
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <tbody>
                   {product.specs.map((spec, i) => (
@@ -467,7 +467,7 @@ export default function ProductDetailPage() {
           {activeTab === "qa" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {/* Answered questions */}
-              {product.questions.length > 0 && (
+              {(product.questions?.length ?? 0) > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   {product.questions.map((q) => (
                     <div key={q.id} style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
@@ -490,7 +490,7 @@ export default function ProductDetailPage() {
               )}
 
               {/* Submit question form */}
-              <div style={{ borderTop: product.questions.length > 0 ? "1px solid var(--border)" : "none", paddingTop: product.questions.length > 0 ? 16 : 0 }}>
+              <div style={{ borderTop: (product.questions?.length ?? 0) > 0 ? "1px solid var(--border)" : "none", paddingTop: (product.questions?.length ?? 0) > 0 ? 16 : 0 }}>
                 <h3 style={{ fontSize: 14, fontWeight: 900, color: "var(--primary)", margin: "0 0 12px" }}>سوال خود را بپرسید</h3>
                 {questionDone ? (
                   <div style={{ background: "#dcfce7", border: "1px solid #86efac", borderRadius: 8, padding: "12px 16px", fontSize: 13, color: "#166534", fontWeight: 700 }}>
