@@ -35,9 +35,12 @@ interface SizeSectionProps {
 
 function SizeSection({ sizes, setSizes, sizeUnit, setSizeUnit, categorySizes, inp }: SizeSectionProps) {
   const customKeys = Object.keys(categorySizes);
+  // if category defines "اینچ" or "میلیمتر", use those instead of the hardcoded defaults
+  const hasCustomInch = "اینچ" in categorySizes;
+  const hasCustomMM   = "میلیمتر" in categorySizes || "میلی‌متر" in categorySizes;
   const allTabs = [
-    { key: "INCH", label: "اینچ",     chips: INCH_SIZES },
-    { key: "MM",   label: "میلی‌متر", chips: MM_SIZES },
+    ...(!hasCustomInch ? [{ key: "INCH",  label: "اینچ",     chips: INCH_SIZES }] : []),
+    ...(!hasCustomMM   ? [{ key: "MM",    label: "میلی‌متر", chips: MM_SIZES   }] : []),
     ...customKeys.map(name => ({ key: name, label: name, chips: categorySizes[name] ?? [] })),
   ];
   const activeTab = allTabs.find(t => t.key === sizeUnit) ?? allTabs[0];
