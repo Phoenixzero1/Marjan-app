@@ -2,11 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 
+/** Load active flash deal config once per request to annotate matching products */
+async function getActiveFlashDeal(): Promise<{ productIds: Set<string>; discountPct: number; endTime: string } | null> {
+  try {
+    const row = await prisma.siteSettings.findUnique({ where: { key: "marjan_time_config" } });
+    if (!row) return null;
+    const cfg = JSON.parse(row.value) as {
+      isActive: boolean; endTime: string | null;
+      productIds: string[]; discountPct: number;
+    };
+    if (!cfg.isActive || !cfg.endTime || !cfg.productIds?.length) return null;
+    if (new Date(cfg.endTime) < new Date()) return null;
+    return { productIds: new Set(cfg.productIds), discountPct: cfg.discountPct, endTime: cfg.endTime };
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl;
     const page = parseInt(searchParams.get("page") ?? "1");
     const limit = parseInt(searchParams.get("limit") ?? "12");
+
+    // Load flash deal config once — used to annotate products at the end
+    const flashDeal = await getActiveFlashDeal();
     const categoryId = searchParams.get("categoryId");
     const brandId = searchParams.get("brandId");
     const search = searchParams.get("q")?.trim() ?? "";
@@ -96,6 +116,9 @@ export async function GET(req: NextRequest) {
         brand: r.brandId ? brandMap[r.brandId] ?? null : null,
         category: r.categoryId ? catMap[r.categoryId] ?? null : null,
         sizes: [],
+        marjanTime: flashDeal?.productIds.has(r.id)
+          ? { discountPct: flashDeal.discountPct, endTime: flashDeal.endTime }
+          : undefined,
       }));
 
       return NextResponse.json({
@@ -136,8 +159,15 @@ export async function GET(req: NextRequest) {
       prisma.product.count({ where }),
     ]);
 
+    const annotated = products.map((p) => ({
+      ...p,
+      marjanTime: flashDeal?.productIds.has(p.id)
+        ? { discountPct: flashDeal.discountPct, endTime: flashDeal.endTime }
+        : undefined,
+    }));
+
     return NextResponse.json({
-      products,
+      products: annotated,
       pagination: { total, page, limit, pages: Math.ceil(total / limit) },
     });
   } catch (err) {

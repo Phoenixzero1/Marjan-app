@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
@@ -24,8 +25,29 @@ interface ProductCardProps {
   isNew?: boolean;
   isFeatured?: boolean;
   stockQty?: number;
-  /** When MarjanTime is active for this product — overrides comparePrice completely */
-  marjanTime?: { discountPct: number };
+  /** Pass endTime so the card can show a live countdown */
+  marjanTime?: { discountPct: number; endTime?: string };
+}
+
+function useCountdown(endTime?: string) {
+  const [timeLeft, setTimeLeft] = useState<string | null>(null);
+  useEffect(() => {
+    if (!endTime) return;
+    const calc = () => {
+      const diff = new Date(endTime).getTime() - Date.now();
+      if (diff <= 0) { setTimeLeft(null); return; }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setTimeLeft(
+        `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+      );
+    };
+    calc();
+    const t = setInterval(calc, 1000);
+    return () => clearInterval(t);
+  }, [endTime]);
+  return timeLeft;
 }
 
 export default function ProductCard({
@@ -34,12 +56,12 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { addItem, openCart } = useCart();
   const primaryImage = images.find((i) => i.isPrimary) ?? images[0];
+  const timeLeft = useCountdown(marjanTime?.endTime);
 
-  // ── Price logic ─────────────────────────────────────────────────────────────
-  // MarjanTime completely overrides any existing comparePrice discount
+  // ── Price logic ──────────────────────────────────────────────────────────
   const dealPrice   = marjanTime ? Math.round(price * (1 - marjanTime.discountPct / 100)) : null;
-  const salePrice   = dealPrice ?? price;                                   // what customer pays
-  const originalPx  = marjanTime                                            // what to strike through
+  const salePrice   = dealPrice ?? price;
+  const originalPx  = marjanTime
     ? price
     : comparePrice && comparePrice > price ? comparePrice : null;
   const discountPct = marjanTime
@@ -47,6 +69,10 @@ export default function ProductCard({
     : comparePrice && comparePrice > price
       ? Math.round(((comparePrice - price) / comparePrice) * 100)
       : 0;
+
+  const hasDiscount  = discountPct > 0;
+  const isMarjan     = !!marjanTime;
+  const accentColor  = isMarjan ? "#dc2626" : "#e67e22";
 
   function handleAddToCart(sizeLabel?: string, sizePrice?: number) {
     addItem({
@@ -66,59 +92,67 @@ export default function ProductCard({
       style={{
         background: "#fff",
         borderRadius: 10,
-        border: "1px solid #eaecf0",
-        boxShadow: "0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04)",
+        border: "1px solid #e8e8e8",
+        boxShadow: "0 1px 4px rgba(0,0,0,.06)",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        transition: "box-shadow .18s, transform .18s",
       }}
     >
-      {/* ── مرجان تایم strip ─────────────────────────────────────────────── */}
-      {marjanTime && (
-        <div style={{
-          background: "linear-gradient(90deg,#dc2626,#ea580c)",
-          padding: "3px 10px",
-          display: "flex", alignItems: "center", gap: 5,
-          fontSize: 10, fontWeight: 900, color: "#fff",
-        }}>
-          <i className="ti ti-clock-bolt" style={{ fontSize: 11 }} />
-          مرجان تایم — {marjanTime.discountPct}٪
-        </div>
+      {/* ── Sale / مرجان تایم top indicator ─────────────────────────────── */}
+      {hasDiscount && (
+        <>
+          <div style={{
+            padding: "6px 12px",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}>
+            {isMarjan ? (
+              <>
+                <span style={{
+                  fontSize: 12, fontWeight: 900, color: "#dc2626",
+                  fontVariantNumeric: "tabular-nums", letterSpacing: "0.5px",
+                }}>
+                  {timeLeft ?? `${discountPct}٪ تخفیف`}
+                </span>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, color: "#dc2626",
+                  display: "flex", alignItems: "center", gap: 3,
+                }}>
+                  <i className="ti ti-clock-bolt" style={{ fontSize: 12 }} />
+                  مرجان تایم
+                </span>
+              </>
+            ) : (
+              <>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, color: "#e67e22",
+                  display: "flex", alignItems: "center", gap: 3,
+                }}>
+                  <i className="ti ti-tag" style={{ fontSize: 12 }} />
+                  تخفیف ویژه
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#e67e22" }}>{discountPct}٪</span>
+              </>
+            )}
+          </div>
+          <div style={{ height: 2, background: accentColor }} />
+        </>
       )}
 
       {/* ── Image ────────────────────────────────────────────────────────── */}
       <div style={{ position: "relative" }}>
-        {/* Discount circle badge */}
-        {discountPct > 0 && (
-          <div style={{
-            position: "absolute", top: 8, left: 8, zIndex: 2,
-            width: 38, height: 38, borderRadius: "50%",
-            background: marjanTime ? "#dc2626" : "#e53935",
-            color: "#fff",
-            display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center",
-            fontSize: 11, fontWeight: 900, lineHeight: 1,
-            boxShadow: "0 2px 6px rgba(0,0,0,.22)",
-          }}>
-            <span style={{ fontSize: 12 }}>{discountPct}٪</span>
-          </div>
-        )}
+        <div style={{ position: "absolute", top: 8, right: 8, zIndex: 3 }}>
+          <WishlistButton productId={id} size={28} />
+        </div>
 
-        {/* New badge (only when no discount) */}
-        {isNew && !discountPct && (
+        {isNew && !hasDiscount && (
           <div style={{
             position: "absolute", top: 8, left: 8, zIndex: 2,
             background: "var(--primary-mid)", color: "#fff",
             fontSize: 10, fontWeight: 900, padding: "3px 9px", borderRadius: 20,
           }}>جدید</div>
         )}
-
-        {/* Wishlist */}
-        <div style={{ position: "absolute", top: 8, right: 8, zIndex: 3 }}>
-          <WishlistButton productId={id} size={28} />
-        </div>
 
         <Link href={`/product/${slug}`} style={{ display: "block" }}>
           <div style={{
@@ -141,12 +175,14 @@ export default function ProductCard({
         </Link>
       </div>
 
-      {/* ── Info ─────────────────────────────────────────────────────────── */}
-      <div style={{ padding: "10px 12px", flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+      {/* ── Body ─────────────────────────────────────────────────────────── */}
+      <div style={{
+        padding: "10px 12px", flex: 1, display: "flex",
+        flexDirection: "column", gap: 6,
+        borderTop: "1px solid #f0f0f0",
+      }}>
         {brand && (
-          <div style={{ fontSize: 10, color: "#9ca3af", fontWeight: 600 }}>
-            {brand.name}
-          </div>
+          <div style={{ fontSize: 10, color: "#9ca3af", fontWeight: 600 }}>{brand.name}</div>
         )}
 
         <Link href={`/product/${slug}`} style={{ textDecoration: "none", flex: 1 }}>
@@ -160,7 +196,7 @@ export default function ProductCard({
           </div>
         </Link>
 
-        {/* Sizes strip */}
+        {/* Sizes */}
         {sizes.length > 0 && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
             {sizes.slice(0, 5).map((s) => (
@@ -181,51 +217,73 @@ export default function ProductCard({
           </div>
         )}
 
-        {/* ── Price + cart ──────────────────────────────────────────────── */}
+        {/* ── Pricing ──────────────────────────────────────────────────── */}
         <div style={{ marginTop: "auto" }}>
-          {/* Sale price — BIG, first (Technolife style) */}
           <div style={{
-            fontSize: 15, fontWeight: 900,
-            color: marjanTime ? "#dc2626" : "#1d4ed8",
-            marginBottom: 2,
+            display: "flex", alignItems: "center",
+            justifyContent: hasDiscount ? "space-between" : "flex-end",
+            marginBottom: 7,
           }}>
-            {formatPrice(salePrice)}
+            {hasDiscount && (
+              <span style={{
+                background: accentColor, color: "#fff",
+                fontSize: 12, fontWeight: 900, padding: "3px 10px",
+                borderRadius: 4, minWidth: 44, textAlign: "center",
+              }}>
+                {discountPct}٪
+              </span>
+            )}
+            <div style={{ textAlign: "left" }}>
+              <div style={{
+                fontSize: 14, fontWeight: 900,
+                color: isMarjan ? "#dc2626" : "#1d4ed8",
+              }}>
+                {formatPrice(salePrice)}
+              </div>
+              {originalPx && (
+                <div style={{ fontSize: 11, color: "#bbb", textDecoration: "line-through" }}>
+                  {formatPrice(originalPx)}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Original price — strikethrough, below (Technolife style) */}
-          {originalPx && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 11, color: "#9ca3af", textDecoration: "line-through" }}>
-                {formatPrice(originalPx)}
-              </span>
-              <button
-                onClick={() => handleAddToCart()}
-                disabled={stockQty === 0}
-                className="btn-cart"
-                style={stockQty === 0
-                  ? { background: "#f3f4f6", color: "#9ca3af", cursor: "not-allowed" }
-                  : marjanTime ? { background: "#dc2626" } : undefined}
-                title={stockQty === 0 ? "ناموجود" : "افزودن به سبد"}
-              >
-                <i className={stockQty === 0 ? "ti ti-x" : "ti ti-shopping-cart"} />
-              </button>
-            </div>
-          )}
-
-          {/* No discount: just the cart button row */}
-          {!originalPx && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
-              <button
-                onClick={() => handleAddToCart()}
-                disabled={stockQty === 0}
-                className="btn-cart"
-                style={stockQty === 0 ? { background: "#f3f4f6", color: "#9ca3af", cursor: "not-allowed" } : undefined}
-                title={stockQty === 0 ? "ناموجود" : "افزودن به سبد"}
-              >
-                <i className={stockQty === 0 ? "ti ti-x" : "ti ti-shopping-cart"} />
-              </button>
-            </div>
-          )}
+          {/* Cart button — full width */}
+          <button
+            onClick={() => handleAddToCart()}
+            disabled={stockQty === 0}
+            style={{
+              width: "100%",
+              background: stockQty === 0 ? "#f3f4f6" : isMarjan ? "#dc2626" : "var(--primary)",
+              color: stockQty === 0 ? "#9ca3af" : "#fff",
+              border: "none",
+              borderRadius: "var(--radius-sm)",
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 900,
+              fontFamily: "Vazirmatn",
+              cursor: stockQty === 0 ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              transition: "background .15s",
+            }}
+            title={stockQty === 0 ? "ناموجود" : "افزودن به سبد"}
+            onMouseEnter={(e) => {
+              if (stockQty > 0) {
+                (e.currentTarget as HTMLElement).style.background = isMarjan ? "#b91c1c" : "var(--accent)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (stockQty > 0) {
+                (e.currentTarget as HTMLElement).style.background = isMarjan ? "#dc2626" : "var(--primary)";
+              }
+            }}
+          >
+            <i className={stockQty === 0 ? "ti ti-x" : "ti ti-shopping-cart"} style={{ fontSize: 14 }} />
+            {stockQty === 0 ? "ناموجود" : "افزودن به سبد"}
+          </button>
         </div>
       </div>
     </div>

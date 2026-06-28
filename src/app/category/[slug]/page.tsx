@@ -26,6 +26,7 @@ interface Product {
   images: { url: string; isPrimary: boolean }[];
   brand: { name: string; slug: string } | null;
   sizes: { id: string; label: string; unit: string; price: number | null; stock: number }[];
+  marjanTime?: { discountPct: number; endTime?: string };
 }
 
 interface Pagination {

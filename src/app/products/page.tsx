@@ -9,6 +9,7 @@ interface Product {
   brand: { name: string } | null; images: { url: string; isPrimary: boolean }[];
   sizes: { id: string; label: string; price: number | null; unit: string }[];
   isNew: boolean; isFeatured: boolean; stockQty: number;
+  marjanTime?: { discountPct: number; endTime?: string };
 }
 
 interface Filters {

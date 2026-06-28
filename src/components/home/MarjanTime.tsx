@@ -43,6 +43,8 @@ export default function MarjanTime({ title, endTime, discountPct, products }: Pr
 
   if (!mounted || expired || products.length === 0) return null;
 
+  const cardTimer = `${String(timeLeft.h).padStart(2, "0")}:${String(timeLeft.m).padStart(2, "0")}:${String(timeLeft.s).padStart(2, "0")}`;
+
   const units = [
     { val: timeLeft.d, label: "روز" },
     { val: timeLeft.h, label: "ساعت" },
@@ -53,20 +55,33 @@ export default function MarjanTime({ title, endTime, discountPct, products }: Pr
   return (
     <div style={{
       borderRadius: 16, overflow: "hidden",
-      background: "linear-gradient(135deg, #0b1d3a 0%, #1a3a6e 100%)",
-      boxShadow: "0 4px 32px rgba(0,0,0,.22)",
+      background: "#6b0f1a",
+      boxShadow: "0 4px 32px rgba(0,0,0,.28)",
+      position: "relative",
     }}>
+      {/* Percent pattern overlay */}
+      <div style={{
+        position: "absolute", inset: 0,
+        color: "rgba(255,255,255,0.06)",
+        fontSize: 22, fontWeight: 700, letterSpacing: 10, lineHeight: 2,
+        padding: 8, overflow: "hidden", pointerEvents: "none",
+        wordBreak: "break-all",
+        userSelect: "none",
+      }}>
+        {Array.from({ length: 80 }, () => "٪").join(" ")}
+      </div>
+
       {/* ── Header bar ── */}
       <div style={{
-        background: "linear-gradient(90deg, #c2410c 0%, var(--accent) 100%)",
-        padding: "12px 2rem",
+        background: "linear-gradient(90deg,#a50f22 0%,#c0392b 100%)",
+        padding: "14px 2rem",
         display: "flex", alignItems: "center", justifyContent: "space-between",
         flexWrap: "wrap", gap: 10,
+        position: "relative", zIndex: 1,
       }}>
-        {/* Title + countdown */}
         <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <i className="ti ti-clock-bolt" style={{ color: "#fff", fontSize: 22 }} />
+            <span style={{ fontSize: 22 }}>🔥</span>
             <span style={{ color: "#fff", fontWeight: 900, fontSize: 18, letterSpacing: "-.01em" }}>
               {title}
             </span>
@@ -78,7 +93,7 @@ export default function MarjanTime({ title, endTime, discountPct, products }: Pr
               const box = (
                 <div key={u.label} style={{
                   textAlign: "center",
-                  background: "rgba(0,0,0,.25)",
+                  background: "rgba(0,0,0,.3)",
                   borderRadius: 7, padding: "5px 9px", minWidth: 46,
                 }}>
                   <div style={{
@@ -105,77 +120,118 @@ export default function MarjanTime({ title, endTime, discountPct, products }: Pr
           color: "rgba(255,255,255,.85)", fontSize: 13, fontWeight: 700,
           display: "flex", alignItems: "center", gap: 4, textDecoration: "none",
         }}>
-          همه پیشنهادات <i className="ti ti-arrow-left" />
+          ‹ همه پیشنهادات
         </Link>
       </div>
 
       {/* ── Products ── */}
-      <div style={{ padding: "1.25rem 2rem 1.5rem" }}>
-        <HScrollSlider gap={12} scrollAmount={170} fadeColor="#0f2244">
+      <div style={{ padding: "1.25rem 2rem 1.5rem", position: "relative", zIndex: 1 }}>
+        <HScrollSlider gap={12} scrollAmount={170} fadeColor="#6b0f1a">
           {products.map((p) => {
             const flashPrice = Math.round(p.price * (1 - discountPct / 100));
             return (
-              <Link
+              <div
                 key={p.id}
-                href={`/product/${p.slug}`}
                 style={{
-                  flexShrink: 0, width: 158,
-                  background: "#fff", borderRadius: 12,
-                  overflow: "hidden", textDecoration: "none",
-                  display: "flex", flexDirection: "column",
-                  boxShadow: "0 4px 18px rgba(0,0,0,.28)",
+                  flexShrink: 0, width: 162,
+                  background: "#fff", borderRadius: 10,
+                  overflow: "hidden", display: "flex", flexDirection: "column",
+                  boxShadow: "0 4px 20px rgba(0,0,0,.32)",
                   transition: "transform .18s",
                 }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}
               >
-                {/* Image */}
+                {/* Card top badge */}
                 <div style={{
-                  height: 138, background: "var(--bg2)", position: "relative",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  overflow: "hidden",
+                  display: "flex", justifyContent: "flex-end", padding: "8px 10px 0",
                 }}>
-                  {p.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.imageUrl} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
-                    <i className="ti ti-package" style={{ fontSize: 44, color: "var(--border)" }} />
-                  )}
-                  {/* Discount circle badge */}
-                  <div style={{
-                    position: "absolute", top: 7, left: 7,
-                    width: 40, height: 40, borderRadius: "50%",
-                    background: "#e53935", color: "#fff",
-                    display: "flex", flexDirection: "column",
-                    alignItems: "center", justifyContent: "center",
-                    fontSize: 11, fontWeight: 900, lineHeight: 1.1,
-                    boxShadow: "0 2px 8px rgba(229,57,53,.5)",
+                  <span style={{
+                    background: "#6b0f1a", color: "#fff",
+                    fontSize: 10, fontWeight: 900, padding: "3px 10px", borderRadius: 4,
                   }}>
-                    <span>{discountPct}٪</span>
-                    <span style={{ fontSize: 7.5 }}>تخفیف</span>
+                    مرجان تایم
+                  </span>
+                </div>
+
+                {/* Image */}
+                <Link href={`/product/${p.slug}`} style={{ display: "block", textDecoration: "none" }}>
+                  <div style={{
+                    height: 130, background: "#fff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    padding: "8px 16px", overflow: "hidden",
+                  }}>
+                    {p.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={p.imageUrl}
+                        alt={p.name}
+                        style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                      />
+                    ) : (
+                      <i className="ti ti-package" style={{ fontSize: 44, color: "#d1d5db" }} />
+                    )}
+                  </div>
+                </Link>
+
+                {/* Body */}
+                <div style={{
+                  padding: "8px 12px 10px", flex: 1,
+                  display: "flex", flexDirection: "column", gap: 8,
+                  borderTop: "1px solid #f0f0f0",
+                }}>
+                  <Link href={`/product/${p.slug}`} style={{ textDecoration: "none" }}>
+                    <div style={{
+                      fontSize: 11.5, fontWeight: 600, color: "#222", lineHeight: 1.55,
+                      minHeight: 36,
+                      overflow: "hidden", display: "-webkit-box",
+                      WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                    }}>
+                      {p.name}
+                    </div>
+                  </Link>
+
+                  {/* Pricing */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{
+                      background: "#c0392b", color: "#fff",
+                      fontSize: 12, fontWeight: 900, padding: "3px 8px",
+                      borderRadius: 4, minWidth: 40, textAlign: "center",
+                    }}>
+                      {discountPct}٪
+                    </span>
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontSize: 13, fontWeight: 900, color: "#1a1a1a" }}>
+                        {flashPrice.toLocaleString("fa-IR")}
+                      </div>
+                      <div style={{ fontSize: 10, color: "#bbb", textDecoration: "line-through" }}>
+                        {p.price.toLocaleString("fa-IR")}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Info */}
-                <div style={{ padding: "9px 10px", flex: 1, display: "flex", flexDirection: "column", gap: 5 }}>
-                  <div style={{
-                    fontSize: 11.5, fontWeight: 700, color: "var(--text)",
-                    lineHeight: 1.45, minHeight: 32,
-                    overflow: "hidden", display: "-webkit-box",
-                    WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                {/* Timer strip at bottom */}
+                <div style={{
+                  borderTop: "1px solid #f0f0f0",
+                  padding: "7px 12px",
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                }}>
+                  <span style={{
+                    display: "flex", alignItems: "center", gap: 4,
+                    fontSize: 10.5, color: "#999",
                   }}>
-                    {p.name}
-                  </div>
-                  <div style={{ marginTop: "auto" }}>
-                    <div style={{ fontSize: 10.5, color: "var(--text3)", textDecoration: "line-through", marginBottom: 1 }}>
-                      {p.price.toLocaleString("fa-IR")} تومان
-                    </div>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: "#c2410c" }}>
-                      {flashPrice.toLocaleString("fa-IR")} تومان
-                    </div>
-                  </div>
+                    <i className="ti ti-clock" style={{ fontSize: 11 }} />
+                    زمان باقی‌مانده
+                  </span>
+                  <span style={{
+                    color: "#c0392b", fontWeight: 900, fontSize: 12.5,
+                    letterSpacing: "1px", fontVariantNumeric: "tabular-nums",
+                  }}>
+                    {cardTimer}
+                  </span>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </HScrollSlider>

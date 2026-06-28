@@ -560,7 +560,7 @@ export default async function HomePage() {
                     isNew={p.isNew}
                     isFeatured={p.isFeatured}
                     stockQty={p.stockQty}
-                    marjanTime={marjanIds.has(p.id) && flashDeal ? { discountPct: flashDeal.discountPct } : undefined}
+                    marjanTime={marjanIds.has(p.id) && flashDeal ? { discountPct: flashDeal.discountPct, endTime: flashDeal.endTime } : undefined}
                   />
                 </div>
               ))}
@@ -644,7 +644,7 @@ export default async function HomePage() {
                     isNew={p.isNew}
                     isFeatured={p.isFeatured}
                     stockQty={p.stockQty}
-                    marjanTime={marjanIds.has(p.id) && flashDeal ? { discountPct: flashDeal.discountPct } : undefined}
+                    marjanTime={marjanIds.has(p.id) && flashDeal ? { discountPct: flashDeal.discountPct, endTime: flashDeal.endTime } : undefined}
                   />
                 </div>
               ))}
