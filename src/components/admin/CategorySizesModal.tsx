@@ -27,7 +27,7 @@ const chipBase: React.CSSProperties = {
 
 const chipActive: React.CSSProperties = {
   ...chipBase,
-  background: "#2f4172", color: "#fff", borderColor: "#2f4172", fontWeight: 600,
+  background: "#2f4172", color: "#fff", border: "1.5px solid #2f4172", fontWeight: 600,
 };
 
 export default function CategorySizesModal({ categoryId, categoryName, onClose }: Props) {
