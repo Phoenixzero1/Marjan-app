@@ -6,10 +6,23 @@ import UnitPicker from "@/components/admin/UnitPicker";
 interface Category { id: string; name: string; parentId: string | null; }
 interface Brand { id: string; name: string; }
 interface PImage { id?: string; url: string; isPrimary: boolean; altText?: string; sortOrder: number; }
-interface PSize { label: string; unit: "INCH" | "MM"; stock: number; }
+interface PSize { label: string; unit: string; stock: number; }
 
 const INCH_SIZES = ['1/4"', '3/8"', '1/2"', '3/4"', '1"', '1 1/4"', '1 1/2"', '2"', '2 1/2"', '3"', '4"', '5"', '6"'];
 const MM_SIZES = ["16", "20", "25", "32", "40", "50", "63", "75", "90", "110", "125", "160", "200", "250", "315"];
+
+// maps Persian/display unit names to the DB enum value
+const UNIT_TO_ENUM: Record<string, string> = {
+  INCH: "INCH", MM: "MM", METER: "METER", PIECE: "PIECE",
+  "اینچ": "INCH", "میلیمتر": "MM", "میلی‌متر": "MM",
+  "متر": "METER", "عدد": "PIECE",
+};
+function toEnum(unit: string): string { return UNIT_TO_ENUM[unit] ?? "PIECE"; }
+
+// display name for the stock-inputs section
+const ENUM_LABEL: Record<string, string> = {
+  INCH: "اینچ", MM: "میلیمتر", METER: "متر", PIECE: "عدد",
+};
 
 interface Props {
   productId?: string;
@@ -42,7 +55,8 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
   const [images, setImages] = useState<PImage[]>([]);
   const [specs, setSpecs] = useState<{ key: string; value: string }[]>([]);
   const [sizes, setSizes] = useState<PSize[]>([]);
-  const [sizeUnit, setSizeUnit] = useState<"INCH" | "MM">("INCH");
+  const [sizeUnit, setSizeUnit] = useState<string>("INCH");
+  const [categorySizes, setCategorySizes] = useState<Record<string, string[]>>({});
   const [unit, setUnit] = useState("");
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -69,6 +83,20 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
       setBrands(brandData.brands ?? []);
     });
   }, []);
+
+  // Load size presets when category changes
+  useEffect(() => {
+    if (!categoryId) { setCategorySizes({}); return; }
+    fetch(`/api/admin/categories/${categoryId}/sizes`)
+      .then(r => r.json())
+      .then(d => {
+        const loaded = d.units ?? {};
+        setCategorySizes(loaded);
+        const keys = Object.keys(loaded);
+        if (keys.length > 0) setSizeUnit(keys[0]);
+      })
+      .catch(() => {});
+  }, [categoryId]);
 
   // Populate form when editing an existing product
   useEffect(() => {
@@ -103,9 +131,8 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
             setSpecs(allSpecs.filter((s) => s.key !== "__unit__").map((s) => ({ key: s.key, value: s.value })));
           });
           fetch(`/api/admin/products/${productId}/sizes`).then(r => r.json()).then(d => {
-            const loaded: PSize[] = (d.sizes ?? []).map((s: { label: string; unit: "INCH" | "MM"; stock: number }) => ({ label: s.label, unit: s.unit, stock: s.stock }));
+            const loaded: PSize[] = (d.sizes ?? []).map((s: { label: string; unit: string; stock: number }) => ({ label: s.label, unit: s.unit, stock: s.stock }));
             setSizes(loaded);
-            if (loaded.length > 0) setSizeUnit(loaded[0].unit);
           });
         }
       })
@@ -335,50 +362,64 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
           <div style={{ background: "#fff", borderRadius: "var(--radius)", boxShadow: "var(--shadow)" }}>
             <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--border)", fontSize: 14, fontWeight: 900, color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               سایزبندی و موجودی هر سایز
+              {/* Unit tabs — from category preset if available, else hardcoded INCH/MM */}
               <div style={{ display: "flex", gap: 6 }}>
-                <button
-                  type="button"
-                  onClick={() => { setSizeUnit("INCH"); setSizes([]); }}
-                  style={{ padding: "4px 14px", borderRadius: 6, border: "1.5px solid", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", background: sizeUnit === "INCH" ? "var(--primary)" : "#fff", color: sizeUnit === "INCH" ? "#fff" : "var(--text2)", borderColor: sizeUnit === "INCH" ? "var(--primary)" : "var(--border)" }}
-                >اینچ</button>
-                <button
-                  type="button"
-                  onClick={() => { setSizeUnit("MM"); setSizes([]); }}
-                  style={{ padding: "4px 14px", borderRadius: 6, border: "1.5px solid", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", background: sizeUnit === "MM" ? "var(--primary)" : "#fff", color: sizeUnit === "MM" ? "#fff" : "var(--text2)", borderColor: sizeUnit === "MM" ? "var(--primary)" : "var(--border)" }}
-                >میلی‌متر</button>
+                {Object.keys(categorySizes).length > 0
+                  ? Object.keys(categorySizes).map(unitName => (
+                    <button
+                      key={unitName}
+                      type="button"
+                      onClick={() => setSizeUnit(unitName)}
+                      style={{ padding: "4px 14px", borderRadius: 6, border: "1.5px solid", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", background: sizeUnit === unitName ? "var(--primary)" : "#fff", color: sizeUnit === unitName ? "#fff" : "var(--text2)", borderColor: sizeUnit === unitName ? "var(--primary)" : "var(--border)" }}
+                    >{unitName}</button>
+                  ))
+                  : (
+                    <>
+                      <button type="button" onClick={() => setSizeUnit("INCH")} style={{ padding: "4px 14px", borderRadius: 6, border: "1.5px solid", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", background: sizeUnit === "INCH" ? "var(--primary)" : "#fff", color: sizeUnit === "INCH" ? "#fff" : "var(--text2)", borderColor: sizeUnit === "INCH" ? "var(--primary)" : "var(--border)" }}>اینچ</button>
+                      <button type="button" onClick={() => setSizeUnit("MM")} style={{ padding: "4px 14px", borderRadius: 6, border: "1.5px solid", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", background: sizeUnit === "MM" ? "var(--primary)" : "#fff", color: sizeUnit === "MM" ? "#fff" : "var(--text2)", borderColor: sizeUnit === "MM" ? "var(--primary)" : "var(--border)" }}>میلی‌متر</button>
+                    </>
+                  )
+                }
               </div>
             </div>
             <div style={{ padding: "1rem 1.5rem" }}>
-              {/* Size toggle buttons */}
-              <p style={{ fontSize: 12, color: "var(--text3)", margin: "0 0 10px" }}>روی سایز کلیک کنید تا انتخاب شود:</p>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
-                {(sizeUnit === "INCH" ? INCH_SIZES : MM_SIZES).map((lbl) => {
-                  const active = sizes.some(s => s.label === lbl && s.unit === sizeUnit);
-                  return (
-                    <button
-                      key={lbl}
-                      type="button"
-                      onClick={() => {
-                        if (active) {
-                          setSizes(prev => prev.filter(s => !(s.label === lbl && s.unit === sizeUnit)));
-                        } else {
-                          setSizes(prev => [...prev, { label: lbl, unit: sizeUnit, stock: 0 }]);
-                        }
-                      }}
-                      style={{
-                        padding: "5px 14px", borderRadius: 6, border: "1.5px solid",
-                        fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer",
-                        background: active ? "var(--primary)" : "#fff",
-                        color: active ? "#fff" : "var(--text2)",
-                        borderColor: active ? "var(--primary)" : "var(--border)",
-                        transition: "all .15s",
-                      }}
-                    >
-                      {lbl} {sizeUnit === "INCH" ? "" : "mm"}
-                    </button>
-                  );
-                })}
-              </div>
+              {/* Size chip options */}
+              {(() => {
+                const chips = Object.keys(categorySizes).length > 0
+                  ? (categorySizes[sizeUnit] ?? [])
+                  : sizeUnit === "INCH" ? INCH_SIZES : MM_SIZES;
+                const enumUnit = toEnum(sizeUnit);
+                return chips.length > 0 ? (
+                  <>
+                    <p style={{ fontSize: 12, color: "var(--text3)", margin: "0 0 10px" }}>روی سایز کلیک کنید تا انتخاب شود:</p>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+                      {chips.map((lbl) => {
+                        const active = sizes.some(s => s.label === lbl && toEnum(s.unit) === enumUnit);
+                        return (
+                          <button
+                            key={lbl}
+                            type="button"
+                            onClick={() => {
+                              if (active) {
+                                setSizes(prev => prev.filter(s => !(s.label === lbl && toEnum(s.unit) === enumUnit)));
+                              } else {
+                                setSizes(prev => [...prev, { label: lbl, unit: enumUnit, stock: 0 }]);
+                              }
+                            }}
+                            style={{ padding: "5px 14px", borderRadius: 6, border: "1.5px solid", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer", background: active ? "var(--primary)" : "#fff", color: active ? "#fff" : "var(--text2)", borderColor: active ? "var(--primary)" : "var(--border)", transition: "all .15s" }}
+                          >
+                            {lbl}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <p style={{ fontSize: 12, color: "var(--text3)", margin: "0 0 16px" }}>
+                    {Object.keys(categorySizes).length > 0 ? "هنوز سایزی برای این واحد تعریف نشده" : "روی سایز کلیک کنید تا انتخاب شود:"}
+                  </p>
+                );
+              })()}
 
               {/* Stock inputs for selected sizes */}
               {sizes.length > 0 && (
@@ -386,9 +427,12 @@ export default function ProductForm({ productId, onSuccess, onCancel }: Props) {
                   <p style={{ fontSize: 12, color: "var(--text3)", margin: "0 0 8px", fontWeight: 700 }}>موجودی هر سایز:</p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {sizes.map((sz, i) => (
-                      <div key={`${sz.label}-${sz.unit}`} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span style={{ minWidth: 70, fontSize: 13, fontWeight: 900, color: "var(--text)" }}>
-                          {sz.label}{sz.unit === "MM" ? " mm" : ""}
+                      <div key={`${sz.label}-${sz.unit}-${i}`} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ minWidth: 80, fontSize: 13, fontWeight: 900, color: "var(--text)" }}>
+                          {sz.label}
+                          <span style={{ fontSize: 11, fontWeight: 500, color: "var(--text3)", marginRight: 4 }}>
+                            {ENUM_LABEL[sz.unit] ?? sz.unit}
+                          </span>
                         </span>
                         <input
                           type="number"

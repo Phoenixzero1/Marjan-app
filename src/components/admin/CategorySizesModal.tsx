@@ -12,10 +12,11 @@ interface Props {
 type UnitMap = Record<string, string[]>;
 
 const chipBase: React.CSSProperties = {
-  height: 38, padding: "0 16px", borderRadius: 20,
+  height: 38, padding: "0 14px 0 8px", borderRadius: 20,
   fontSize: 13, fontFamily: "Vazirmatn, sans-serif",
   cursor: "pointer", fontWeight: 500, transition: "all .18s",
   border: "1.5px solid #dde1ea", background: "#f7f8fb", color: "#444",
+  display: "flex", alignItems: "center", gap: 6,
 };
 
 const chipActive: React.CSSProperties = {
@@ -64,6 +65,18 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
     setNewUnitName("");
   };
 
+  const removeUnit = (unit: string) => {
+    setUnits(prev => {
+      const next = { ...prev };
+      delete next[unit];
+      return next;
+    });
+    if (activeUnit === unit) {
+      const remaining = Object.keys(units).filter(k => k !== unit);
+      setActiveUnit(remaining[0] ?? null);
+    }
+  };
+
   const activeSizes = activeUnit ? (units[activeUnit] ?? []) : [];
 
   const addSizeRow = () => {
@@ -89,32 +102,16 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
     }));
   };
 
-  const saveAndApply = async () => {
-    const totalSizes = Object.values(units).reduce((s, arr) => s + arr.filter(v => v.trim()).length, 0);
-    if (totalSizes === 0) { showToast("error", "ابتدا سایزهایی اضافه کنید"); return; }
-    if (!confirm(
-      `آیا می‌خواهید ${totalSizes} سایز را روی تمام محصولات دسته «${categoryName}» اعمال کنید؟\n\nسایزهای قبلی محصولات جایگزین می‌شوند.`
-    )) return;
+  const save = async () => {
     setSaving(true);
     try {
-      const saveRes = await fetch(`/api/admin/categories/${categoryId}/sizes`, {
+      const res = await fetch(`/api/admin/categories/${categoryId}/sizes`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ units }),
       });
-      if (!saveRes.ok) { showToast("error", "خطا در ذخیره"); return; }
-
-      const applyRes = await fetch(`/api/admin/categories/${categoryId}/apply-sizes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ units }),
-      });
-      const data = await applyRes.json();
-      if (!applyRes.ok) { showToast("error", data.error ?? "خطا"); return; }
-      showToast(
-        "success",
-        data.updated > 0 ? `${data.updated} محصول بروزرسانی شد` : "محصولی در این دسته یافت نشد"
-      );
+      if (!res.ok) { showToast("error", "خطا در ذخیره"); return; }
+      showToast("success", "سایزبندی ذخیره شد");
     } catch { showToast("error", "خطای سرور"); }
     finally { setSaving(false); }
   };
@@ -158,6 +155,11 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
                     style={activeUnit === unit ? chipActive : chipBase}
                   >
                     {unit}
+                    <span
+                      onClick={e => { e.stopPropagation(); removeUnit(unit); }}
+                      style={{ opacity: .55, fontSize: 14, lineHeight: 1, cursor: "pointer", padding: "0 2px" }}
+                      title="حذف واحد"
+                    >×</span>
                   </button>
                 ))}
 
@@ -212,19 +214,17 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
                           onChange={e => updateSize(i, e.target.value)}
                           onKeyDown={e => { if (e.key === "Enter") addSizeRow(); }}
                           placeholder="مثلاً: ۱/۲"
-                          style={{ flex: 1, height: 40, border: "1.5px solid #dde1ea", borderRadius: 10, padding: "0 14px", fontSize: 13.5, fontFamily: "Vazirmatn, sans-serif", color: "#222", background: "#fafbfc", outline: "none", transition: "border-color .2s" }}
+                          style={{ flex: 1, height: 40, border: "1.5px solid #dde1ea", borderRadius: 10, padding: "0 14px", fontSize: 13.5, fontFamily: "Vazirmatn, sans-serif", color: "#222", background: "#fafbfc", outline: "none" }}
                         />
                         <div style={{ height: 40, minWidth: 80, border: "1.5px solid #dde1ea", borderRadius: 10, padding: "0 12px", fontSize: 13, fontFamily: "Vazirmatn, sans-serif", color: "#555", background: "#f7f8fb", display: "flex", alignItems: "center", justifyContent: "center" }}>
                           {activeUnit}
                         </div>
                         <button
                           onClick={() => removeSize(i)}
-                          style={{ background: "none", border: "none", cursor: "pointer", color: "#ddd", fontSize: 20, padding: 4, borderRadius: 8, lineHeight: 1, transition: "color .15s" }}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#ddd", fontSize: 20, padding: 4, borderRadius: 8, lineHeight: 1 }}
                           onMouseEnter={e => (e.currentTarget.style.color = "#cc3333")}
                           onMouseLeave={e => (e.currentTarget.style.color = "#ddd")}
-                        >
-                          ×
-                        </button>
+                        >×</button>
                       </div>
                     ))}
                   </div>
@@ -237,6 +237,12 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
                 </>
               )}
             </div>
+
+            {/* hint */}
+            <div style={{ margin: "0 20px 16px", padding: "10px 14px", background: "#f5f7fc", borderRadius: 10, fontSize: 11.5, color: "#888", lineHeight: 1.8 }}>
+              <i className="ti ti-info-circle" style={{ fontSize: 12, marginLeft: 4 }} />
+              سایزهای تعریف‌شده در فرم ویرایش محصولات این دسته‌بندی به عنوان گزینه‌های انتخابی نمایش داده می‌شوند
+            </div>
           </>
         )}
 
@@ -244,19 +250,19 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
         <div style={{ borderTop: "1.5px solid #eef0f4", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <button
-              onClick={saveAndApply}
+              onClick={save}
               disabled={saving}
-              style={{ height: 42, padding: "0 22px", background: saving ? "#5a9e75" : "#27ae60", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, fontFamily: "Vazirmatn, sans-serif", cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8, transition: "background .2s" }}
+              style={{ height: 42, padding: "0 22px", background: saving ? "#5a9e75" : "#27ae60", color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, fontFamily: "Vazirmatn, sans-serif", cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8 }}
             >
               {saving
-                ? <><i className="ti ti-loader-2" style={{ fontSize: 16 }} /> در حال ثبت...</>
-                : "✓ ثبت برای همه محصولات"
+                ? <><i className="ti ti-loader-2" style={{ fontSize: 16 }} /> ذخیره...</>
+                : <><i className="ti ti-device-floppy" style={{ fontSize: 16 }} /> ذخیره سایزبندی</>
               }
             </button>
             <button onClick={onClose} style={{ background: "none", border: "none", color: "#888", fontSize: 13.5, fontFamily: "Vazirmatn, sans-serif", cursor: "pointer", padding: "0 4px" }}>انصراف</button>
           </div>
           <div style={{ fontSize: 11.5, color: "#bbb", textAlign: "left", lineHeight: 1.6 }}>
-            تغییرات روی<br />همه محصولات اعمال می‌شود
+            در فرم محصول<br />قابل انتخاب می‌شود
           </div>
         </div>
       </div>
