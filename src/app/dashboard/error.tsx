@@ -11,6 +11,17 @@ export default function DashboardError({
 }) {
   useEffect(() => {
     console.error("[Dashboard Error]", error);
+    fetch("/api/admin/logs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: error.message || "خطای نامشخص در داشبورد",
+        stack: error.stack,
+        digest: error.digest,
+        url: typeof window !== "undefined" ? window.location.href : undefined,
+        level: "ERROR",
+      }),
+    }).catch(() => {});
   }, [error]);
 
   return (

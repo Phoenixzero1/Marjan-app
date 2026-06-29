@@ -11,6 +11,17 @@ export default function AdminError({
 }) {
   useEffect(() => {
     console.error("[Admin Error]", error);
+    fetch("/api/admin/logs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: error.message || "خطای نامشخص در پنل مدیریت",
+        stack: error.stack,
+        digest: error.digest,
+        url: typeof window !== "undefined" ? window.location.href : undefined,
+        level: "ERROR",
+      }),
+    }).catch(() => {});
   }, [error]);
 
   return (

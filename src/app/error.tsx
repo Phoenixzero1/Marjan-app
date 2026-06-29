@@ -12,6 +12,17 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error("[Global Error]", error);
+    fetch("/api/admin/logs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: error.message || "خطای نامشخص",
+        stack: error.stack,
+        digest: error.digest,
+        url: typeof window !== "undefined" ? window.location.href : undefined,
+        level: "ERROR",
+      }),
+    }).catch(() => {});
   }, [error]);
 
   return (
