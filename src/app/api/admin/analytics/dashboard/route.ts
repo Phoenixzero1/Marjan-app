@@ -18,7 +18,7 @@ export async function GET() {
     prisma.payment.aggregate({ where: { status: "PAID", paidAt: { gte: startOfMonth } }, _sum: { amount: true } }),
     prisma.orderItem.groupBy({
       by: ["productId"],
-      _sum: { quantity: true, price: true },
+      _sum: { quantity: true, totalPrice: true },
       orderBy: { _sum: { quantity: "desc" } },
       take: 5,
     }),
@@ -52,7 +52,7 @@ export async function GET() {
     topProducts: topProducts.map(p => ({
       ...productMap[p.productId],
       totalSold: p._sum.quantity ?? 0,
-      totalRevenue: p._sum.price ?? 0,
+      totalRevenue: p._sum.totalPrice ?? 0,
     })),
     topCustomers: topCustomerOrders.map(c => {
       const user = c.userId ? customerMap[c.userId] : null;
