@@ -1,7 +1,9 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+﻿export const dynamic = 'force-dynamic';
+import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/permissions";
+import { prisma } from "@/lib/prisma";
 
-import { prisma } from "@/lib/prisma";export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest) {
   if (!(await requirePermission("VIEW_LOGS"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
@@ -25,24 +27,25 @@ import { prisma } from "@/lib/prisma";export async function GET(req: NextRequest
     };
   }
 
-  const [total, logs, counts] = await Promise.all([
-    prisma.systemLog.count({ where }),
-    prisma.systemLog.findMany({
+  try {
+    const total = await prisma.systemLog.count({ where });
+    const logs = await prisma.systemLog.findMany({
       where,
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
       take: limit,
       include: { user: { select: { firstName: true, lastName: true, email: true } } },
-    }),
-    prisma.systemLog.groupBy({
+    });
+    const counts = await prisma.systemLog.groupBy({
       by: ["level"],
       _count: { _all: true },
-    }),
-  ]);
-
-  const levelCounts = Object.fromEntries(counts.map(c => [c.level, c._count._all]));
-
-  return NextResponse.json({ logs, total, page, pages: Math.ceil(total / limit), levelCounts });
+    });
+    const levelCounts = Object.fromEntries(counts.map(c => [c.level, c._count._all]));
+    return NextResponse.json({ logs, total, page, pages: Math.ceil(total / limit), levelCounts });
+  } catch (err) {
+    console.error("[admin/logs GET]", err);
+    return NextResponse.json({ logs: [], total: 0, page: 1, pages: 0, levelCounts: {} });
+  }
 }
 
 export async function DELETE(req: NextRequest) {

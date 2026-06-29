@@ -19,7 +19,7 @@ export function audit(params: AuditParams): void {
   prisma.systemLog
     .create({
       data: {
-        userId: params.userId,
+        ...(params.userId ? { user: { connect: { id: params.userId } } } : {}),
         level: "INFO",
         action: params.action,
         details: {
@@ -32,5 +32,5 @@ export function audit(params: AuditParams): void {
         userAgent: params.ua ?? null,
       },
     })
-    .catch(() => {});
+    .catch((err) => { console.error("[audit]", err?.message ?? err); });
 }
