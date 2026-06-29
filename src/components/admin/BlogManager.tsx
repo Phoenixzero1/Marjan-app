@@ -40,6 +40,7 @@ export default function BlogManager() {
   const [postFormOpen, setPostFormOpen] = useState(false);
   const [postForm, setPostForm] = useState<PostForm>(emptyPost);
   const [postSaving, setPostSaving] = useState(false);
+  const [imgUploading, setImgUploading] = useState(false);
   const [slugTouched, setSlugTouched] = useState(false);
   const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
 
