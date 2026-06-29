@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import ProductCard from "@/components/shop/ProductCard";
+import HomeProductCard from "@/components/home/HomeProductCard";
 import HeroSlider, { type SliderSettings } from "@/components/home/HeroSlider";
 import MarjanTime, { type FlashProduct } from "@/components/home/MarjanTime";
 import CategoryCircle from "@/components/home/CategoryCircle";
@@ -550,25 +550,23 @@ export default async function HomePage() {
               <p>پس از افزودن محصول توسط ادمین اینجا نمایش داده می‌شود.</p>
             </div>
           ) : (
-            <HScrollSlider gap={12} scrollAmount={200}>
+            <HScrollSlider gap={12} scrollAmount={190}>
               {bestsellers.map((p) => (
-                <div key={p.id} style={{ flexShrink: 0, width: 188 }}>
-                  <ProductCard
-                    id={p.id}
-                    name={p.name}
-                    slug={p.slug}
-                    price={p.price}
-                    comparePrice={p.comparePrice}
-                    brand={p.brand}
-                    images={p.images}
-                    sizes={p.sizes.map((s) => ({ ...s, price: s.price ?? null }))}
-                    sizeSummary={p.sizeSummary}
-                    isNew={p.isNew}
-                    isFeatured={p.isFeatured}
-                    stockQty={p.stockQty}
-                    marjanTime={marjanIds.has(p.id) && flashDeal ? { discountPct: flashDeal.discountPct, endTime: flashDeal.endTime } : undefined}
-                  />
-                </div>
+                <HomeProductCard
+                  key={p.id}
+                  id={p.id}
+                  name={p.name}
+                  slug={p.slug}
+                  price={p.price}
+                  comparePrice={p.comparePrice}
+                  images={p.images}
+                  sizes={p.sizes.map((s) => ({ label: s.label }))}
+                  sizeSummary={p.sizeSummary}
+                  isNew={p.isNew}
+                  stockQty={p.stockQty}
+                  sectionLabel="پرفروش"
+                  marjanTime={marjanIds.has(p.id) && flashDeal ? { discountPct: flashDeal.discountPct, endTime: flashDeal.endTime } : undefined}
+                />
               ))}
             </HScrollSlider>
           )}
@@ -635,25 +633,23 @@ export default async function HomePage() {
               href="/products?sort=newest"
               bar={{ bg: "var(--primary-mid)", icon: "ti-sparkles" }}
             />
-            <HScrollSlider gap={12} scrollAmount={200}>
+            <HScrollSlider gap={12} scrollAmount={190}>
               {newest.map((p) => (
-                <div key={p.id} style={{ flexShrink: 0, width: 188 }}>
-                  <ProductCard
-                    id={p.id}
-                    name={p.name}
-                    slug={p.slug}
-                    price={p.price}
-                    comparePrice={p.comparePrice}
-                    brand={p.brand}
-                    images={p.images}
-                    sizes={p.sizes.map((s) => ({ ...s, price: s.price ?? null }))}
-                    sizeSummary={p.sizeSummary}
-                    isNew={p.isNew}
-                    isFeatured={p.isFeatured}
-                    stockQty={p.stockQty}
-                    marjanTime={marjanIds.has(p.id) && flashDeal ? { discountPct: flashDeal.discountPct, endTime: flashDeal.endTime } : undefined}
-                  />
-                </div>
+                <HomeProductCard
+                  key={p.id}
+                  id={p.id}
+                  name={p.name}
+                  slug={p.slug}
+                  price={p.price}
+                  comparePrice={p.comparePrice}
+                  images={p.images}
+                  sizes={p.sizes.map((s) => ({ label: s.label }))}
+                  sizeSummary={p.sizeSummary}
+                  isNew={p.isNew}
+                  stockQty={p.stockQty}
+                  sectionLabel="جدید"
+                  marjanTime={marjanIds.has(p.id) && flashDeal ? { discountPct: flashDeal.discountPct, endTime: flashDeal.endTime } : undefined}
+                />
               ))}
             </HScrollSlider>
           </div>
