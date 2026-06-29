@@ -1,9 +1,16 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from "recharts";
+
+function useIsMounted() {
+  const [m, setM] = useState(false);
+  useEffect(() => setM(true), []);
+  return m;
+}
 
 export interface ChartDay { label: string; value: number; isFriday?: boolean; isFuture?: boolean }
 
@@ -24,6 +31,8 @@ function RevenueTooltip({ active, payload }: { active?: boolean; payload?: TipPa
 
 // ─── Main revenue area chart ──────────────────────────────────────────────────
 export function RevenueAreaChart({ data }: { data: ChartDay[] }) {
+  const mounted = useIsMounted();
+  if (!mounted) return <div style={{ width: "100%", height: 300 }} />;
   return (
     <div style={{ width: "100%", height: 300, direction: "ltr" }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -65,7 +74,9 @@ export function RevenueAreaChart({ data }: { data: ChartDay[] }) {
 // ─── Order-status donut ───────────────────────────────────────────────────────
 export interface DonutSlice { name: string; value: number; color: string }
 export function OrderStatusDonut({ slices, total }: { slices: DonutSlice[]; total: number }) {
+  const mounted = useIsMounted();
   const hasData = slices.some((s) => s.value > 0);
+  if (!mounted) return <div style={{ display: "flex", alignItems: "center", gap: 12 }}><div style={{ width: 128, height: 128, flexShrink: 0 }} /></div>;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
       <div style={{ width: 128, height: 128, position: "relative", flexShrink: 0, direction: "ltr" }}>
@@ -103,7 +114,9 @@ export function OrderStatusDonut({ slices, total }: { slices: DonutSlice[]; tota
 
 // ─── KPI sparkline (tiny area) ────────────────────────────────────────────────
 export function KpiSparkline({ data, color = "var(--primary)" }: { data: ChartDay[]; color?: string }) {
+  const mounted = useIsMounted();
   if (!data || data.length === 0) return null;
+  if (!mounted) return <div style={{ width: 64, height: 28 }} />;
   return (
     <div style={{ width: 64, height: 28, direction: "ltr" }}>
       <ResponsiveContainer width="100%" height="100%">

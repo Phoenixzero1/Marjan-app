@@ -51,8 +51,7 @@ export async function GET(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   if (!(await requirePermission("VIEW_LOGS"))) return NextResponse.json({ error: "دسترسی ندارید" }, { status: 403 });
 
-  const { olderThanDays } = await req.json();
-  const days = parseInt(olderThanDays ?? "30");
+  const days = parseInt(new URL(req.url).searchParams.get("days") ?? "30");
   const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
   const { count } = await prisma.systemLog.deleteMany({ where: { createdAt: { lt: cutoff } } });

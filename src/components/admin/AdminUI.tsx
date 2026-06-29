@@ -353,7 +353,7 @@ export function AdminToast({ toast }: { toast: { type: "success" | "error" | "in
 export function AdminConfirm({ open, onClose, onConfirm, title, message, confirmLabel = "تایید", danger = false }: { open: boolean; onClose: () => void; onConfirm: () => void; title: string; message?: ReactNode; confirmLabel?: string; danger?: boolean }) {
   return (
     <AdminModal open={open} onClose={onClose} title={title} width={400}>
-      {message && <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 20, lineHeight: 1.7 }}>{message}</p>}
+      {message && <div style={{ fontSize: 13, color: "var(--text2)", marginBottom: 20, lineHeight: 1.7 }}>{message}</div>}
       <div style={{ display: "flex", gap: 8, justifyContent: "flex-start" }}>
         <AdminBtn variant={danger ? "danger" : "primary"} onClick={onConfirm}>{confirmLabel}</AdminBtn>
         <AdminBtn variant="secondary" onClick={onClose}>انصراف</AdminBtn>
