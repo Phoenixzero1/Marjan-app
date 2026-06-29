@@ -67,7 +67,16 @@ export async function PUT(
   if (!parsed.success)
     return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
 
-  const { images, ...fields } = parsed.data;
+  const { images, categoryId, brandId, ...scalarFields } = parsed.data;
+
+  // Prisma v7 requires relation syntax instead of scalar FK ids in update data
+  const relOps: Record<string, unknown> = {};
+  if (categoryId !== undefined) {
+    relOps.category = categoryId ? { connect: { id: categoryId } } : { disconnect: true };
+  }
+  if (brandId !== undefined) {
+    relOps.brand = brandId ? { connect: { id: brandId } } : { disconnect: true };
+  }
 
   try {
     const before = await prisma.product.findUnique({ where: { id }, select: { name: true, price: true, status: true } });
@@ -83,7 +92,7 @@ export async function PUT(
 
       return tx.product.update({
         where: { id },
-        data: fields,
+        data: { ...scalarFields, ...relOps },
         include: {
           images: { orderBy: { sortOrder: "asc" } },
           category: { select: { id: true, name: true } },

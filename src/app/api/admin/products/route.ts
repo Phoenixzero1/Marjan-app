@@ -73,13 +73,17 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { images, ...fields } = productSchema.parse(body);
+    const { images, categoryId, brandId, ...scalarFields } = productSchema.parse(body);
 
-    const base = fields.name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
+    const base = scalarFields.name.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
     const slug = (base || "product") + "-" + Date.now();
 
+    const relOps: Record<string, unknown> = {};
+    if (categoryId) relOps.category = { connect: { id: categoryId } };
+    if (brandId) relOps.brand = { connect: { id: brandId } };
+
     const product = await prisma.$transaction(async (tx) => {
-      const p = await tx.product.create({ data: { ...fields, slug } });
+      const p = await tx.product.create({ data: { ...scalarFields, slug, ...relOps } });
       if (images.length > 0) {
         await tx.productImage.createMany({
           data: images.map((img) => ({ ...img, productId: p.id })),
