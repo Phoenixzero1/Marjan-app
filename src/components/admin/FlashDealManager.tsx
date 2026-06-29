@@ -39,8 +39,12 @@ export default function FlashDealManager() {
     ]).then(([cfg, prods]) => {
       const c: FlashConfig = cfg ?? DEFAULT_CONFIG;
       const ps: ProductRow[] = prods?.products ?? [];
-      setConfig(c); setAllProducts(ps);
-      setSelectedProducts(ps.filter(p => c.productIds?.includes(p.id)));
+      const existingIds = new Set(ps.map(p => p.id));
+      // Drop IDs for products that no longer exist in the DB
+      const cleanIds = (c.productIds ?? []).filter(id => existingIds.has(id));
+      const cleanConfig = { ...c, productIds: cleanIds };
+      setConfig(cleanConfig); setAllProducts(ps);
+      setSelectedProducts(ps.filter(p => cleanIds.includes(p.id)));
       setLoading(false);
     }).catch(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps

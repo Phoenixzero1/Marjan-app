@@ -10,6 +10,8 @@ export interface FlashProduct {
   slug: string;
   price: number;
   imageUrl: string | null;
+  sizeSummary?: string | null;
+  sizes?: { label: string }[];
 }
 
 interface Props {
@@ -43,7 +45,8 @@ export default function MarjanTime({ title, endTime, discountPct, products }: Pr
 
   if (!mounted || expired || products.length === 0) return null;
 
-  const cardTimer = `${String(timeLeft.h).padStart(2, "0")}:${String(timeLeft.m).padStart(2, "0")}:${String(timeLeft.s).padStart(2, "0")}`;
+  const totalH = timeLeft.d * 24 + timeLeft.h;
+  const cardTimer = `${String(totalH).padStart(2, "0")}:${String(timeLeft.m).padStart(2, "0")}:${String(timeLeft.s).padStart(2, "0")}`;
 
   const units = [
     { val: timeLeft.d, label: "روز" },
@@ -190,6 +193,21 @@ export default function MarjanTime({ title, endTime, discountPct, products }: Pr
                       {p.name}
                     </div>
                   </Link>
+
+                  {/* Size summary — mirrors ProductCard */}
+                  {(p.sizeSummary || (p.sizes && p.sizes.length > 0)) && (
+                    <Link href={`/product/${p.slug}`} style={{ textDecoration: "none" }}>
+                      <div style={{ fontSize: 10, color: "#999", fontWeight: 600, display: "flex", alignItems: "center", gap: 3 }}>
+                        <i className="ti ti-arrows-horizontal" style={{ fontSize: 10, opacity: .7 }} />
+                        {p.sizeSummary
+                          ? p.sizeSummary
+                          : p.sizes!.length === 1
+                            ? p.sizes![0].label
+                            : `${p.sizes![0].label} تا ${p.sizes![p.sizes!.length - 1].label}`
+                        }
+                      </div>
+                    </Link>
+                  )}
 
                   {/* Pricing */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>

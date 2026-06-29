@@ -101,8 +101,11 @@ async function getFlashDeal(): Promise<{
     if (new Date(cfg.endTime) < new Date()) return null;
 
     const products = await prisma.product.findMany({
-      where: { id: { in: cfg.productIds }, status: "PUBLISHED" },
-      include: { images: { where: { isPrimary: true }, take: 1 } },
+      where: { id: { in: cfg.productIds }, status: "PUBLISHED", deletedAt: null },
+      include: {
+        images: { where: { isPrimary: true }, take: 1 },
+        sizes: { take: 6 },
+      },
     });
 
     return {
@@ -115,6 +118,8 @@ async function getFlashDeal(): Promise<{
         slug: p.slug,
         price: p.price,
         imageUrl: p.images[0]?.url ?? null,
+        sizeSummary: p.sizeSummary ?? null,
+        sizes: p.sizes.map((s) => ({ label: s.label })),
       })),
     };
   } catch {
