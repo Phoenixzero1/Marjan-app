@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import DatePicker from "@/components/ui/DatePicker";
 import {
   AdminPageHeader, AdminBtn, AdminBadge, AdminEmptyState, AdminDrawer,
   AdminField, AdminInput, AdminTextarea, AdminToggle, AdminDivider, AdminCard, AdminCardHeader,
@@ -169,10 +170,10 @@ export default function SliderManager() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <AdminField label="تاریخ شروع (اختیاری)">
-            <AdminInput type="date" value={form.startDate} onChange={v => setForm(f => ({ ...f, startDate: v }))} style={{ direction: "ltr" }} />
+            <DatePicker value={form.startDate} onChange={v => setForm(f => ({ ...f, startDate: v }))} />
           </AdminField>
           <AdminField label="تاریخ پایان (اختیاری)">
-            <AdminInput type="date" value={form.endDate} onChange={v => setForm(f => ({ ...f, endDate: v }))} style={{ direction: "ltr" }} />
+            <DatePicker value={form.endDate} onChange={v => setForm(f => ({ ...f, endDate: v }))} />
           </AdminField>
         </div>
         <AdminField label="وضعیت">

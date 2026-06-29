@@ -41,7 +41,6 @@ export default function DatePicker({ value, onChange, placeholder = "انتخا�
       onOpen={() => setFocused(true)}
       onClose={() => setFocused(false)}
       calendarPosition="bottom-right"
-      fixMainPosition
       render={(val: string, openCalendar: () => void) => (
         <div style={{ position: "relative", display: "block", width: "100%" }}>
           <input

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import DatePicker from "@/components/ui/DatePicker";
 import {
   AdminPageHeader, AdminCard, AdminCardHeader, AdminTabs,
   AdminBtn, AdminField, AdminInput, AdminTextarea,
@@ -371,11 +372,11 @@ export default function CmsManager() {
                 <div><label style={lbl}>لینک دکمه</label><input style={{ ...inp, direction: "ltr" }} value={editBanner.buttonLink ?? ""} onChange={e => setEditBanner(p => ({ ...p, buttonLink: e.target.value }))} /></div>
                 <div>
                   <label style={lbl}>تاریخ شروع</label>
-                  <input type="date" style={{ ...inp, direction: "ltr" }} value={editBanner.startDate?.slice(0,10) ?? ""} onChange={e => setEditBanner(p => ({ ...p, startDate: e.target.value || null }))} />
+                  <DatePicker value={editBanner.startDate?.slice(0,10) ?? ""} onChange={v => setEditBanner(p => ({ ...p, startDate: v || null }))} />
                 </div>
                 <div>
                   <label style={lbl}>تاریخ پایان</label>
-                  <input type="date" style={{ ...inp, direction: "ltr" }} value={editBanner.endDate?.slice(0,10) ?? ""} onChange={e => setEditBanner(p => ({ ...p, endDate: e.target.value || null }))} />
+                  <DatePicker value={editBanner.endDate?.slice(0,10) ?? ""} onChange={v => setEditBanner(p => ({ ...p, endDate: v || null }))} />
                 </div>
                 <div><label style={lbl}>ترتیب</label><input type="number" style={inp} value={editBanner.sortOrder ?? 0} onChange={e => setEditBanner(p => ({ ...p, sortOrder: parseInt(e.target.value) }))} /></div>
               </div>
@@ -501,10 +502,10 @@ export default function CmsManager() {
                       </AdminField>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                         <AdminField label="تاریخ شروع">
-                          <input type="date" style={{ ...inp, direction: "ltr" }} value={slideForm.startDate} onChange={e => setSlideForm(f => ({ ...f, startDate: e.target.value }))} />
+                          <DatePicker value={slideForm.startDate} onChange={v => setSlideForm(f => ({ ...f, startDate: v }))} />
                         </AdminField>
                         <AdminField label="تاریخ پایان">
-                          <input type="date" style={{ ...inp, direction: "ltr" }} value={slideForm.endDate} onChange={e => setSlideForm(f => ({ ...f, endDate: e.target.value }))} />
+                          <DatePicker value={slideForm.endDate} onChange={v => setSlideForm(f => ({ ...f, endDate: v }))} />
                         </AdminField>
                       </div>
                       <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>

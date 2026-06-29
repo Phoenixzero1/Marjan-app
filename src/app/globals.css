@@ -1084,7 +1084,7 @@ body.admin-mode .admin-nav-tabs::-webkit-scrollbar { display: none; }
 /* time picker */
 .rmdp-time-picker {
   border-top: 1px solid rgba(10,42,94,.08) !important;
-  padding: 10px 12px 8px !important;
+  padding: 6px 12px 4px !important;
   direction: ltr;
   background: rgba(10,42,94,.02);
 }
@@ -1096,7 +1096,7 @@ body.admin-mode .admin-nav-tabs::-webkit-scrollbar { display: none; }
   font-weight: 800 !important;
   text-align: center;
   color: #0a2a5e !important;
-  padding: 4px 2px !important;
+  padding: 2px 2px !important;
   transition: border-color .15s;
   background: #fff !important;
 }
@@ -1105,6 +1105,12 @@ body.admin-mode .admin-nav-tabs::-webkit-scrollbar { display: none; }
   color: #0a2a5e !important;
   opacity: .6;
   transition: opacity .12s;
+  padding: 2px !important;
+  min-height: unset !important;
+  height: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 .rmdp-time-picker .rmdp-up:hover, .rmdp-time-picker .rmdp-down:hover { opacity: 1; }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import DatePicker from "@/components/ui/DatePicker";
 import { formatPrice } from "@/lib/utils";
 import {
   AdminPageHeader, AdminToolbar, AdminSelect, AdminBtn, AdminTabs,
@@ -559,13 +560,11 @@ export default function FinanceManager() {
             </AdminSelect>
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text3)" }}>
               <span>از:</span>
-              <input type="date" value={from} onChange={e => setFrom(e.target.value)}
-                style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "6px 10px", fontFamily: "Vazirmatn", fontSize: 12, background: "#fff", color: "var(--text)", cursor: "pointer", direction: "ltr" }} />
+              <div style={{ width: 140 }}><DatePicker value={from} onChange={setFrom} placeholder="از تاریخ" inputStyle={{ height: 34, padding: "0 8px 0 32px", fontSize: 12 }} /></div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text3)" }}>
               <span>تا:</span>
-              <input type="date" value={to} onChange={e => setTo(e.target.value)}
-                style={{ border: "1.5px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "6px 10px", fontFamily: "Vazirmatn", fontSize: 12, background: "#fff", color: "var(--text)", cursor: "pointer", direction: "ltr" }} />
+              <div style={{ width: 140 }}><DatePicker value={to} onChange={setTo} placeholder="تا تاریخ" inputStyle={{ height: 34, padding: "0 8px 0 32px", fontSize: 12 }} /></div>
             </div>
             <AdminBtn icon="ti-search" onClick={() => load(1)}>اعمال</AdminBtn>
             {(statusFilter || from || to) && (

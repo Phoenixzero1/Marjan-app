@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import DatePicker from "@/components/ui/DatePicker";
 import { formatPrice } from "@/lib/utils";
 import {
   AdminPageHeader, AdminToolbar, AdminSearch, AdminBtn, AdminTable, AdminTh, AdminTd, AdminTr,
@@ -198,10 +199,10 @@ export default function CouponManager() {
         </AdminField>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <AdminField label="تاریخ شروع">
-            <AdminInput type="date" value={form.startsAt} onChange={v => set("startsAt", v)} style={{ direction: "ltr" }} />
+            <DatePicker value={form.startsAt} onChange={v => set("startsAt", v)} />
           </AdminField>
           <AdminField label="تاریخ انقضا">
-            <AdminInput type="date" value={form.expiresAt} onChange={v => set("expiresAt", v)} style={{ direction: "ltr" }} />
+            <DatePicker value={form.expiresAt} onChange={v => set("expiresAt", v)} />
           </AdminField>
         </div>
         <AdminField label="وضعیت">
