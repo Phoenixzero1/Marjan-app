@@ -362,7 +362,7 @@ export default function RolesManager() {
       )}
 
       {/* Edit Drawer */}
-      <AdminDrawer open={!!editing} onClose={() => setEditing(null)} title={`ویرایش نقش: ${editing?.firstName ?? ""} ${editing?.lastName ?? ""}`} width={380}>
+      <AdminDrawer open={!!editing} onClose={() => setEditing(null)} title={`ویرایش نقش: ${editing?.firstName ?? ""} ${editing?.lastName ?? ""}`}>
         {editing && (
           <div>
             <div style={{ background: "var(--bg)", borderRadius: 10, padding: "14px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>

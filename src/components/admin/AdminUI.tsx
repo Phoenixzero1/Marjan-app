@@ -180,8 +180,31 @@ export function AdminPagination({ page, total, pageSize = 20, onChange }: { page
   );
 }
 
+// ─── Shared modal shell ───────────────────────────────────────────────────────
+const MODAL_W   = 620;
+const MODAL_MH  = "90vh";
+const MODAL_HDR: CSSProperties = {
+  padding: "15px 20px", borderBottom: "1px solid var(--border)",
+  display: "flex", alignItems: "center", justifyContent: "space-between",
+  background: "var(--primary-dark)", flexShrink: 0,
+  borderRadius: "var(--radius) var(--radius) 0 0",
+};
+const MODAL_BTN: CSSProperties = {
+  width: 30, height: 30, background: "rgba(255,255,255,0.12)", border: "none",
+  borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center",
+  cursor: "pointer", color: "#fff", fontSize: 15,
+};
+const MODAL_SHELL: CSSProperties = {
+  position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
+  maxWidth: "calc(100vw - 32px)", maxHeight: MODAL_MH,
+  background: "#fff", borderRadius: "var(--radius)", zIndex: 1001,
+  boxShadow: "0 24px 70px rgba(10,42,94,0.28)",
+  display: "flex", flexDirection: "column", overflow: "hidden",
+  animation: "fadeScaleIn .2s cubic-bezier(.4,0,.2,1)",
+};
+
 // ─── Drawer ───────────────────────────────────────────────────────────────────
-export function AdminDrawer({ open, onClose, title, children, width = 520 }: { open: boolean; onClose: () => void; title: string; children: ReactNode; width?: number }) {
+export function AdminDrawer({ open, onClose, title, children, width = MODAL_W }: { open: boolean; onClose: () => void; title: string; children: ReactNode; width?: number }) {
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
@@ -199,16 +222,12 @@ export function AdminDrawer({ open, onClose, title, children, width = 520 }: { o
   return createPortal(
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(15,25,60,0.45)", zIndex: 1000, backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }} />
-      <div role="dialog" aria-modal="true" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width, maxWidth: "calc(100vw - 32px)", maxHeight: "88vh", background: "#fff", borderRadius: "var(--radius)", zIndex: 1001, boxShadow: "0 24px 70px rgba(10,42,94,0.28)", display: "flex", flexDirection: "column", overflow: "hidden", animation: "fadeScaleIn .2s cubic-bezier(.4,0,.2,1)" }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--primary-dark)", flexShrink: 0, borderRadius: "var(--radius) var(--radius) 0 0" }}>
+      <div role="dialog" aria-modal="true" style={{ ...MODAL_SHELL, width }}>
+        <div style={MODAL_HDR}>
           <span style={{ fontSize: 15, fontWeight: 900, color: "#fff" }}>{title}</span>
-          <button onClick={onClose} style={{ width: 30, height: 30, background: "rgba(255,255,255,0.12)", border: "none", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff", fontSize: 15 }}>
-            <i className="ti ti-x" />
-          </button>
+          <button onClick={onClose} style={MODAL_BTN}><i className="ti ti-x" /></button>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
-          {children}
-        </div>
+        <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>{children}</div>
       </div>
     </>,
     document.body,
@@ -216,7 +235,7 @@ export function AdminDrawer({ open, onClose, title, children, width = 520 }: { o
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
-export function AdminModal({ open, onClose, title, children, width = 520 }: { open: boolean; onClose: () => void; title: string; children: ReactNode; width?: number }) {
+export function AdminModal({ open, onClose, title, children, width = MODAL_W }: { open: boolean; onClose: () => void; title: string; children: ReactNode; width?: number }) {
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
@@ -227,14 +246,12 @@ export function AdminModal({ open, onClose, title, children, width = 520 }: { op
   return createPortal(
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(10,42,94,0.22)", zIndex: 1000, backdropFilter: "blur(2px)" }} />
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width, maxWidth: "calc(100vw - 32px)", background: "#fff", borderRadius: "var(--radius)", zIndex: 1001, boxShadow: "0 20px 60px rgba(10,42,94,0.22)", animation: "fadeScaleIn .2s cubic-bezier(.4,0,.2,1)" }}>
-        <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--primary-dark)", borderRadius: "var(--radius) var(--radius) 0 0" }}>
-          <span style={{ fontSize: 14, fontWeight: 900, color: "#fff" }}>{title}</span>
-          <button onClick={onClose} style={{ width: 28, height: 28, background: "rgba(255,255,255,0.12)", border: "none", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#fff", fontSize: 14 }}>
-            <i className="ti ti-x" />
-          </button>
+      <div style={{ ...MODAL_SHELL, width }}>
+        <div style={MODAL_HDR}>
+          <span style={{ fontSize: 15, fontWeight: 900, color: "#fff" }}>{title}</span>
+          <button onClick={onClose} style={MODAL_BTN}><i className="ti ti-x" /></button>
         </div>
-        <div style={{ padding: "20px" }}>{children}</div>
+        <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>{children}</div>
       </div>
     </>,
     document.body,

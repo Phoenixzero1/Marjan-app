@@ -280,7 +280,7 @@ export default function ConnectionsManager() {
         }
       </AdminCard>
 
-      <AdminModal open={showAddModal} onClose={() => { setShowAddModal(false); setNewLabel(""); setNewService(""); setNewKey(""); setFormErr(""); }} title="افزودن کلید API" width={460}>
+      <AdminModal open={showAddModal} onClose={() => { setShowAddModal(false); setNewLabel(""); setNewService(""); setNewKey(""); setFormErr(""); }} title="افزودن کلید API">
         <AdminField label="نام کلید" required>
           <AdminInput value={newLabel} onChange={setNewLabel} placeholder="مثلاً: کلید پرداخت زرین‌پال" />
         </AdminField>

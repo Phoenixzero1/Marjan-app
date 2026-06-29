@@ -236,7 +236,7 @@ export default function BlogManager() {
       )}
 
       {/* Post create/edit drawer */}
-      <AdminDrawer open={postFormOpen} onClose={() => setPostFormOpen(false)} title={postForm.id ? "ویرایش مقاله" : "مقاله جدید"} width={580}>
+      <AdminDrawer open={postFormOpen} onClose={() => setPostFormOpen(false)} title={postForm.id ? "ویرایش مقاله" : "مقاله جدید"}>
         <form onSubmit={handlePostSubmit}>
           <AdminField label="عنوان مقاله" required>
             <AdminInput value={postForm.title} onChange={onTitleChange} placeholder="عنوان مقاله را وارد کنید" />

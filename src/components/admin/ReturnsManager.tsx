@@ -118,7 +118,7 @@ export default function ReturnsManager() {
         </tbody>
       </AdminTable>
 
-      <AdminModal open={!!modal} onClose={() => { setModal(null); setAdminNote(""); setRefundAmount(""); }} title={modal?.action === "APPROVED" ? "تأیید مرجوعی" : "رد مرجوعی"} width={480}>
+      <AdminModal open={!!modal} onClose={() => { setModal(null); setAdminNote(""); setRefundAmount(""); }} title={modal?.action === "APPROVED" ? "تأیید مرجوعی" : "رد مرجوعی"}>
         {modal?.action === "APPROVED" && (
           <AdminField label="مبلغ بازپرداخت (تومان)" hint="خالی بگذارید برای مبلغ کامل سفارش">
             <AdminInput type="number" value={refundAmount} onChange={setRefundAmount} placeholder="مبلغ به تومان" />

@@ -97,7 +97,7 @@ export default function OrgRequestManager() {
         </tbody>
       </AdminTable>
 
-      <AdminDrawer open={!!selected} onClose={() => setSelected(null)} title="جزئیات درخواست سازمانی" width={460}>
+      <AdminDrawer open={!!selected} onClose={() => setSelected(null)} title="جزئیات درخواست سازمانی">
         {selected && (
           <div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>

@@ -149,7 +149,7 @@ export default function SliderManager() {
         ))}
       </div>
 
-      <AdminDrawer open={showForm} onClose={() => { setShowForm(false); setEditingId(null); }} title={editingId ? "ویرایش اسلاید" : "اسلاید جدید"} width={540}>
+      <AdminDrawer open={showForm} onClose={() => { setShowForm(false); setEditingId(null); }} title={editingId ? "ویرایش اسلاید" : "اسلاید جدید"}>
         <AdminField label="تصویر اسلاید">
           <ImageUploader value={form.imageUrl} onChange={v => setForm(f => ({ ...f, imageUrl: v }))} folder="slider" previewHeight={100} />
         </AdminField>

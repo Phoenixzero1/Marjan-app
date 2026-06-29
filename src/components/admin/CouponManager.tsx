@@ -167,7 +167,7 @@ export default function CouponManager() {
 
       {pages > 1 && <AdminPagination page={page} total={total} pageSize={PAGE_SIZE} onChange={p => load(p)} />}
 
-      <AdminDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={editing ? "ویرایش کوپن" : "کوپن جدید"} width={460}>
+      <AdminDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={editing ? "ویرایش کوپن" : "کوپن جدید"}>
         <AdminField label="کد تخفیف" required>
           <AdminInput value={form.code} onChange={v => set("code", v.toUpperCase())} placeholder="SUMMER20" style={{ fontFamily: "monospace", letterSpacing: 2, fontWeight: 900, direction: "ltr" }} />
         </AdminField>

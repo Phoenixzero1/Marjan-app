@@ -148,7 +148,7 @@ export default function WalletManager() {
 
       {pages > 1 && <AdminPagination page={page} total={total} pageSize={PAGE_SIZE} onChange={pg => load(pg)} />}
 
-      <AdminModal open={showForm} onClose={() => setShowForm(false)} title="تراکنش دستی کیف پول" width={420}>
+      <AdminModal open={showForm} onClose={() => setShowForm(false)} title="تراکنش دستی کیف پول">
         <AdminField label="شناسه کاربر (userId)" required>
           <AdminInput value={formUserId} onChange={setFormUserId} placeholder="UUID کاربر..." style={{ direction: "ltr", fontFamily: "monospace", fontSize: 12 }} />
         </AdminField>
