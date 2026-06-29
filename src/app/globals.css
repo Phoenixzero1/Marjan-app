@@ -1042,7 +1042,7 @@ body.admin-mode .admin-nav-tabs::-webkit-scrollbar { display: none; }
 .rmdp-arrow { border-color: rgba(255,255,255,.85) !important; width: 7px !important; height: 7px !important; }
 
 /* calendar body */
-.rmdp-calendar { padding: 10px !important; }
+.rmdp-calendar { padding: 10px 10px 4px !important; }
 .rmdp-week-day { color: #0a2a5e !important; font-weight: 800; font-size: 11px; opacity: .65; padding: 4px 0 8px !important; }
 
 /* day cells */
@@ -1084,23 +1084,25 @@ body.admin-mode .admin-nav-tabs::-webkit-scrollbar { display: none; }
 /* time picker */
 .rmdp-time-picker {
   border-top: 1px solid rgba(10,42,94,.08) !important;
-  padding: 6px 12px 4px !important;
+  padding: 4px 12px 2px !important;
   direction: ltr;
   background: rgba(10,42,94,.02);
 }
 .rmdp-time-picker input {
   font-family: Vazirmatn, sans-serif;
-  border-radius: 8px !important;
-  border: 1.5px solid rgba(10,42,94,.15) !important;
+  border-radius: 0 !important;
+  border: none !important;
+  border-bottom: 1.5px solid rgba(10,42,94,.18) !important;
   font-size: 15px !important;
   font-weight: 800 !important;
   text-align: center;
   color: #0a2a5e !important;
   padding: 2px 2px !important;
   transition: border-color .15s;
-  background: #fff !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
-.rmdp-time-picker input:focus { border-color: #0a2a5e !important; outline: none; }
+.rmdp-time-picker input:focus { border-bottom-color: #0a2a5e !important; outline: none; }
 .rmdp-time-picker .rmdp-up, .rmdp-time-picker .rmdp-down {
   color: #0a2a5e !important;
   opacity: .6;

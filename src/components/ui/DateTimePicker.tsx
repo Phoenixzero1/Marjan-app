@@ -45,6 +45,7 @@ export default function DateTimePicker({ value, onChange, placeholder = "انت�
       onOpen={() => setFocused(true)}
       onClose={() => setFocused(false)}
       calendarPosition="bottom-right"
+      portal
       render={(val: string, openCalendar: () => void) => (
         <div style={{ position: "relative", display: "block", width: "100%" }}>
           <input
