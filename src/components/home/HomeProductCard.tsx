@@ -78,15 +78,10 @@ export default function HomeProductCard({
     >
       <div style={{
         width: 175,
-        background: "#fff",
         borderRadius: 12,
         overflow: "hidden",
-        border: `1.5px solid ${hover ? "rgba(10,42,94,0.18)" : "#ebebeb"}`,
-        boxShadow: hover
-          ? "0 8px 28px rgba(10,42,94,0.13)"
-          : "0 1px 6px rgba(0,0,0,0.07)",
         transform: hover ? "translateY(-3px)" : "none",
-        transition: "box-shadow .18s, border-color .18s, transform .18s",
+        transition: "transform .18s",
         cursor: "pointer",
         flexShrink: 0,
       }}>
@@ -158,7 +153,7 @@ export default function HomeProductCard({
         }} />
 
         {/* ── Body ────────────────────────────────────────── */}
-        <div style={{ padding: "9px 10px 11px", display: "flex", flexDirection: "column", gap: 5 }}>
+        <div style={{ padding: "9px 10px 11px", display: "flex", flexDirection: "column", gap: 5, background: "#fff" }}>
           {/* Name */}
           <div style={{
             fontSize: 12, fontWeight: 600, color: "#111827", lineHeight: 1.5,

@@ -514,7 +514,7 @@ export default async function HomePage() {
 
       {/* ── CATEGORY CIRCLES ─────────────────────────────────────────── */}
       <div style={{ maxWidth: 1280, margin: "1.5rem auto 1rem", padding: "0 1rem" }}>
-        <div className="section-card">
+        <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e8eaf0", padding: "1.75rem 2rem" }}>
           <SectionHeader title="دسته‌بندی محصولات" href="/products" linkLabel="همه دسته‌ها" bar={{ bg: "var(--primary-mid)", icon: "ti-category" }} />
           <HScrollSlider gap={16} scrollAmount={220}>
             {categories.map((cat) => (
@@ -538,7 +538,7 @@ export default async function HomePage() {
 
       {/* ── BESTSELLERS ──────────────────────────────────────────────── */}
       <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
-        <div className="section-card">
+        <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e8eaf0", padding: "1.75rem 2rem" }}>
           <SectionHeader
             title="پرفروش‌ترین محصولات"
             href="/products"
@@ -580,7 +580,7 @@ export default async function HomePage() {
 
       {/* ── PROMO BANNERS ────────────────────────────────────────────── */}
       <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
-        <div className="section-card">
+        <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e8eaf0", padding: "1.75rem 2rem" }}>
           <SectionHeader
             title="پیشنهادهای ویژه"
             href="/products?tag=promo"
@@ -627,7 +627,7 @@ export default async function HomePage() {
       {/* ── NEWEST PRODUCTS ──────────────────────────────────────────── */}
       {newest.length > 0 && (
         <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
-          <div className="section-card">
+          <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e8eaf0", padding: "1.75rem 2rem" }}>
             <SectionHeader
               title="جدیدترین محصولات"
               href="/products?sort=newest"
@@ -659,7 +659,7 @@ export default async function HomePage() {
       {/* ── BRANDS ROW ───────────────────────────────────────────────── */}
       {brands.length > 0 && (
         <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
-          <div className="section-card">
+          <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e8eaf0", padding: "1.75rem 2rem" }}>
             <SectionHeader title="برندهای معتبر" href="/products" linkLabel="همه برندها" />
             <HScrollSlider gap={24} scrollAmount={240}>
               {brands.map((b) => (
@@ -672,7 +672,7 @@ export default async function HomePage() {
 
       {/* ── BLOG PREVIEW ─────────────────────────────────────────────── */}
       <div style={{ maxWidth: 1280, margin: "1rem auto 2rem", padding: "0 1rem" }}>
-        <div className="section-card">
+        <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e8eaf0", padding: "1.75rem 2rem" }}>
           <SectionHeader title="آخرین مطالب وبلاگ" href="/blog" linkLabel="همه مطالب" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {(posts.length === 0
