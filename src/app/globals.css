@@ -1009,23 +1009,107 @@ body.admin-mode .admin-nav-tabs::-webkit-scrollbar { display: none; }
 .prose-content h3 { font-size: 16px; }
 
 /* ─── PERSIAN CALENDAR (react-multi-date-picker) ────────────────────────── */
-.rmdp-wrapper { font-family: Vazirmatn, sans-serif !important; direction: rtl; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(0,0,0,.15) !important; border: 1.5px solid var(--border, #e5e7eb) !important; overflow: hidden; }
-.rmdp-header { background: #0a2a5e !important; border-radius: 0 !important; padding: 10px !important; }
-.rmdp-header-values span { color: #fff !important; font-weight: 900; font-size: 14px; }
-.rmdp-header-values span:hover { color: #e8920a !important; }
-.rmdp-arrow-container { background: transparent !important; box-shadow: none !important; }
-.rmdp-arrow-container:hover { background: rgba(255,255,255,.15) !important; }
-.rmdp-arrow { border-color: #fff !important; }
-.rmdp-week-day { color: #0a2a5e !important; font-weight: 700; font-size: 11px; }
-.rmdp-day span { font-family: Vazirmatn, sans-serif; font-size: 13px; border-radius: 8px !important; }
-.rmdp-day:not(.rmdp-disabled):not(.rmdp-day-hidden) span:hover { background: #e8920a !important; color: #fff !important; }
-.rmdp-day.rmdp-selected span:not(.highlight) { background: #0a2a5e !important; color: #fff !important; }
-.rmdp-day.rmdp-today span { color: #e8920a !important; font-weight: 900; border: 1.5px solid #e8920a; background: transparent !important; }
-.rmdp-day.rmdp-today.rmdp-selected span { background: #0a2a5e !important; color: #fff !important; border-color: #0a2a5e; }
-.rmdp-day.rmdp-disabled span { color: #ccc !important; }
-.rmdp-time-picker { border-top: 1px solid #eee; padding-top: 8px; direction: ltr; }
-.rmdp-time-picker input { font-family: Vazirmatn, sans-serif; border-radius: 6px; border: 1.5px solid var(--border, #e5e7eb); font-size: 14px; font-weight: 700; text-align: center; }
 .rmdp-container { width: 100%; }
+.rmdp-wrapper {
+  font-family: Vazirmatn, sans-serif !important;
+  direction: rtl;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 40px rgba(10,42,94,.16), 0 2px 8px rgba(10,42,94,.08) !important;
+  border: 1.5px solid rgba(10,42,94,.10) !important;
+  overflow: hidden;
+  animation: rmdp-fade-in .15s ease;
+}
+@keyframes rmdp-fade-in { from { opacity:0; transform:translateY(-6px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+
+/* header */
+.rmdp-header {
+  background: linear-gradient(135deg, #0a2a5e 0%, #153d7a 100%) !important;
+  border-radius: 0 !important;
+  padding: 12px 14px !important;
+}
+.rmdp-header-values span { color: #fff !important; font-weight: 900; font-size: 14px; letter-spacing: .01em; }
+.rmdp-header-values span:hover { color: #f59e0b !important; transition: color .15s; }
+
+/* nav arrows */
+.rmdp-arrow-container {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+  transition: background .15s !important;
+  width: 28px !important; height: 28px !important;
+}
+.rmdp-arrow-container:hover { background: rgba(255,255,255,.18) !important; }
+.rmdp-arrow { border-color: rgba(255,255,255,.85) !important; width: 7px !important; height: 7px !important; }
+
+/* calendar body */
+.rmdp-calendar { padding: 10px !important; }
+.rmdp-week-day { color: #0a2a5e !important; font-weight: 800; font-size: 11px; opacity: .65; padding: 4px 0 8px !important; }
+
+/* day cells */
+.rmdp-day { width: 34px !important; height: 34px !important; }
+.rmdp-day span {
+  font-family: Vazirmatn, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 10px !important;
+  transition: background .12s, color .12s, transform .1s !important;
+  width: 30px !important; height: 30px !important;
+  line-height: 30px !important;
+}
+.rmdp-day:not(.rmdp-disabled):not(.rmdp-day-hidden) span:hover {
+  background: #e8920a !important;
+  color: #fff !important;
+  transform: scale(1.08);
+}
+.rmdp-day.rmdp-selected span:not(.highlight) {
+  background: #0a2a5e !important;
+  color: #fff !important;
+  font-weight: 900 !important;
+  box-shadow: 0 2px 8px rgba(10,42,94,.25) !important;
+}
+.rmdp-day.rmdp-today span {
+  color: #e8920a !important;
+  font-weight: 900;
+  background: rgba(232,146,10,.10) !important;
+  border: 1.5px solid rgba(232,146,10,.5) !important;
+}
+.rmdp-day.rmdp-today.rmdp-selected span {
+  background: #0a2a5e !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 2px 8px rgba(10,42,94,.25) !important;
+}
+.rmdp-day.rmdp-disabled span { color: #c8cdd6 !important; cursor: not-allowed; }
+
+/* time picker */
+.rmdp-time-picker {
+  border-top: 1px solid rgba(10,42,94,.08) !important;
+  padding: 10px 12px 8px !important;
+  direction: ltr;
+  background: rgba(10,42,94,.02);
+}
+.rmdp-time-picker input {
+  font-family: Vazirmatn, sans-serif;
+  border-radius: 8px !important;
+  border: 1.5px solid rgba(10,42,94,.15) !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  text-align: center;
+  color: #0a2a5e !important;
+  padding: 4px 2px !important;
+  transition: border-color .15s;
+  background: #fff !important;
+}
+.rmdp-time-picker input:focus { border-color: #0a2a5e !important; outline: none; }
+.rmdp-time-picker .rmdp-up, .rmdp-time-picker .rmdp-down {
+  color: #0a2a5e !important;
+  opacity: .6;
+  transition: opacity .12s;
+}
+.rmdp-time-picker .rmdp-up:hover, .rmdp-time-picker .rmdp-down:hover { opacity: 1; }
+
+/* input trigger */
+.rmdp-input-trigger { cursor: pointer; user-select: none; }
 .prose-content p { margin-bottom: 1rem; line-height: 1.9; }
 .prose-content ul, .prose-content ol { padding-right: 1.5rem; margin-bottom: 1rem; }
 .prose-content li { margin-bottom: .4rem; line-height: 1.7; }

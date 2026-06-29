@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       });
     });
 
-    audit({ userId: session.user.id, action: "PRODUCT_CREATE", entity: "Product", entityId: product?.id, newValue: { name: fields.name, price: fields.price }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
+    audit({ userId: session.user.id, action: "PRODUCT_CREATE", entity: "Product", entityId: product?.id, newValue: { name: scalarFields.name, price: scalarFields.price }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ success: true, product }, { status: 201 });
   } catch (err) {
     if (err instanceof z.ZodError)

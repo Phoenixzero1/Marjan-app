@@ -6,6 +6,7 @@ import {
   AdminEmptyState, AdminCard, AdminPagination, AdminConfirm,
   AdminToast, useAdminToast,
 } from "@/components/admin/AdminUI";
+import DatePicker from "@/components/ui/DatePicker";
 
 interface LogEntry {
   id: string; level: string; message: string; context: string | null;
@@ -110,8 +111,8 @@ export default function LogsManager() {
           <option value="">همه سطوح</option>
           {LEVELS.map(lv => <option key={lv} value={lv}>{LEVEL_CFG[lv].label}</option>)}
         </AdminSelect>
-        <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={{ height: 32, padding: "0 8px", borderRadius: 7, border: "1.5px solid var(--border)", fontSize: 12, background: "#fff", color: "var(--text1)", direction: "ltr" }} title="از تاریخ" />
-        <input type="date" value={to} onChange={e => setTo(e.target.value)} style={{ height: 32, padding: "0 8px", borderRadius: 7, border: "1.5px solid var(--border)", fontSize: 12, background: "#fff", color: "var(--text1)", direction: "ltr" }} title="تا تاریخ" />
+        <div style={{ width: 150 }}><DatePicker value={from} onChange={setFrom} placeholder="از تاریخ" inputStyle={{ height: 32, padding: "0 8px 0 32px", fontSize: 12 }} /></div>
+        <div style={{ width: 150 }}><DatePicker value={to} onChange={setTo} placeholder="تا تاریخ" inputStyle={{ height: 32, padding: "0 8px 0 32px", fontSize: 12 }} /></div>
         <AdminBtn icon="ti-search" onClick={() => { load(1); setPage(1); }}>جستجو</AdminBtn>
         {(q || from || to || level) && <AdminBtn variant="ghost" icon="ti-x" onClick={() => { setQ(""); setFrom(""); setTo(""); setLevel(""); }}>پاک</AdminBtn>}
       </AdminToolbar>

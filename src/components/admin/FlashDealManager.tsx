@@ -5,6 +5,7 @@ import {
   AdminPageHeader, AdminBtn, AdminField, AdminInput, AdminToggle,
   AdminCard, AdminCardHeader, AdminEmptyState, AdminToast, useAdminToast,
 } from "@/components/admin/AdminUI";
+import DateTimePicker from "@/components/ui/DateTimePicker";
 
 interface ProductRow {
   id: string; name: string; price: number; sku: string | null;
@@ -18,13 +19,6 @@ interface FlashConfig {
 }
 
 const DEFAULT_CONFIG: FlashConfig = { isActive: false, title: "مرجان تایم", endTime: null, productIds: [], discountPct: 20 };
-
-const toLocalDatetime = (iso: string | null) => {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-};
 
 export default function FlashDealManager() {
   const { toast, showToast } = useAdminToast();
@@ -101,11 +95,9 @@ export default function FlashDealManager() {
             <AdminInput type="number" value={String(config.discountPct)} onChange={v => setConfig(prev => ({ ...prev, discountPct: Math.max(0, Math.min(90, parseInt(v) || 0)) }))} style={{ direction: "ltr" }} />
           </AdminField>
           <AdminField label="تاریخ و زمان پایان">
-            <input
-              type="datetime-local"
-              value={toLocalDatetime(config.endTime)}
-              onChange={e => setConfig(prev => ({ ...prev, endTime: e.target.value ? new Date(e.target.value).toISOString() : null }))}
-              style={{ height: 36, padding: "0 10px", borderRadius: 7, border: "1.5px solid var(--border)", fontFamily: "Vazirmatn", fontSize: 13, width: "100%", direction: "ltr", background: "#fff" }}
+            <DateTimePicker
+              value={config.endTime}
+              onChange={iso => setConfig(prev => ({ ...prev, endTime: iso }))}
             />
           </AdminField>
           <AdminField label="وضعیت">
