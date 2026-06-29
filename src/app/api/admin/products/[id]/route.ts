@@ -101,8 +101,8 @@ export async function PUT(
       });
     });
 
-    const action = fields.price !== undefined && fields.price !== before?.price ? "PRODUCT_PRICE_CHANGE" : "PRODUCT_UPDATE";
-    audit({ userId: session.user.id, action, entity: "Product", entityId: id, oldValue: before, newValue: fields, ip: getClientIp(req), ua: req.headers.get("user-agent") });
+    const action = scalarFields.price !== undefined && scalarFields.price !== before?.price ? "PRODUCT_PRICE_CHANGE" : "PRODUCT_UPDATE";
+    audit({ userId: session.user.id, action, entity: "Product", entityId: id, oldValue: before, newValue: { ...scalarFields, categoryId, brandId }, ip: getClientIp(req), ua: req.headers.get("user-agent") });
     return NextResponse.json({ product });
   } catch (err) {
     if (err instanceof z.ZodError)
