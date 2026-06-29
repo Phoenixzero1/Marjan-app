@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, type ReactNode, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { createPortal } from "react-dom";
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
 export const T = {
@@ -195,7 +196,7 @@ export function AdminDrawer({ open, onClose, title, children, width = 520 }: { o
   }, [open, onClose]);
 
   if (!open) return null;
-  return (
+  return createPortal(
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(15,25,60,0.45)", zIndex: 1000, backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }} />
       <div role="dialog" aria-modal="true" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width, maxWidth: "calc(100vw - 32px)", maxHeight: "88vh", background: "#fff", borderRadius: "var(--radius)", zIndex: 1001, boxShadow: "0 24px 70px rgba(10,42,94,0.28)", display: "flex", flexDirection: "column", overflow: "hidden", animation: "fadeScaleIn .2s cubic-bezier(.4,0,.2,1)" }}>
@@ -209,7 +210,8 @@ export function AdminDrawer({ open, onClose, title, children, width = 520 }: { o
           {children}
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }
 
@@ -222,7 +224,7 @@ export function AdminModal({ open, onClose, title, children, width = 520 }: { op
   }, [open]);
 
   if (!open) return null;
-  return (
+  return createPortal(
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(10,42,94,0.22)", zIndex: 1000, backdropFilter: "blur(2px)" }} />
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width, maxWidth: "calc(100vw - 32px)", background: "#fff", borderRadius: "var(--radius)", zIndex: 1001, boxShadow: "0 20px 60px rgba(10,42,94,0.22)", animation: "fadeScaleIn .2s cubic-bezier(.4,0,.2,1)" }}>
@@ -234,7 +236,8 @@ export function AdminModal({ open, onClose, title, children, width = 520 }: { op
         </div>
         <div style={{ padding: "20px" }}>{children}</div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }
 

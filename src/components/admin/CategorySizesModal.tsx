@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { AdminToast, useAdminToast } from "./AdminUI";
 
 interface Props {
@@ -152,7 +153,7 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
     finally { setApplying(false); }
   };
 
-  return (
+  return createPortal(
     <div
       style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(3px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
       onClick={e => e.target === e.currentTarget && onClose()}
@@ -346,6 +347,7 @@ export default function CategorySizesModal({ categoryId, categoryName, onClose }
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

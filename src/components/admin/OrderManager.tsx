@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { formatPrice } from "@/lib/utils";
 import {
   AdminPageHeader, AdminToolbar, AdminSearch, AdminSelect, AdminBtn,
@@ -196,7 +197,7 @@ export default function OrderManager() {
       </AdminTable>
 
       {/* ── Order Detail Modal (centered, no backdrop dim) ── */}
-      {selected && (
+      {selected && createPortal(
         <div style={{ position: "fixed", inset: 0, zIndex: 9998, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
           <div
             onClick={(e) => e.stopPropagation()}
@@ -409,7 +410,8 @@ export default function OrderManager() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
