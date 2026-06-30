@@ -4,12 +4,7 @@ import Link from "next/link";
 import HomeProductCard from "@/components/home/HomeProductCard";
 import HeroSlider, { type SliderSettings } from "@/components/home/HeroSlider";
 import MarjanTime, { type FlashProduct } from "@/components/home/MarjanTime";
-import CategoryCircle from "@/components/home/CategoryCircle";
-import BrandCard from "@/components/home/BrandCard";
-import FeaturedShowcase, { type ShowcaseSlide } from "@/components/home/FeaturedShowcase";
-import HScrollSlider from "@/components/ui/HScrollSlider";
 
-// Always render fresh — flash deal config, sliders and products change via admin
 export const dynamic = "force-dynamic";
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://marjan.ir";
@@ -28,29 +23,32 @@ export const metadata: Metadata = {
   },
 };
 
-// ─── Data Fetchers ─────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function getHeroBanners() {
-  try {
-    const now = new Date();
-    return await prisma.banner.findMany({
-      where: {
-        type: "hero",
-        isActive: true,
-        OR: [
-          { startDate: null, endDate: null },
-          { startDate: { lte: now }, endDate: null },
-          { startDate: null, endDate: { gte: now } },
-          { startDate: { lte: now }, endDate: { gte: now } },
-        ],
-      },
-      orderBy: { sortOrder: "asc" },
-      take: 8,
-    });
-  } catch {
-    return [];
-  }
+type BannerRow = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  imageUrl: string | null;
+  buttonText: string | null;
+  buttonLink: string | null;
+};
+
+function activeBannerWhere(type: string) {
+  const now = new Date();
+  return {
+    type,
+    isActive: true,
+    OR: [
+      { startDate: null, endDate: null },
+      { startDate: { lte: now }, endDate: null },
+      { startDate: null, endDate: { gte: now } },
+      { startDate: { lte: now }, endDate: { gte: now } },
+    ],
+  };
 }
+
+// ─── Data fetchers (sequential — no Promise.all with Prisma) ─────────────────
 
 async function getSliderSettings(): Promise<SliderSettings> {
   try {
@@ -69,6 +67,16 @@ async function getSliderSettings(): Promise<SliderSettings> {
   }
 }
 
+async function getHeroBanners() {
+  try {
+    return await prisma.banner.findMany({
+      where: activeBannerWhere("hero"),
+      orderBy: { sortOrder: "asc" },
+      take: 8,
+    });
+  } catch { return []; }
+}
+
 async function getCategories() {
   try {
     return await prisma.category.findMany({
@@ -76,9 +84,7 @@ async function getCategories() {
       orderBy: { sortOrder: "asc" },
       take: 12,
     });
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 async function getFlashDeal(): Promise<{
@@ -106,6 +112,7 @@ async function getFlashDeal(): Promise<{
         images: { where: { isPrimary: true }, take: 1 },
         sizes: { take: 6 },
       },
+      take: 6,
     });
 
     return {
@@ -122,355 +129,139 @@ async function getFlashDeal(): Promise<{
         sizes: p.sizes.map((s) => ({ label: s.label })),
       })),
     };
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
-async function getBestsellerProducts() {
+async function getBannersByType(type: string, limit: number): Promise<BannerRow[]> {
   try {
-    return await prisma.product.findMany({
-      where: { status: "PUBLISHED", isFeatured: true },
-      take: 8,
-      orderBy: { saleCount: "desc" },
-      include: {
-        images: { where: { isPrimary: true }, take: 1 },
-        brand: { select: { name: true } },
-        sizes: { take: 6 },
-      },
-    });
-  } catch {
-    return [];
-  }
-}
-
-async function getNewestProducts() {
-  try {
-    return await prisma.product.findMany({
-      where: { status: "PUBLISHED" },
-      take: 8,
-      orderBy: { createdAt: "desc" },
-      include: {
-        images: { where: { isPrimary: true }, take: 1 },
-        brand: { select: { name: true } },
-        sizes: { take: 6 },
-      },
-    });
-  } catch {
-    return [];
-  }
-}
-
-async function getPromoBanners() {
-  try {
-    const now = new Date();
     return await prisma.banner.findMany({
-      where: {
-        type: "promo",
-        isActive: true,
-        OR: [
-          { startDate: null, endDate: null },
-          { startDate: { lte: now }, endDate: null },
-          { startDate: null, endDate: { gte: now } },
-          { startDate: { lte: now }, endDate: { gte: now } },
-        ],
-      },
+      where: activeBannerWhere(type),
       orderBy: { sortOrder: "asc" },
-      take: 4,
+      take: limit,
+      select: { id: true, title: true, subtitle: true, imageUrl: true, buttonText: true, buttonLink: true },
     });
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
-async function getShowcaseSlides(): Promise<ShowcaseSlide[]> {
+async function getProducts(opts: {
+  take: number;
+  orderBy: Record<string, string>;
+  where?: Record<string, unknown>;
+}) {
   try {
-    const row = await prisma.siteSettings.findUnique({ where: { key: "featured_showcase" } });
-    if (!row) return [];
-    const cfg = JSON.parse(row.value) as { slides: ShowcaseSlide[] };
-    return cfg.slides ?? [];
-  } catch {
-    return [];
-  }
+    return await prisma.product.findMany({
+      where: { status: "PUBLISHED", deletedAt: null, ...opts.where },
+      take: opts.take,
+      orderBy: opts.orderBy,
+      include: {
+        images: { where: { isPrimary: true }, take: 1 },
+        sizes: { take: 6 },
+      },
+    });
+  } catch { return []; }
 }
 
 async function getBrands() {
   try {
     return await prisma.brand.findMany({
       where: { isActive: true },
-      take: 12,
+      take: 6,
       orderBy: { name: "asc" },
     });
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
-async function getLatestPosts() {
+async function getBlogPosts() {
   try {
     return await prisma.blogPost.findMany({
       where: { isPublished: true },
       orderBy: { publishedAt: "desc" },
-      take: 3,
-      include: { category: { select: { name: true } } },
+      take: 5,
     });
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
-// Fallback categories when DB is empty
-const FALLBACK_CATEGORIES = [
-  { id: "1", name: "شیرآلات",    slug: "valves",    iconClass: "ti-circle-dotted", imageUrl: null, count: "+۳۴۰۰" },
-  { id: "2", name: "لوله‌ها",    slug: "pipes",     iconClass: "ti-minus",          imageUrl: null, count: "+۱۸۰۰" },
-  { id: "3", name: "اتصالات",   slug: "fittings",  iconClass: "ti-git-merge",      imageUrl: null, count: "+۲۲۰۰" },
-  { id: "4", name: "پمپ‌ها",     slug: "pumps",     iconClass: "ti-activity",       imageUrl: null, count: "+۵۰۰" },
-  { id: "5", name: "بهداشتی",   slug: "sanitary",  iconClass: "ti-droplet",         imageUrl: null, count: "+۱۲۰۰" },
-  { id: "6", name: "یراق‌آلات", slug: "hardware",  iconClass: "ti-tool",            imageUrl: null, count: "+۸۰۰" },
+// ─── Fallback categories ──────────────────────────────────────────────────────
+
+const FALLBACK_CATS = [
+  { id: "1", name: "شیرآلات",    slug: "valves",   iconClass: "ti-circle-dotted", imageUrl: null },
+  { id: "2", name: "لوله‌ها",    slug: "pipes",    iconClass: "ti-minus",          imageUrl: null },
+  { id: "3", name: "اتصالات",   slug: "fittings", iconClass: "ti-git-merge",      imageUrl: null },
+  { id: "4", name: "پمپ‌ها",     slug: "pumps",    iconClass: "ti-activity",       imageUrl: null },
+  { id: "5", name: "بهداشتی",   slug: "sanitary", iconClass: "ti-droplet",         imageUrl: null },
+  { id: "6", name: "یراق‌آلات", slug: "hardware", iconClass: "ti-tool",            imageUrl: null },
+  { id: "7", name: "عایق‌ها",   slug: "insulation",iconClass:"ti-layers",          imageUrl: null },
+  { id: "8", name: "ابزارآلات", slug: "tools",    iconClass: "ti-tool-2",          imageUrl: null },
 ];
 
-// ─── Section Header ─────────────────────────────────────────────────────────
-
-function SectionHeader({
-  title, href, linkLabel = "مشاهده همه", badge, bar,
-}: {
-  title: string;
-  href: string;
-  linkLabel?: string;
-  badge?: { icon: string; text: string };
-  bar?: { bg: string; icon?: string };
-}) {
-  if (bar) {
-    // Full-width colored bar spanning the top of the section card
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          background: bar.bg,
-          margin: "-1.75rem -2rem 1.5rem",
-          padding: "13px 2rem",
-        }}
-      >
-        <h2 style={{ fontSize: 16, fontWeight: 900, color: "#fff", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-          {bar.icon && <i className={`ti ${bar.icon}`} style={{ fontSize: 18 }} />}
-          {title}
-        </h2>
-        <Link
-          href={href}
-          style={{ color: "rgba(255,255,255,.85)", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 4, textDecoration: "none" }}
-        >
-          {linkLabel} <i className="ti ti-arrow-left" />
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ marginBottom: "1.5rem" }}>
-      {badge && (
-        <span className="section-badge" style={{ marginBottom: 8 }}>
-          <i className={`ti ${badge.icon}`} /> {badge.text}
-        </span>
-      )}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h2 style={{ fontSize: 20, fontWeight: 900, color: "var(--primary)", display: "flex", alignItems: "center", gap: 10, margin: 0 }}>
-          <span style={{ display: "block", width: 5, height: 24, background: "var(--accent)", borderRadius: 3, flexShrink: 0 }} />
-          {title}
-        </h2>
-        <Link href={href} className="sec-link">
-          {linkLabel} <i className="ti ti-arrow-left" />
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-// ─── Page ───────────────────────────────────────────────────────────────────
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function HomePage() {
-  const [
-    heroBanners,
-    sliderSettings,
-    dbCategories,
-    flashDeal,
-    bestsellers,
-    newest,
-    promoBanners,
-    brands,
-    posts,
-    showcaseSlides,
-  ] = await Promise.all([
-    getHeroBanners(),
-    getSliderSettings(),
-    getCategories(),
-    getFlashDeal(),
-    getBestsellerProducts(),
-    getNewestProducts(),
-    getPromoBanners(),
-    getBrands(),
-    getLatestPosts(),
-    getShowcaseSlides(),
-  ]);
+  // Sequential fetches — no Promise.all (Prisma PrismaPg adapter)
+  const sliderSettings  = await getSliderSettings();
+  const heroBanners     = await getHeroBanners();
+  const dbCategories    = await getCategories();
+  const flashDeal       = await getFlashDeal();
+  const promo3Col       = await getBannersByType("promo_3col", 3);
+  const bestsellers     = await getProducts({ take: 5, orderBy: { saleCount: "desc" }, where: { isFeatured: true } });
+  const promo2ColA      = await getBannersByType("promo_2col_a", 2);
+  const heroMainBanners = await getBannersByType("hero_main", 1);
+  const newest          = await getProducts({ take: 5, orderBy: { createdAt: "desc" } });
+  const promo2ColB      = await getBannersByType("promo_2col_b", 2);
+  const brands          = await getBrands();
+  const featured        = await getProducts({ take: 5, orderBy: { saleCount: "desc" }, where: { comparePrice: { not: null } } });
+  const promo2ColC      = await getBannersByType("promo_2col_c", 2);
+  const squareBanners   = await getBannersByType("square", 5);
+  const blogPosts       = await getBlogPosts();
 
   const categories = dbCategories.length > 0
-    ? dbCategories.map((c) => ({
-        id: c.id,
-        name: c.name,
-        slug: c.slug,
-        iconClass: c.iconClass ?? "ti-package",
-        imageUrl: c.imageUrl,
-        count: null,
-      }))
-    : FALLBACK_CATEGORIES;
+    ? dbCategories.map((c) => ({ id: c.id, name: c.name, slug: c.slug, iconClass: c.iconClass ?? "ti-package", imageUrl: c.imageUrl }))
+    : FALLBACK_CATS;
 
-  // MarjanTime product ID set — lets ProductCard know which cards are in the deal
-  const marjanIds = new Set(flashDeal?.products.map((p) => p.id) ?? []);
+  const heroMainBanner = heroMainBanners[0] ?? null;
+
+  // square banners fallback: use blog posts
+  const squareItems: { id: string; title: string; imageUrl: string | null; link: string }[] =
+    squareBanners.length > 0
+      ? squareBanners.map((b) => ({ id: b.id, title: b.title, imageUrl: b.imageUrl, link: b.buttonLink ?? "#" }))
+      : blogPosts.map((p) => ({ id: p.id, title: p.title, imageUrl: p.imageUrl, link: `/blog/${p.slug}` }));
 
   return (
     <>
-      {/* ── HERO ─────────────────────────────────────────────────────── */}
+      {/* ── HERO SLIDER ──────────────────────────────────────────────── */}
       {heroBanners.length > 0 ? (
         <HeroSlider
-          slides={heroBanners.map((b) => ({
-            id: b.id,
-            imageUrl: b.imageUrl,
-            buttonLink: b.buttonLink,
-          }))}
+          slides={heroBanners.map((b) => ({ id: b.id, imageUrl: b.imageUrl, buttonLink: b.buttonLink }))}
           settings={sliderSettings}
         />
       ) : (
-        <section
-          style={{
-            background:
-              "linear-gradient(135deg,var(--primary-dark) 0%,var(--primary-mid) 60%,#1a5fa0 100%)",
-            color: "#fff",
-            padding: "5rem 2rem 4rem",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background:
-                "radial-gradient(circle at 80% 50%,rgba(232,146,10,.12) 0%,transparent 60%)",
-            }}
-          />
-          <div
-            className="grid grid-cols-1 lg:grid-cols-2 items-center"
-            style={{ maxWidth: 1280, margin: "auto", gap: "3rem", position: "relative" }}
-          >
-            <div>
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: "rgba(232,146,10,.2)",
-                  border: "1px solid rgba(232,146,10,.4)",
-                  color: "var(--accent)",
-                  padding: "5px 14px",
-                  borderRadius: 20,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  marginBottom: "1.5rem",
-                }}
-              >
-                <i className="ti ti-star-filled" /> تامین‌کننده معتمد لوازم ساختمانی
-              </div>
-              <h1 style={{ fontSize: 42, fontWeight: 900, lineHeight: 1.2, marginBottom: "1rem" }}>
-                کامل‌ترین فروشگاه<br />
-                <span style={{ color: "var(--accent)" }}>شیرآلات و لوله</span>
-                <br />در ایران
-              </h1>
-              <p style={{ color: "rgba(255,255,255,.75)", fontSize: 15, maxWidth: 420, marginBottom: "2rem" }}>
-                هزاران قطعه اصل از بهترین برندها — تبریز، لگریس، ویر، پیوند — با ضمانت کیفیت و
-                تحویل سریع.
-              </p>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <Link
-                  href="/products"
-                  style={{
-                    background: "var(--accent)",
-                    color: "#fff",
-                    padding: "13px 28px",
-                    borderRadius: "var(--radius-sm)",
-                    fontSize: 14,
-                    fontWeight: 900,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    textDecoration: "none",
-                  }}
-                >
-                  <i className="ti ti-shopping-cart" /> مشاهده محصولات
-                </Link>
-                <Link
-                  href="/invoice"
-                  style={{
-                    background: "transparent",
-                    color: "#fff",
-                    border: "2px solid rgba(255,255,255,.4)",
-                    padding: "11px 24px",
-                    borderRadius: "var(--radius-sm)",
-                    fontSize: 14,
-                    fontWeight: 700,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    textDecoration: "none",
-                  }}
-                >
-                  <i className="ti ti-file-invoice" /> فاکتور آنلاین
-                </Link>
-              </div>
-              <div
-                style={{ display: "flex", gap: "2rem", marginTop: "2.5rem", flexWrap: "wrap" }}
-              >
-                {[
-                  { val: "+۱۲۰۰۰", label: "محصول" },
-                  { val: "+۸۵۰", label: "برند" },
-                  { val: "+۱۵سال", label: "تجربه" },
-                  { val: "۲۴/۷", label: "پشتیبانی" },
-                ].map((s) => (
-                  <div key={s.label}>
-                    <strong
-                      style={{ display: "block", fontSize: 24, fontWeight: 900, color: "var(--accent)" }}
-                    >
-                      {s.val}
-                    </strong>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>{s.label}</span>
-                  </div>
-                ))}
-              </div>
+        <section style={{
+          background: "linear-gradient(135deg,var(--primary-dark) 0%,var(--primary-mid) 60%,#1a5fa0 100%)",
+          color: "#fff",
+          padding: "4rem 2rem 3rem",
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          <div style={{ maxWidth: 1240, margin: "auto", position: "relative" }}>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: "rgba(232,146,10,.2)", border: "1px solid rgba(232,146,10,.4)",
+              color: "var(--accent)", padding: "5px 14px", borderRadius: 20,
+              fontSize: 12, fontWeight: 700, marginBottom: "1.5rem",
+            }}>
+              <i className="ti ti-star-filled" /> تامین‌کننده معتمد لوازم ساختمانی
             </div>
-            <div className="hidden lg:flex items-center justify-center">
-              <div
-                style={{
-                  background: "rgba(255,255,255,.08)",
-                  border: "1px solid rgba(255,255,255,.15)",
-                  borderRadius: "var(--radius)",
-                  width: "100%",
-                  maxWidth: 420,
-                  aspectRatio: "4/3",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-                  gap: 12,
-                }}
-              >
-                <i
-                  className="ti ti-building-warehouse"
-                  style={{ fontSize: 90, color: "rgba(255,255,255,.2)" }}
-                />
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,.4)", fontWeight: 700 }}>
-                  انبار مرکزی Marjan
-                </p>
-              </div>
+            <h1 style={{ fontSize: 36, fontWeight: 900, lineHeight: 1.3, marginBottom: "1rem" }}>
+              کامل‌ترین فروشگاه<br />
+              <span style={{ color: "var(--accent)" }}>شیرآلات و لوله</span> در ایران
+            </h1>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <Link href="/products" style={{ background: "var(--accent)", color: "#fff", padding: "12px 28px", borderRadius: "var(--radius-sm)", fontSize: 14, fontWeight: 900, display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+                <i className="ti ti-shopping-cart" /> مشاهده محصولات
+              </Link>
+              <Link href="/invoice" style={{ background: "transparent", color: "#fff", border: "2px solid rgba(255,255,255,.4)", padding: "10px 24px", borderRadius: "var(--radius-sm)", fontSize: 14, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+                <i className="ti ti-file-invoice" /> فاکتور آنلاین
+              </Link>
             </div>
           </div>
         </section>
@@ -478,10 +269,7 @@ export default async function HomePage() {
 
       {/* ── TRUST BAR ────────────────────────────────────────────────── */}
       <div style={{ background: "#fff", boxShadow: "var(--shadow)" }}>
-        <div
-          className="grid grid-cols-2 md:grid-cols-4 gap-4"
-          style={{ maxWidth: 1280, margin: "auto", padding: "1.25rem 2rem" }}
-        >
+        <div style={{ maxWidth: 1240, margin: "auto", padding: "1.25rem 12px", display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1rem" }}>
           {[
             { icon: "ti-shield-check",   title: "ضمانت اصالت کالا",  sub: "تمام محصولات دارای گارانتی" },
             { icon: "ti-truck-delivery", title: "ارسال سریع سراسری", sub: "۲۴ تا ۷۲ ساعت کاری" },
@@ -489,18 +277,7 @@ export default async function HomePage() {
             { icon: "ti-headset",        title: "پشتیبانی فنی",       sub: "کارشناسان متخصص آماده‌اند" },
           ].map((t) => (
             <div key={t.title} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  background: "var(--bg)",
-                  borderRadius: "var(--radius-sm)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
+              <div style={{ width: 44, height: 44, background: "var(--bg)", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <i className={`ti ${t.icon}`} style={{ fontSize: 20, color: "var(--primary)" }} />
               </div>
               <div>
@@ -512,45 +289,67 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* ── CATEGORY CIRCLES ─────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1280, margin: "1.5rem auto 1rem", padding: "0 1rem" }}>
-        <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e8eaf0", padding: "1.75rem 2rem" }}>
-          <SectionHeader title="دسته‌بندی محصولات" href="/products" linkLabel="همه دسته‌ها" bar={{ bg: "var(--primary-mid)", icon: "ti-category" }} />
-          <HScrollSlider gap={16} scrollAmount={220}>
-            {categories.map((cat) => (
-              <CategoryCircle key={cat.id} {...cat} />
-            ))}
-          </HScrollSlider>
-        </div>
-      </div>
+      {/* ── HOMEPAGE TEMPLATE ─────────────────────────────────────────── */}
+      <div className="hp-wrap">
 
-      {/* ── مرجان تایم FLASH DEALS ────────────────────────────────────── */}
-      {flashDeal && (
-        <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
+        {/* ── 1. CATEGORY ICONS BAR ── */}
+        <section className="categories-bar">
+          {categories.slice(0, 8).map((cat) => (
+            <Link key={cat.id} href={`/products?category=${cat.slug}`} className="cat-item">
+              <div className="cat-icon">
+                {cat.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={cat.imageUrl} alt={cat.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <i className={`ti ${cat.iconClass}`} style={{ fontSize: 24, color: "var(--primary)" }} />
+                )}
+              </div>
+              <span>{cat.name}</span>
+            </Link>
+          ))}
+        </section>
+
+        {/* ── 2. MARJAN TIME (dark row) ── */}
+        {flashDeal && (
           <MarjanTime
             title={flashDeal.title}
             endTime={flashDeal.endTime}
             discountPct={flashDeal.discountPct}
             products={flashDeal.products}
           />
-        </div>
-      )}
+        )}
 
-      {/* ── BESTSELLERS ──────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
-        <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e8eaf0", padding: "1.75rem 2rem" }}>
-          <SectionHeader
-            title="پرفروش‌ترین محصولات"
-            href="/products"
-            bar={{ bg: "var(--primary)", icon: "ti-flame" }}
-          />
-          {bestsellers.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "var(--text3)" }}>
-              <i className="ti ti-package" style={{ fontSize: 48, display: "block", marginBottom: 12 }} />
-              <p>پس از افزودن محصول توسط ادمین اینجا نمایش داده می‌شود.</p>
+        {/* ── 3. THREE-COLUMN BANNER ROW ── */}
+        {promo3Col.length > 0 && (
+          <div className="banner-row banner-row--3">
+            {promo3Col.map((b) => (
+              <Link key={b.id} href={b.buttonLink ?? "#"} className="promo-banner">
+                {b.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={b.imageUrl} alt={b.title} className="promo-banner-img" />
+                ) : (
+                  <div className="promo-banner-img" style={{ background: "linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%)" }} />
+                )}
+                <div className="promo-banner-text">
+                  <p>{b.title}</p>
+                  {b.buttonText && <span className="btn-link">{b.buttonText}</span>}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* ── 4. BESTSELLERS (light row, 5 cols) ── */}
+        {bestsellers.length > 0 && (
+          <section className="product-row product-row--light">
+            <div className="row-header">
+              <Link href="/products" className="show-all">مشاهده همه</Link>
+              <h2 className="row-title">
+                پرفروش‌ترین محصولات
+                <span className="badge-count">{bestsellers.length}</span>
+              </h2>
             </div>
-          ) : (
-            <HScrollSlider gap={12} scrollAmount={190}>
+            <div className="row-cards row-cards--5">
               {bestsellers.map((p) => (
                 <HomeProductCard
                   key={p.id}
@@ -565,75 +364,85 @@ export default async function HomePage() {
                   isNew={p.isNew}
                   stockQty={p.stockQty}
                   sectionLabel="پرفروش"
-                  marjanTime={marjanIds.has(p.id) && flashDeal ? { discountPct: flashDeal.discountPct, endTime: flashDeal.endTime } : undefined}
+                  variant="light"
                 />
               ))}
-            </HScrollSlider>
-          )}
-        </div>
-      </div>
+            </div>
+          </section>
+        )}
 
-      {/* ── FEATURED SHOWCASE ────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
-        <FeaturedShowcase slides={showcaseSlides} />
-      </div>
-
-      {/* ── PROMO BANNERS ────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
-        <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e8eaf0", padding: "1.75rem 2rem" }}>
-          <SectionHeader
-            title="پیشنهادهای ویژه"
-            href="/products?tag=promo"
-            bar={{ bg: "linear-gradient(135deg,#b54a00,var(--accent))", icon: "ti-tag" }}
-          />
-          <div className="grid banner-grid gap-4">
-            {(promoBanners.length > 0 ? promoBanners.map((b) => ({
-              key: b.id,
-              bg: b.imageUrl
-                ? `url(${b.imageUrl}) center/cover no-repeat`
-                : "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))",
-              overlay: !!b.imageUrl,
-              title: b.title,
-              subtitle: b.subtitle,
-              btnText: b.buttonText,
-              btnLink: b.buttonLink,
-              btnColor: "var(--primary)",
-              icon: "ti-tag",
-            })) : [
-              { key: "promo1", bg: "linear-gradient(135deg,var(--primary-dark),var(--primary-mid))", overlay: false, title: "خرید عمده با بهترین قیمت", subtitle: "برای پروژه‌های بزرگ و پیمانکاران، قیمت ویژه عمده داریم.", btnText: "استعلام عمده", btnLink: "/invoice?type=contractor", btnColor: "var(--primary)", icon: "ti-building" },
-              { key: "promo2", bg: "linear-gradient(135deg,#b54a00,var(--accent))", overlay: false, title: "فاکتور آنلاین رایگان", subtitle: "همین الان فاکتور حرفه‌ای بسازید.", btnText: "ساخت فاکتور", btnLink: "/invoice", btnColor: "var(--accent)", icon: "ti-file-invoice" },
-            ]).map((b) => (
-              <div
-                key={b.key}
-                style={{ borderRadius: 12, position: "relative", minHeight: 180, display: "flex", alignItems: "center", padding: "2rem", background: b.bg, overflow: "hidden" }}
-              >
-                {b.overlay && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.4)" }} />}
-                <div style={{ position: "relative" }}>
-                  {b.title && <h3 style={{ fontSize: 20, fontWeight: 900, color: "#fff", marginBottom: 6 }}>{b.title}</h3>}
-                  {b.subtitle && <p style={{ fontSize: 13, color: "rgba(255,255,255,.8)", marginBottom: "1rem" }}>{b.subtitle}</p>}
-                  {b.btnText && b.btnLink && (
-                    <Link href={b.btnLink} style={{ background: "#fff", color: b.btnColor, padding: "9px 20px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 900, display: "inline-block", textDecoration: "none" }}>
-                      {b.btnText}
-                    </Link>
-                  )}
+        {/* ── 5. TWO-COLUMN BANNER ROW A ── */}
+        {promo2ColA.length > 0 && (
+          <div className="banner-row banner-row--2">
+            {promo2ColA.map((b) => (
+              <Link key={b.id} href={b.buttonLink ?? "#"} className="promo-banner promo-banner--wide">
+                {b.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={b.imageUrl} alt={b.title} className="promo-banner-img" />
+                ) : (
+                  <div className="promo-banner-img" style={{ background: "linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 100%)" }} />
+                )}
+                <div className="promo-banner-text">
+                  <p>{b.title}</p>
+                  {b.buttonText && <span className="btn-link">{b.buttonText}</span>}
                 </div>
-                <i className={`ti ${b.icon}`} style={{ position: "absolute", left: "1.5rem", bottom: -10, fontSize: 100, color: "rgba(255,255,255,.1)" }} />
-              </div>
+              </Link>
             ))}
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* ── NEWEST PRODUCTS ──────────────────────────────────────────── */}
-      {newest.length > 0 && (
-        <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
-          <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e8eaf0", padding: "1.75rem 2rem" }}>
-            <SectionHeader
-              title="جدیدترین محصولات"
-              href="/products?sort=newest"
-              bar={{ bg: "var(--primary-mid)", icon: "ti-sparkles" }}
-            />
-            <HScrollSlider gap={12} scrollAmount={190}>
+        {/* ── 6. CIRCLE ICONS SECTION ── */}
+        {categories.length > 0 && (
+          <section className="circle-icons-section">
+            <h3 className="section-title-center">دسته‌بندی محصولات</h3>
+            <div className="circle-icons-row">
+              {categories.slice(0, 8).map((cat) => (
+                <Link key={cat.id} href={`/products?category=${cat.slug}`} className="circle-item">
+                  <div className="circle-icon">
+                    {cat.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={cat.imageUrl} alt={cat.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <i className={`ti ${cat.iconClass}`} style={{ fontSize: 28, color: "var(--primary)" }} />
+                    )}
+                  </div>
+                  <span>{cat.name}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── 7. HERO BANNER (full width single) ── */}
+        {heroMainBanner && (
+          <div className="hero-banner-section">
+            <Link href={heroMainBanner.buttonLink ?? "#"} className="hero-banner">
+              {heroMainBanner.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={heroMainBanner.imageUrl} alt={heroMainBanner.title} className="hero-banner-img" />
+              ) : (
+                <div className="hero-banner-img" />
+              )}
+              <div className="hero-banner-content">
+                <h3>{heroMainBanner.title}</h3>
+                {heroMainBanner.subtitle && <p>{heroMainBanner.subtitle}</p>}
+                {heroMainBanner.buttonText && <span className="btn-link">{heroMainBanner.buttonText}</span>}
+              </div>
+            </Link>
+          </div>
+        )}
+
+        {/* ── 8. NEWEST PRODUCTS (light row, 5 cols) ── */}
+        {newest.length > 0 && (
+          <section className="product-row product-row--light">
+            <div className="row-header">
+              <Link href="/products?sort=newest" className="show-all">مشاهده همه</Link>
+              <h2 className="row-title">
+                جدیدترین محصولات
+                <span className="badge-count">{newest.length}</span>
+              </h2>
+            </div>
+            <div className="row-cards row-cards--5">
               {newest.map((p) => (
                 <HomeProductCard
                   key={p.id}
@@ -648,76 +457,158 @@ export default async function HomePage() {
                   isNew={p.isNew}
                   stockQty={p.stockQty}
                   sectionLabel="جدید"
-                  marjanTime={marjanIds.has(p.id) && flashDeal ? { discountPct: flashDeal.discountPct, endTime: flashDeal.endTime } : undefined}
+                  variant="light"
                 />
               ))}
-            </HScrollSlider>
-          </div>
-        </div>
-      )}
+            </div>
+          </section>
+        )}
 
-      {/* ── BRANDS ROW ───────────────────────────────────────────────── */}
-      {brands.length > 0 && (
-        <div style={{ maxWidth: 1280, margin: "1rem auto", padding: "0 1rem" }}>
-          <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e8eaf0", padding: "1.75rem 2rem" }}>
-            <SectionHeader title="برندهای معتبر" href="/products" linkLabel="همه برندها" />
-            <HScrollSlider gap={24} scrollAmount={240}>
-              {brands.map((b) => (
-                <BrandCard key={b.id} {...b} />
-              ))}
-            </HScrollSlider>
-          </div>
-        </div>
-      )}
-
-      {/* ── BLOG PREVIEW ─────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1280, margin: "1rem auto 2rem", padding: "0 1rem" }}>
-        <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1.5px solid #e8eaf0", padding: "1.75rem 2rem" }}>
-          <SectionHeader title="آخرین مطالب وبلاگ" href="/blog" linkLabel="همه مطالب" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {(posts.length === 0
-              ? [
-                  { id: "1", title: "راهنمای کامل انتخاب شیر توپی مناسب برای لوله‌کشی ساختمانی", cat: "آموزش", slug: "#", imageUrl: null },
-                  { id: "2", title: "تفاوت لوله پلیکا و پوش‌فیت — کدام یک برای فاضلاب بهتر است؟", cat: "مقایسه", slug: "#", imageUrl: null },
-                  { id: "3", title: "نصب صحیح اتصالات پرسی — اشتباهات رایج و نکات طلایی", cat: "فنی", slug: "#", imageUrl: null },
-                ]
-              : posts.map((p) => ({
-                  id: p.id,
-                  title: p.title,
-                  cat: p.category?.name ?? "عمومی",
-                  slug: p.slug,
-                  imageUrl: p.imageUrl,
-                }))
-            ).map((post) => (
-              <Link
-                key={post.id}
-                href={`/blog/${post.slug}`}
-                className="hover-card"
-                style={{ background: "var(--bg)", borderRadius: "var(--radius)", overflow: "hidden", display: "block", textDecoration: "none" }}
-              >
-                <div style={{ background: post.imageUrl ? undefined : "var(--bg2)", aspectRatio: "16/9", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                  {post.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={post.imageUrl} alt={post.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
-                    <i className="ti ti-article" style={{ fontSize: 48, color: "var(--border)" }} />
-                  )}
-                </div>
-                <div style={{ padding: "1.25rem" }}>
-                  <span style={{ display: "inline-block", background: "var(--accent-light)", color: "var(--accent)", fontSize: 11, fontWeight: 900, padding: "3px 10px", borderRadius: 20, marginBottom: 8 }}>
-                    {post.cat}
-                  </span>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text)", marginBottom: 8, lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
-                    {post.title}
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "var(--text3)" }}>
-                    <span><i className="ti ti-calendar" /> ۱۵ خرداد ۱۴۰۴</span>
-                  </div>
+        {/* ── 9. TWO-COLUMN BANNER ROW B ── */}
+        {promo2ColB.length > 0 && (
+          <div className="banner-row banner-row--2">
+            {promo2ColB.map((b) => (
+              <Link key={b.id} href={b.buttonLink ?? "#"} className="promo-banner promo-banner--wide">
+                {b.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={b.imageUrl} alt={b.title} className="promo-banner-img" />
+                ) : (
+                  <div className="promo-banner-img" style={{ background: "linear-gradient(135deg, #a50f22 0%, #c0392b 100%)" }} />
+                )}
+                <div className="promo-banner-text">
+                  <p>{b.title}</p>
+                  {b.buttonText && <span className="btn-link">{b.buttonText}</span>}
                 </div>
               </Link>
             ))}
           </div>
-        </div>
+        )}
+
+        {/* ── 10. BRANDS SECTION ── */}
+        {brands.length > 0 && (
+          <section className="brands-section">
+            <div className="brands-row">
+              {brands.map((b) => (
+                <div key={b.id} className="brand-logo">
+                  {b.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={b.logoUrl} alt={b.name} />
+                  ) : (
+                    <span style={{ fontSize: 11, color: "var(--text3)", fontWeight: 700, textAlign: "center", padding: "0 4px" }}>{b.name}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <Link href="/products" className="brands-cta">
+              <span>همه برندها</span>
+              <i className="ti ti-arrow-left" />
+            </Link>
+          </section>
+        )}
+
+        {/* ── 11. SQUARE ICONS SECTION (dark navy) ── */}
+        {categories.length > 0 && (
+          <section className="square-icons-section">
+            <div className="section-title-with-link">
+              <span>دسته‌بندی‌ها</span>
+              <span className="subtitle-light">انتخاب بر اساس نوع کالا</span>
+              <Link href="/products" className="show-all--right">مشاهده همه</Link>
+            </div>
+            <div className="square-icons-grid">
+              {categories.slice(0, 6).map((cat) => (
+                <Link key={cat.id} href={`/products?category=${cat.slug}`} className="square-item">
+                  <div className="square-icon">
+                    {cat.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={cat.imageUrl} alt={cat.name} />
+                    ) : (
+                      <i className={`ti ${cat.iconClass}`} style={{ fontSize: 24, color: "rgba(255,255,255,.8)" }} />
+                    )}
+                  </div>
+                  <span>{cat.name}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── 12. FEATURED / SALE PRODUCTS (dark row, 5 cols) ── */}
+        {featured.length > 0 && (
+          <section className="product-row product-row--dark">
+            <div className="row-header">
+              <Link href="/products?filter=sale" className="show-all">مشاهده همه</Link>
+              <h2 className="row-title">
+                پیشنهادات ویژه
+                <span className="badge-count">{featured.length}</span>
+              </h2>
+            </div>
+            <div className="row-cards row-cards--5">
+              {featured.map((p) => (
+                <HomeProductCard
+                  key={p.id}
+                  id={p.id}
+                  name={p.name}
+                  slug={p.slug}
+                  price={p.price}
+                  comparePrice={p.comparePrice}
+                  images={p.images}
+                  sizes={p.sizes.map((s) => ({ label: s.label }))}
+                  sizeSummary={p.sizeSummary}
+                  isNew={p.isNew}
+                  stockQty={p.stockQty}
+                  sectionLabel="تخفیف"
+                  variant="dark"
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── 13. TWO-COLUMN BANNER ROW C ── */}
+        {promo2ColC.length > 0 && (
+          <div className="banner-row banner-row--2">
+            {promo2ColC.map((b) => (
+              <Link key={b.id} href={b.buttonLink ?? "#"} className="promo-banner promo-banner--wide">
+                {b.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={b.imageUrl} alt={b.title} className="promo-banner-img" />
+                ) : (
+                  <div className="promo-banner-img" style={{ background: "linear-gradient(135deg, var(--primary) 0%, #1a5fa0 100%)" }} />
+                )}
+                <div className="promo-banner-text">
+                  <p>{b.title}</p>
+                  {b.buttonText && <span className="btn-link">{b.buttonText}</span>}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* ── 14. SQUARE BANNERS (blog posts or admin-managed square banners) ── */}
+        {squareItems.length > 0 && (
+          <section className="square-banners-section">
+            <div className="row-header">
+              <Link href="/blog" className="show-all">مشاهده همه</Link>
+              <h2 className="row-title">آخرین مطالب</h2>
+            </div>
+            <div className="square-banners-row">
+              {squareItems.slice(0, 5).map((item) => (
+                <Link key={item.id} href={item.link} className="square-banner">
+                  <div className="square-banner-img">
+                    {item.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.imageUrl} alt={item.title} />
+                    ) : (
+                      <i className="ti ti-article" style={{ fontSize: 36, color: "var(--border)" }} />
+                    )}
+                  </div>
+                  <p>{item.title}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
       </div>
     </>
   );

@@ -41,7 +41,7 @@ export default function CmsManager() {
 
   // Banners
   const [banners, setBanners] = useState<Banner[]>([]);
-  const [bannerType, setBannerType] = useState<"hero" | "promo" | "category">("hero");
+  const [bannerType, setBannerType] = useState<string>("hero");
   const [editBanner, setEditBanner] = useState<Partial<Banner> | null>(null);
   const [savingBanner, setSavingBanner] = useState(false);
 
@@ -303,7 +303,16 @@ export default function CmsManager() {
       {tab === "banners" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            {([["hero", "بنر اصلی (Hero)"], ["promo", "بنر تبلیغاتی"], ["category", "بنر دسته‌بندی"]] as const).map(([t, l]) => (
+            {([
+              ["hero",       "اسلایدر هدر"],
+              ["hero_main",  "بنر میانی (تمام عرض)"],
+              ["promo_3col", "بنر ۳ستونه"],
+              ["promo_2col_a","بنر ۲ستونه (ردیف ۱)"],
+              ["promo_2col_b","بنر ۲ستونه (ردیف ۲)"],
+              ["promo_2col_c","بنر ۲ستونه (ردیف ۳)"],
+              ["square",     "بنر مربعی"],
+              ["promo",      "بنر تبلیغاتی (قدیمی)"],
+            ] as [string, string][]).map(([t, l]) => (
               <button key={t} onClick={() => setBannerType(t)} style={{ background: bannerType === t ? "var(--primary)" : "var(--bg)", color: bannerType === t ? "#fff" : "var(--text2)", border: "1.5px solid var(--border)", borderRadius: 8, padding: "7px 16px", fontFamily: "Vazirmatn", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{l}</button>
             ))}
             <AdminBtn variant="primary" icon="ti-plus" style={{ marginRight: "auto" }} onClick={() => setEditBanner({ title: "", sortOrder: banners.length, isActive: true, targetPage: null, startDate: null, endDate: null })}>بنر جدید</AdminBtn>
